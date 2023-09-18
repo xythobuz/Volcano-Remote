@@ -27,7 +27,7 @@ async def sleep(t):
     print_bar(0, 0, w, "s")
     for i in range(0, w):
         await asyncio.sleep(t / w)
-        print_bar(i, 0, w, "s")
+        print_bar(i + 1, 0, w, "s")
     print()
 
 async def wait_for_temp(client, temp):
@@ -81,6 +81,10 @@ async def main(address):
     print("Connecting...")
     async with device as client:
         try:
+            if await get_unit_is_fahrenheit(client):
+                print("Imperial American scum is currently not supported :P")
+                sys.exit(42)
+
             print("Starting Workflow")
             await flow(client)
         except:
