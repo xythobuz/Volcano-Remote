@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 
 import sys
-import asyncio
+import time
+import os
+
 from poll import (
     ble_conn,
     get_current_temp,
@@ -10,7 +12,7 @@ from poll import (
     get_state, set_state
 )
 
-terminal_width = 80 + 20 # TODO detect?
+terminal_width = os.get_terminal_size().columns - 15
 
 def print_bar(value, start, end, unit):
     width = terminal_width
@@ -20,83 +22,79 @@ def print_bar(value, start, end, unit):
     s += " {}{}".format(value, unit)
     print(s, end="", flush=True)
 
-async def sleep(t):
+def sleep(t):
     w = terminal_width
     if t < w:
         w = int(t)
     print_bar(0, 0, w, "s")
     for i in range(0, w):
-        await asyncio.sleep(t / w)
+        time.sleep(t / w)
         print_bar(i + 1, 0, w, "s")
     print()
 
-async def wait_for_temp(client, temp):
+def wait_for_temp(client, temp):
     print("Setting temperature {}".format(temp))
-    await set_target_temp(client, temp)
+    set_target_temp(client, temp)
 
     print("Waiting for temperature to rise...")
-    start = await get_current_temp(client)
+    start = get_current_temp(client)
     curr = start
     print_bar(curr, start, temp, " degC")
     while curr < temp:
-        await asyncio.sleep(1.0)
-        curr = await get_current_temp(client)
+        time.sleep(1.0)
+        curr = get_current_temp(client)
         print_bar(curr, start, temp, " degC")
     print()
 
     print("Reached temperature {}".format(temp))
 
-async def flow_step(client, temp, t_wait, t_pump):
-    await wait_for_temp(client, temp)
+def flow_step(client, temp, t_wait, t_pump):
+    wait_for_temp(client, temp)
 
     print("Waiting {}s for heat to settle...".format(t_wait))
-    await sleep(t_wait)
+    sleep(t_wait)
 
     print("Pumping for {}s".format(t_pump))
-    await set_state(client, (True, True)) # turn on pump
-    await sleep(t_pump)
-    await set_state(client, (True, False)) # turn off pump
+    set_state(client, (True, True)) # turn on pump
+    sleep(t_pump)
+    set_state(client, (True, False)) # turn off pump
 
-async def flow(client):
+def flow(client):
     print("Turning on heater")
-    await set_state(client, (True, False))
+    set_state(client, (True, False))
 
-    await flow_step(client, 190.0, 20.0, 5.0)
-    await flow_step(client, 205.0, 10.0, 20.0)
-    await flow_step(client, 220.0, 10.0, 20.0)
+    flow_step(client, 190.0, 20.0, 5.0)
+    flow_step(client, 205.0, 10.0, 20.0)
+    flow_step(client, 220.0, 10.0, 20.0)
 
     print("Notification by pumping three times...")
     for i in range(0, 3):
-        await asyncio.sleep(1.0)
-        await set_state(client, (True, True)) # turn on pump
-        await asyncio.sleep(1.0)
-        await set_state(client, (True, False)) # turn off pump
+        time.sleep(1.0)
+        set_state(client, (True, True)) # turn on pump
+        time.sleep(1.0)
+        set_state(client, (True, False)) # turn off pump
 
     print("Turning heater off")
-    await set_state(client, (False, False)) # turn off heater and pump
+    set_state(client, (False, False)) # turn off heater and pump
 
-async def main(address):
-    device = await ble_conn(address)
+if __name__ == "__main__":
+    def main(address):
+        device = ble_conn(address)
 
-    print("Connecting...")
-    async with device as client:
         try:
-            if await get_unit_is_fahrenheit(client):
-                print("Imperial American scum is currently not supported :P")
-                sys.exit(42)
+            if get_unit_is_fahrenheit(client):
+                raise RuntimeError("Imperial American scum is currently not supported :P")
 
             print("Starting Workflow")
-            await flow(client)
+            flow(client)
         except:
             print("\nTurning heater off")
-            await set_state(client, (False, False)) # turn off heater and pump
+            set_state(client, (False, False)) # turn off heater and pump
             raise
 
         print("Disconnecting...")
 
-if __name__ == "__main__":
-    if len(sys.argv) <= 1:
-        print("Please pass MAC address of device")
-        sys.exit(1)
-
-    asyncio.run(main(sys.argv[1]))
+    arg = None
+    if len(sys.argv) > 1:
+        arg = sys.argv[1]
+    main(arg)

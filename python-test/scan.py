@@ -1,16 +1,39 @@
-#!/usr/bin/env python
+import simplepyble
 
-import asyncio
-from bleak import BleakScanner
+def ble_scan(addr):
+    adapters = simplepyble.Adapter.get_adapters()
 
-async def scan():
-    print("scanning for 5 seconds, please wait...")
-    devices = await BleakScanner.discover(return_adv=True)
-    for d, a in devices.values():
-        print()
-        print(d)
-        print("-" * len(str(d)))
-        print(a)
+    if len(adapters) == 0:
+        print("No adapters found")
+        return None
+
+    # TODO allow selection of bluetooth adapter
+    adapter = adapters[0]
+    print("Selected adapter: {} [{}]".format(adapter.identifier(), adapter.address()))
+
+    # TODO support longer scans?
+    print("Scanning for '{}' for 1s...".format(addr))
+    adapter.scan_for(1000)
+
+    peripherals = adapter.scan_get_results()
+    for peripheral in peripherals:
+        if addr != None:
+            if addr == peripheral.address():
+                return peripheral
+        else:
+            if peripheral.identifier() == "S&B VOLCANO H":
+                return peripheral
+
+    print("No device found")
+    return None
 
 if __name__ == "__main__":
-    asyncio.run(scan())
+    import sys
+
+    arg = None
+    if len(sys.argv) > 1:
+        arg = sys.argv[1]
+
+    dev = ble_scan(arg)
+    if dev != None:
+        print("{} {}".format(dev.identifier(), dev.address()))
