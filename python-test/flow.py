@@ -79,7 +79,7 @@ def flow(client):
 
 if __name__ == "__main__":
     def main(address):
-        device = ble_conn(address)
+        client = ble_conn(address)
 
         try:
             if get_unit_is_fahrenheit(client):
@@ -90,9 +90,14 @@ if __name__ == "__main__":
         except:
             print("\nTurning heater off")
             set_state(client, (False, False)) # turn off heater and pump
+
+            print("Disconnecting")
+            client.disconnect()
+
             raise
 
-        print("Disconnecting...")
+        print("Disconnecting")
+        client.disconnect()
 
     arg = None
     if len(sys.argv) > 1:

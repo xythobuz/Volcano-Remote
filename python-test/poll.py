@@ -83,14 +83,23 @@ if __name__ == "__main__":
         if device == None:
             return
 
-        print("Writing...")
-        set_target_temp(device, 190.0)
+        try:
+            print("Writing...")
+            set_target_temp(device, 190.0)
 
-        print("Reading...")
-        for i in range(0, 5):
-            test_poll(device)
-            print()
-            time.sleep(2.0)
+            print("Reading...")
+            for i in range(0, 5):
+                test_poll(device)
+                print()
+                time.sleep(2.0)
+        except:
+            print("Disconnecting")
+            client.disconnect()
+
+            raise
+
+        print("Disconnecting")
+        client.disconnect()
 
     import sys
 
