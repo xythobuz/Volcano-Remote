@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
+import uasyncio as asyncio
 import sys
 import time
-import os
 
 from poll import (
     ble_conn,
@@ -12,15 +12,8 @@ from poll import (
     get_state, set_state
 )
 
-terminal_width = os.get_terminal_size().columns - 15
-
 def print_bar(value, start, end, unit):
-    width = terminal_width
-    s = "\r"
-    s += "#" * int((value - start) / (end - start) * width)
-    s += "-" * (width - int((value - start) / (end - start) * width))
-    s += " {}{}".format(value, unit)
-    print(s, end="", flush=True)
+    print("{}{} -> {}{} -> {}{}".format(start, unit, value, unit, end, unit))
 
 def sleep(t):
     w = terminal_width
@@ -32,78 +25,64 @@ def sleep(t):
         print_bar(i + 1, 0, w, "s")
     print()
 
-def wait_for_temp(client, temp):
+async def wait_for_temp(client, temp):
     print("Setting temperature {}".format(temp))
-    set_target_temp(client, temp)
+    await set_target_temp(client, temp)
 
     print("Waiting for temperature to rise...")
-    start = get_current_temp(client)
+    start = await get_current_temp(client)
     curr = start
     print_bar(curr, start, temp, " degC")
     while curr < temp:
         time.sleep(1.0)
-        curr = get_current_temp(client)
+        curr = await get_current_temp(client)
         print_bar(curr, start, temp, " degC")
     print()
 
     print("Reached temperature {}".format(temp))
 
-def flow_step(client, temp, t_wait, t_pump):
-    wait_for_temp(client, temp)
+async def flow_step(client, temp, t_wait, t_pump):
+    await wait_for_temp(client, temp)
 
     print("Waiting {}s for heat to settle...".format(t_wait))
     sleep(t_wait)
 
     print("Pumping for {}s".format(t_pump))
-    set_state(client, (True, True)) # turn on pump
+    await set_state(client, (True, True)) # turn on pump
     sleep(t_pump)
-    set_state(client, (True, False)) # turn off pump
+    await set_state(client, (True, False)) # turn off pump
 
-def flow(client):
+async def flow(client):
     print("Turning on heater")
-    set_state(client, (True, False))
+    await set_state(client, (True, False))
 
-    flow_step(client, 190.0, 20.0, 5.0)
-    flow_step(client, 205.0, 10.0, 20.0)
-    flow_step(client, 220.0, 10.0, 20.0)
+    await flow_step(client, 190.0, 20.0, 5.0)
+    await flow_step(client, 205.0, 10.0, 20.0)
+    await flow_step(client, 220.0, 10.0, 20.0)
 
     print("Notification by pumping three times...")
     for i in range(0, 3):
         time.sleep(1.0)
-        set_state(client, (True, True)) # turn on pump
+        await set_state(client, (True, True)) # turn on pump
         time.sleep(1.0)
-        set_state(client, (True, False)) # turn off pump
+        await set_state(client, (True, False)) # turn off pump
 
     print("Turning heater off")
-    set_state(client, (False, False)) # turn off heater and pump
+    await set_state(client, (False, False)) # turn off heater and pump
 
 if __name__ == "__main__":
-    def main(address, adapter):
-        client = ble_conn(address, adapter)
+    async def main(address):
+        client = await ble_conn(address)
 
         try:
-            if get_unit_is_fahrenheit(client):
+            if await get_unit_is_fahrenheit(client):
                 raise RuntimeError("Imperial American scum is currently not supported :P")
 
             print("Starting Workflow")
-            flow(client)
+            await flow(client)
         except:
             print("\nTurning heater off")
-            set_state(client, (False, False)) # turn off heater and pump
-
-            print("Disconnecting")
-            client.disconnect()
-
+            await set_state(client, (False, False)) # turn off heater and pump
             raise
 
-        print("Disconnecting")
-        client.disconnect()
-
-    adapter = None
-    mac = None
-    if len(sys.argv) > 1:
-        adapter = int(sys.argv[1])
-    if len(sys.argv) > 2:
-        mac = sys.argv[2]
-
-    main(mac, adapter)
+    asyncio.run(main(None))

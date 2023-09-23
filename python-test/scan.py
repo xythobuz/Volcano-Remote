@@ -1,41 +1,27 @@
-import simplepyble
+# https://github.com/micropython/micropython-lib/blob/master/micropython/bluetooth/aioble/examples/temp_client.py
 
-def ble_scan(addr = None, adapterIndex = 0, timeout = 1):
-    adapters = simplepyble.Adapter.get_adapters()
+import uasyncio as asyncio
+import aioble
+import bluetooth
+import sys
 
-    if len(adapters) == 0:
-        print("No adapters found")
-        return None
-
-    adapter = adapters[adapterIndex]
-    print("Selected adapter: {} [{}]".format(adapter.identifier(), adapter.address()))
-
-    # TODO abort scan when found?
+async def ble_scan(addr = None, timeout = 0.1):
     print("Scanning for '{}' for {}s...".format(addr, timeout))
-    adapter.scan_for(timeout * 1000)
-
-    peripherals = adapter.scan_get_results()
-    for peripheral in peripherals:
-        if addr != None:
-            if addr == peripheral.address():
-                return peripheral
-        else:
-            if peripheral.identifier() == "S&B VOLCANO H":
-                return peripheral
+    scanner = aioble.scan(int(timeout * 1000.0), interval_us=30000, window_us=30000, active=True)
+    async with scanner as s:
+        async for d in s:
+            print("Scan: '{}' [{}]".format(d.name(), d.device.addr_hex()))
+            if addr != None:
+                if addr == d.device.addr_hex():
+                    return d.device
+            else:
+                if d.name() == "S&B VOLCANO H":
+                    return d.device
 
     print("No device found")
     return None
 
 if __name__ == "__main__":
-    import sys
-
-    adapter = None
-    mac = None
-    if len(sys.argv) > 1:
-        adapter = int(sys.argv[1])
-    if len(sys.argv) > 2:
-        mac = sys.argv[2]
-
-    dev = ble_scan(mac, adapter)
+    dev = asyncio.run(ble_scan())
     if dev != None:
-        print("{} {}".format(dev.identifier(), dev.address()))
+        print("{}".format(dev.addr_hex()))

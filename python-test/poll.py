@@ -1,75 +1,105 @@
 #!/usr/bin/env python
 
-import simplepyble
-from scan import ble_scan
+import uasyncio as asyncio
+import bluetooth
 import time
 
-serviceUuidVolcano3 = "10100000-5354-4f52-5a26-4249434b454c"
-serviceUuidVolcano4 = "10110000-5354-4f52-5a26-4249434b454c"
+from scan import ble_scan
 
-def ble_conn(address, adapter):
-    dev = ble_scan(address, adapter)
+serviceUuidVolcano3 = bluetooth.UUID("10100000-5354-4f52-5a26-4249434b454c")
+serviceUuidVolcano4 = bluetooth.UUID("10110000-5354-4f52-5a26-4249434b454c")
 
-    if dev != None:
-        address = dev.address()
+async def ble_conn(address):
+    dev = await ble_scan(address)
+
+    if dev:
+        address = dev.addr_hex()
         print("Connecting to '{}'...".format(address))
-        dev.connect()
+        connection = await dev.connect()
+        return connection
 
-    return dev
+    return None
 
-def get_current_temp(device):
-    val = device.read(serviceUuidVolcano4, "10110001-5354-4f52-5a26-4249434b454c")
-    num = int.from_bytes(val, byteorder="little")
+async def get_current_temp(device):
+    service = await device.service(serviceUuidVolcano4)
+    uuid = bluetooth.UUID("10110001-5354-4f52-5a26-4249434b454c")
+    characteristic = await service.characteristic(uuid)
+    val = await characteristic.read()
+    num = int.from_bytes(val, "little")
     return num / 10.0
 
-def get_target_temp(device):
-    val = device.read(serviceUuidVolcano4, "10110003-5354-4f52-5a26-4249434b454c")
-    num = int.from_bytes(val, byteorder="little")
+async def get_target_temp(device):
+    service = await device.service(serviceUuidVolcano4)
+    uuid = bluetooth.UUID("10110003-5354-4f52-5a26-4249434b454c")
+    characteristic = await service.characteristic(uuid)
+    val = await characteristic.read()
+    num = int.from_bytes(val, "little")
     return num / 10.0
 
-def set_target_temp(device, temp):
+async def set_target_temp(device, temp):
     val = int(temp * 10.0)
-    d = val.to_bytes(4, byteorder="little")
-    device.write_request(serviceUuidVolcano4, "10110003-5354-4f52-5a26-4249434b454c", d)
+    d = val.to_bytes(4, "little")
+    service = await device.service(serviceUuidVolcano4)
+    uuid = bluetooth.UUID("10110003-5354-4f52-5a26-4249434b454c")
+    characteristic = await service.characteristic(uuid)
+    await characteristic.write(d)
 
-def get_unit_is_fahrenheit(device):
-    val = device.read(serviceUuidVolcano3, "1010000d-5354-4f52-5a26-4249434b454c")
-    num = int.from_bytes(val, byteorder="little")
+async def get_unit_is_fahrenheit(device):
+    service = await device.service(serviceUuidVolcano3)
+    uuid = bluetooth.UUID("1010000d-5354-4f52-5a26-4249434b454c")
+    characteristic = await service.characteristic(uuid)
+    val = await characteristic.read()
+    num = int.from_bytes(val, "little")
     return (num & 0x200) != 0
 
-def get_state(device):
-    val = device.read(serviceUuidVolcano3, "1010000c-5354-4f52-5a26-4249434b454c")
-    num = int.from_bytes(val, byteorder="little")
+async def get_state(device):
+    service = await device.service(serviceUuidVolcano3)
+    uuid = bluetooth.UUID("1010000c-5354-4f52-5a26-4249434b454c")
+    characteristic = await service.characteristic(uuid)
+    val = await characteristic.read()
+    num = int.from_bytes(val, "little")
     heater = (num & 0x0020) != 0
     pump = (num & 0x2000) != 0
     return (heater, pump)
 
-def set_state(device, state):
+async def set_state(device, state):
     heater, pump = state
     if heater:
-        device.write_request(serviceUuidVolcano4, "1011000f-5354-4f52-5a26-4249434b454c", 0)
+        service = await device.service(serviceUuidVolcano4)
+        uuid = bluetooth.UUID("1011000f-5354-4f52-5a26-4249434b454c")
+        characteristic = await service.characteristic(uuid)
+        await characteristic.write(int(0).to_bytes(1, "little"))
     else:
-        device.write_request(serviceUuidVolcano4, "10110010-5354-4f52-5a26-4249434b454c", 0)
+        service = await device.service(serviceUuidVolcano4)
+        uuid = bluetooth.UUID("10110010-5354-4f52-5a26-4249434b454c")
+        characteristic = await service.characteristic(uuid)
+        await characteristic.write(int(0).to_bytes(1, "little"))
     if pump:
-        device.write_request(serviceUuidVolcano4, "10110013-5354-4f52-5a26-4249434b454c", 0)
+        service = await device.service(serviceUuidVolcano4)
+        uuid = bluetooth.UUID("10110013-5354-4f52-5a26-4249434b454c")
+        characteristic = await service.characteristic(uuid)
+        await characteristic.write(int(0).to_bytes(1, "little"))
     else:
-        device.write_request(serviceUuidVolcano4, "10110014-5354-4f52-5a26-4249434b454c", 0)
+        service = await device.service(serviceUuidVolcano4)
+        uuid = bluetooth.UUID("10110014-5354-4f52-5a26-4249434b454c")
+        characteristic = await service.characteristic(uuid)
+        await characteristic.write(int(0).to_bytes(1, "little"))
 
 if __name__ == "__main__":
-    def test_poll(device):
-        temp = get_current_temp(device)
+    async def test_poll(device):
+        temp = await get_current_temp(device)
         print("Current Temperature: {}".format(temp))
 
-        target = get_target_temp(device)
+        target = await get_target_temp(device)
         print("Target Temperature: {}".format(target))
 
-        fahrenheit = get_unit_is_fahrenheit(device)
+        fahrenheit = await get_unit_is_fahrenheit(device)
         if fahrenheit:
             print("Unit is Fahrenheit")
         else:
             print("Unit is Celsius")
 
-        heater, pump = get_state(device)
+        heater, pump = await get_state(device)
         if heater:
             print("Heater is On")
         else:
@@ -79,36 +109,19 @@ if __name__ == "__main__":
         else:
             print("Pump is Off")
 
-    def test(address, adapter):
-        device = ble_conn(address, adapter)
+    async def test(address):
+        device = await ble_conn(address)
         if device == None:
             return
 
-        try:
+        async with device:
             print("Writing...")
-            set_target_temp(device, 190.0)
+            await set_target_temp(device, 190.0)
 
             print("Reading...")
             for i in range(0, 5):
-                test_poll(device)
+                await test_poll(device)
                 print()
                 time.sleep(2.0)
-        except:
-            print("Disconnecting")
-            client.disconnect()
 
-            raise
-
-        print("Disconnecting")
-        client.disconnect()
-
-    import sys
-
-    adapter = None
-    mac = None
-    if len(sys.argv) > 1:
-        adapter = int(sys.argv[1])
-    if len(sys.argv) > 2:
-        mac = sys.argv[2]
-
-    test(mac, adapter)
+    asyncio.run(test(None))
