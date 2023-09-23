@@ -7,11 +7,12 @@ import time
 serviceUuidVolcano3 = "10100000-5354-4f52-5a26-4249434b454c"
 serviceUuidVolcano4 = "10110000-5354-4f52-5a26-4249434b454c"
 
-def ble_conn(address):
-    dev = ble_scan(address)
+def ble_conn(address, adapter):
+    dev = ble_scan(address, adapter)
 
     if dev != None:
-        print("Connecting to {}...".format(address))
+        address = dev.address()
+        print("Connecting to '{}'...".format(address))
         dev.connect()
 
     return dev
@@ -78,8 +79,8 @@ if __name__ == "__main__":
         else:
             print("Pump is Off")
 
-    def test(address):
-        device = ble_conn(address)
+    def test(address, adapter):
+        device = ble_conn(address, adapter)
         if device == None:
             return
 
@@ -103,8 +104,11 @@ if __name__ == "__main__":
 
     import sys
 
-    arg = None
+    adapter = None
+    mac = None
     if len(sys.argv) > 1:
-        arg = sys.argv[1]
+        adapter = int(sys.argv[1])
+    if len(sys.argv) > 2:
+        mac = sys.argv[2]
 
-    test(arg)
+    test(mac, adapter)
