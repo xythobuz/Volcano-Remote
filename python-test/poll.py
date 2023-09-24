@@ -37,12 +37,21 @@ async def get_target_temp(device):
     return num / 10.0
 
 async def set_target_temp(device, temp):
-    val = int(temp * 10.0)
-    d = val.to_bytes(4, "little")
-    service = await device.service(serviceUuidVolcano4)
-    uuid = bluetooth.UUID("10110003-5354-4f52-5a26-4249434b454c")
-    characteristic = await service.characteristic(uuid)
-    await characteristic.write(d)
+    attempts = 3
+    while attempts > 0:
+        val = int(temp * 10.0)
+        d = val.to_bytes(4, "little")
+        service = await device.service(serviceUuidVolcano4)
+        uuid = bluetooth.UUID("10110003-5354-4f52-5a26-4249434b454c")
+        characteristic = await service.characteristic(uuid)
+        await characteristic.write(d)
+
+        attempts -= 1
+
+        target = await get_target_temp(device)
+        if abs(target - temp) < 0.5:
+            return
+    raise RuntimeError("Could not set target temperature")
 
 async def get_unit_is_fahrenheit(device):
     service = await device.service(serviceUuidVolcano3)

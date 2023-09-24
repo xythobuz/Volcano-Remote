@@ -16,14 +16,10 @@ def print_bar(value, start, end, unit):
     print("{}{} -> {}{} -> {}{}".format(start, unit, value, unit, end, unit))
 
 def sleep(t):
-    w = terminal_width
-    if t < w:
-        w = int(t)
-    print_bar(0, 0, w, "s")
-    for i in range(0, w):
-        time.sleep(t / w)
-        print_bar(i + 1, 0, w, "s")
-    print()
+    print_bar(0, 0, t, "s")
+    for i in range(0, t):
+        time.sleep(1.0)
+        print_bar(i + 1, 0, t, "s")
 
 async def wait_for_temp(client, temp):
     print("Setting temperature {}".format(temp))
@@ -56,21 +52,24 @@ async def flow(client):
     print("Turning on heater")
     await set_state(client, (True, False))
 
-    await flow_step(client, 190.0, 20.0, 5.0)
-    await flow_step(client, 205.0, 10.0, 20.0)
-    await flow_step(client, 220.0, 10.0, 20.0)
+    await flow_step(client, 190.0, 20.0, 5.0 - 4.9)
+    await flow_step(client, 205.0, 10.0, 20.0 - 7)
+    await flow_step(client, 220.0, 10.0, 20.0 - 7)
 
-    print("Notification by pumping three times...")
-    for i in range(0, 3):
-        time.sleep(1.0)
-        await set_state(client, (True, True)) # turn on pump
-        time.sleep(1.0)
-        await set_state(client, (True, False)) # turn off pump
+    #print("Notification by pumping three times...")
+    #for i in range(0, 3):
+    #    time.sleep(1.0 / 3)
+    #    await set_state(client, (True, True)) # turn on pump
+    #    time.sleep(1.0 / 3)
+    #    await set_state(client, (True, False)) # turn off pump
 
     print("Turning heater off")
     await set_state(client, (False, False)) # turn off heater and pump
 
-if __name__ == "__main__":
+    print("Setting temperature back to 190")
+    await set_target_temp(client, 190.0)
+
+if True:#__name__ == "__main__":
     async def main(address):
         client = await ble_conn(address)
 
