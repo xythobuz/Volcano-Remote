@@ -13,9 +13,9 @@ async def ble_conn(address):
     dev = await ble_scan(address)
 
     if dev:
-        address = dev.addr_hex()
+        address = dev.device.addr_hex()
         print("Connecting to '{}'...".format(address))
-        connection = await dev.connect()
+        connection = await dev.device.connect()
         return connection
 
     return None

@@ -12,14 +12,22 @@ from poll import (
     get_state, set_state
 )
 
+terminal_width = 100 #os.get_terminal_size().columns - 15
+
 def print_bar(value, start, end, unit):
-    print("{}{} -> {}{} -> {}{}".format(start, unit, value, unit, end, unit))
+    width = terminal_width
+    s = "\r"
+    s += "#" * int((value - start) / (end - start) * width)
+    s += "-" * (width - int((value - start) / (end - start) * width))
+    s += " {}{}".format(value, unit)
+    print(s, end="")
 
 def sleep(t):
     print_bar(0, 0, t, "s")
     for i in range(0, t):
         time.sleep(1.0)
         print_bar(i + 1, 0, t, "s")
+    print()
 
 async def wait_for_temp(client, temp):
     print("Setting temperature {}".format(temp))
@@ -52,16 +60,16 @@ async def flow(client):
     print("Turning on heater")
     await set_state(client, (True, False))
 
-    await flow_step(client, 190.0, 20.0, 5.0 - 4.9)
-    await flow_step(client, 205.0, 10.0, 20.0 - 7)
-    await flow_step(client, 220.0, 10.0, 20.0 - 7)
+    await flow_step(client, 190.0, 15.0, 5.0 - 4)
+    await flow_step(client, 205.0, 10.0, 20.0 - 4)
+    await flow_step(client, 220.0, 10.0, 20.0 - 4)
 
-    #print("Notification by pumping three times...")
-    #for i in range(0, 3):
-    #    time.sleep(1.0 / 3)
-    #    await set_state(client, (True, True)) # turn on pump
-    #    time.sleep(1.0 / 3)
-    #    await set_state(client, (True, False)) # turn off pump
+    print("Notification by pumping three times...")
+    for i in range(0, 3):
+        #time.sleep(1.0 / 3)
+        await set_state(client, (True, True)) # turn on pump
+        #time.sleep(1.0 / 3)
+        await set_state(client, (True, False)) # turn off pump
 
     print("Turning heater off")
     await set_state(client, (False, False)) # turn off heater and pump
@@ -69,7 +77,7 @@ async def flow(client):
     print("Setting temperature back to 190")
     await set_target_temp(client, 190.0)
 
-if True:#__name__ == "__main__":
+if __name__ == "__main__":
     async def main(address):
         client = await ble_conn(address)
 
@@ -84,4 +92,28 @@ if True:#__name__ == "__main__":
             await set_state(client, (False, False)) # turn off heater and pump
             raise
 
-    asyncio.run(main(None))
+    import machine
+    led_onboard = machine.Pin("LED", machine.Pin.OUT)
+
+    for i in range(0, 3):
+        led_onboard.on()
+        time.sleep(0.2)
+        led_onboard.off()
+        time.sleep(0.2)
+
+    print("ready")
+    while True:
+        if rp2.bootsel_button() == 1:
+            led_onboard.on()
+            print("run")
+
+            try:
+                asyncio.run(main(None))
+                print("done")
+            except Exception as e:
+                print(e)
+
+            led_onboard.off()
+            machine.reset()
+
+        time.sleep(0.2)
