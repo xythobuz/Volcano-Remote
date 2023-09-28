@@ -39,7 +39,7 @@ class StateScan:
     def draw_list(self):
         for i, d in enumerate(self.results):
             s1 = "{}".format(d.name())
-            s2 = "{} - {}".format(i + 1, d.device.addr_hex())
+            s2 = "{}: [{}] {}".format(i + 1, d.device.addr_hex(), d.rssi)
 
             off = i * 25 + 30
             if off >= self.lcd.height:
