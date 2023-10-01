@@ -4,8 +4,17 @@ import uasyncio as asyncio
 from poll import set_target_temp, get_current_temp
 
 def draw_graph(lcd, min, val, max):
-    # TODO
-    lcd.text("{} -> {} -> {}".format(min, val, max), 0, 100, lcd.white)
+    if max == min:
+        lcd.text("{} -> {} -> {}".format(min, val, max), 0, 100, lcd.white)
+        return
+
+    w = lcd.width - 10
+    ratio = (val - min) / (max - min)
+    wfull = int(w * ratio)
+    wempty = w - wfull
+    lcd.rect(4, 100, wfull + 1, 50, lcd.green, True)
+    lcd.rect(4 + wfull, 100, wempty + 2, 50, lcd.green, False)
+    lcd.text("{}".format(val), int(lcd.width / 2), 125, lcd.white)
 
 class StateWaitTemp:
     def __init__(self, lcd):
@@ -64,7 +73,11 @@ class StateWaitTemp:
             return 4 # heat off
 
         async with self.lock:
-            draw_graph(self.lcd, self.min, self.temp, self.max)
+            if self.temp == 0.0:
+                self.lcd.text("Setting temperature...", 0, 100, self.lcd.white)
+            else:
+                draw_graph(self.lcd, self.min, self.temp, self.max)
+
             if self.temp >= self.max:
                 print("switch, {} >= {}".format(self.temp, self.max))
                 return 7 # wait for time

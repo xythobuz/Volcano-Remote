@@ -58,9 +58,14 @@ class StatePump:
 
         async with self.lock:
             if self.start != None:
-                draw_graph(self.lcd, 0.0, time.time() - self.start, self.duration)
+                now = time.time()
+                if now - self.start <= self.duration:
+                    draw_graph(self.lcd, 0.0, now - self.start, self.duration)
+                else:
+                    self.lcd.text("Turning off pump...", 0, 100, self.lcd.white)
             else:
                 self.lcd.text("Turning on pump...", 0, 100, self.lcd.white)
+
             if self.done:
                 if self.value[2] >= (len(workflow["steps"]) - 1):
                     # TODO notify

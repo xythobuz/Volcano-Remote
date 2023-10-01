@@ -62,6 +62,11 @@ class StateConnect:
                     return 2 # selection
                 else:
                     return 0 # scan
+            else:
+                if self.state == False:
+                    self.lcd.text("Disconnecting...", 0, 100, self.lcd.white)
+                else:
+                    self.lcd.text("Connecting...", 0, 100, self.lcd.white)
 
         self.lcd.show()
         return -1 # stay in this state

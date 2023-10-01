@@ -32,6 +32,7 @@ class StateWaitTime:
 
         now = time.time()
         draw_graph(self.lcd, 0.0, now - self.start, self.end - self.start)
+
         if now >= self.end:
             print("switch, {} >= {}".format(now, self.end))
             return 8 # pump
