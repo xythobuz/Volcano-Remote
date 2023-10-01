@@ -6,8 +6,15 @@ cp flow.py /pyboard
 cp poll.py /pyboard
 cp scan.py /pyboard
 cp lcd.py /pyboard
+cp workflows.py /pyboard
 cp states.py /pyboard
 cp state_scan.py /pyboard
+cp state_connect.py /pyboard
+cp state_select.py /pyboard
+cp state_heat.py /pyboard
+cp state_wait_temp.py /pyboard
+cp state_wait_time.py /pyboard
+cp state_pump.py /pyboard
 cp $1 /pyboard/main.py
 EOF
 else
@@ -16,7 +23,15 @@ cp flow.py /pyboard
 cp poll.py /pyboard
 cp scan.py /pyboard
 cp lcd.py /pyboard
+cp workflows.py /pyboard
 cp states.py /pyboard
 cp state_scan.py /pyboard
+cp state_connect.py /pyboard
+cp state_select.py /pyboard
+cp state_heat.py /pyboard
+cp state_wait_temp.py /pyboard
+cp state_wait_time.py /pyboard
+cp state_pump.py /pyboard
+rm /pyboard/main.py
 EOF
 fi

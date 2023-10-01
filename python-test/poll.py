@@ -73,22 +73,23 @@ async def get_state(device):
 
 async def set_state(device, state):
     heater, pump = state
-    if heater:
+    if heater == True:
         service = await device.service(serviceUuidVolcano4)
         uuid = bluetooth.UUID("1011000f-5354-4f52-5a26-4249434b454c")
         characteristic = await service.characteristic(uuid)
         await characteristic.write(int(0).to_bytes(1, "little"))
-    else:
+    elif heater == False:
         service = await device.service(serviceUuidVolcano4)
         uuid = bluetooth.UUID("10110010-5354-4f52-5a26-4249434b454c")
         characteristic = await service.characteristic(uuid)
         await characteristic.write(int(0).to_bytes(1, "little"))
-    if pump:
+
+    if pump == True:
         service = await device.service(serviceUuidVolcano4)
         uuid = bluetooth.UUID("10110013-5354-4f52-5a26-4249434b454c")
         characteristic = await service.characteristic(uuid)
         await characteristic.write(int(0).to_bytes(1, "little"))
-    else:
+    elif pump == False:
         service = await device.service(serviceUuidVolcano4)
         uuid = bluetooth.UUID("10110014-5354-4f52-5a26-4249434b454c")
         characteristic = await service.characteristic(uuid)

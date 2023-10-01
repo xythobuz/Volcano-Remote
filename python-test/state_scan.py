@@ -2,7 +2,6 @@
 
 import uasyncio as asyncio
 from scan import ble_scan
-from flow import flow
 
 class StateScan:
     def __init__(self, lcd):
@@ -10,7 +9,7 @@ class StateScan:
 
         self.lock = asyncio.Lock()
 
-    def enter(self):
+    def enter(self, val = None):
         self.scanner = asyncio.create_task(self.scan())
         self.results = []
         self.current = None
@@ -20,6 +19,8 @@ class StateScan:
 
         if self.lock.locked():
             self.lock.release()
+
+        return self.results[self.current]
 
     async def scan(self):
         while True:
@@ -71,9 +72,7 @@ class StateScan:
         async with self.lock:
             if keys.once("enter"):
                 if self.current < len(self.results):
-                    #return 1 # connect
-                    client = await self.results[self.current].device.connect()
-                    await flow(client)
+                    return 1 # connect
             elif keys.once("up"):
                 if self.current == None:
                     self.current = len(self.results) - 1
