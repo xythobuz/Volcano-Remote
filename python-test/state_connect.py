@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import uasyncio as asyncio
+from poll import cache_services_characteristics
 
 class StateConnect:
     def __init__(self, lcd, state):
@@ -10,6 +11,7 @@ class StateConnect:
         self.lock = asyncio.Lock()
 
     def enter(self, val = None):
+        self.step = False
         self.done = False
         self.client = None
         self.connector = asyncio.create_task(self.connect(val))
@@ -28,6 +30,9 @@ class StateConnect:
 
         if self.state:
             client = await d.device.connect()
+            async with self.lock:
+                self.step = True
+            await cache_services_characteristics(client)
         else:
             await d[0].disconnect()
             client = None
@@ -41,11 +46,6 @@ class StateConnect:
 
         self.lcd.text("Volcano Remote Control App", 0, 0, self.lcd.green)
         self.lcd.text("Connecting to Bluetooth device", 0, 10, self.lcd.red)
-
-        if self.state:
-            self.lcd.text("Connecting...", 0, int(self.lcd.height / 2) - 5, self.lcd.white)
-        else:
-            self.lcd.text("Disconnecting...", 0, int(self.lcd.height / 2) - 5, self.lcd.white)
 
         keys = self.lcd.buttons()
 
@@ -64,9 +64,12 @@ class StateConnect:
                     return 0 # scan
             else:
                 if self.state == False:
-                    self.lcd.text("Disconnecting...", 0, 100, self.lcd.white)
+                    self.lcd.text("Disconnecting...", 0, int(self.lcd.height / 2) - 5, self.lcd.white)
                 else:
-                    self.lcd.text("Connecting...", 0, 100, self.lcd.white)
+                    if self.step == False:
+                        self.lcd.text("Connecting...", 0, int(self.lcd.height / 2) - 5, self.lcd.white)
+                    else:
+                        self.lcd.text("Fetching parameters...", 0, int(self.lcd.height / 2) - 5, self.lcd.white)
 
         self.lcd.show()
         return -1 # stay in this state

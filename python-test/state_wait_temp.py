@@ -5,15 +5,15 @@ from poll import set_target_temp, get_current_temp
 
 def draw_graph(lcd, min, val, max):
     if max == min:
-        lcd.text("{} -> {} -> {}".format(min, val, max), 0, 100, lcd.white)
+        lcd.text("{} -> {} -> {}".format(min, val, max), 0, int(lcd.height / 2) - 5, lcd.white)
         return
 
     w = lcd.width - 10
     ratio = (val - min) / (max - min)
     wfull = int(w * ratio)
     wempty = w - wfull
-    lcd.rect(4, 100, wfull + 1, 50, lcd.green, True)
-    lcd.rect(4 + wfull, 100, wempty + 2, 50, lcd.green, False)
+    lcd.rect(4, int(lcd.height / 2) - 5, wfull + 1, 50, lcd.green, True)
+    lcd.rect(4 + wfull, int(lcd.height / 2) - 5, wempty + 2, 50, lcd.green, False)
     lcd.text("{}".format(val), int(lcd.width / 2), 125, lcd.white)
 
 class StateWaitTemp:
@@ -74,7 +74,7 @@ class StateWaitTemp:
 
         async with self.lock:
             if self.temp == 0.0:
-                self.lcd.text("Setting temperature...", 0, 100, self.lcd.white)
+                self.lcd.text("Setting temperature...", 0, int(self.lcd.height / 2) - 5, self.lcd.white)
             else:
                 draw_graph(self.lcd, self.min, self.temp, self.max)
 

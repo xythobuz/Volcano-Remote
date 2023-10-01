@@ -12,7 +12,7 @@ class StateWaitTime:
 
         device, workflow, index = self.value
         self.start = time.time()
-        self.end = self.start + workflow["steps"][index][1]
+        self.end = self.start + int(workflow["steps"][index][1])
 
     def exit(self):
         return (self.value[0], self.value[1], self.value[2])

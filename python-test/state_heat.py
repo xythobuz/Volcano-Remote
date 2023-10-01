@@ -58,9 +58,9 @@ class StateHeat:
                     return 6 # wait for temperature
             else:
                 if self.state == False:
-                    self.lcd.text("Turning heater off...", 0, 100, self.lcd.white)
+                    self.lcd.text("Turning heater off...", 0, int(self.lcd.height / 2) - 5, self.lcd.white)
                 else:
-                    self.lcd.text("Turning heater on...", 0, 100, self.lcd.white)
+                    self.lcd.text("Turning heater on...", 0, int(self.lcd.height / 2) - 5, self.lcd.white)
 
         self.lcd.show()
         return -1 # stay in this state

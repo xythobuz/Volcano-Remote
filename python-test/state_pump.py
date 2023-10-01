@@ -62,9 +62,9 @@ class StatePump:
                 if now - self.start <= self.duration:
                     draw_graph(self.lcd, 0.0, now - self.start, self.duration)
                 else:
-                    self.lcd.text("Turning off pump...", 0, 100, self.lcd.white)
+                    self.lcd.text("Turning off pump...", 0, int(self.lcd.height / 2) - 5, self.lcd.white)
             else:
-                self.lcd.text("Turning on pump...", 0, 100, self.lcd.white)
+                self.lcd.text("Turning on pump...", 0, int(self.lcd.height / 2) - 5, self.lcd.white)
 
             if self.done:
                 if self.value[2] >= (len(workflow["steps"]) - 1):
