@@ -66,10 +66,10 @@ class StateHeat:
             else:
                 if self.state == False:
                     if self.state == False:
-                        self.lcd.text("Turning heater off...", 0, int(self.lcd.height / 2) - 5, self.lcd.white)
+                        self.lcd.textC("Turning heater off...", int(self.lcd.width / 2), int(self.lcd.height / 2), self.lcd.white)
                     else:
-                        self.lcd.text("Resetting temperature...", 0, int(self.lcd.height / 2) - 5, self.lcd.white)
+                        self.lcd.textC("Resetting temperature...", int(self.lcd.width / 2), int(self.lcd.height / 2), self.lcd.white)
                 else:
-                    self.lcd.text("Turning heater on...", 0, int(self.lcd.height / 2) - 5, self.lcd.white)
+                    self.lcd.textC("Turning heater on...", int(self.lcd.width / 2), int(self.lcd.height / 2), self.lcd.white)
 
         return -1

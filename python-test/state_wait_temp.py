@@ -5,13 +5,13 @@ from poll import set_target_temp, get_current_temp
 
 def draw_graph(lcd, min, val, max):
     if max == min:
-        lcd.text("{} -> {} -> {}".format(min, val, max), 0, int(lcd.height / 2) - 5, lcd.white)
+        lcd.textC("{} -> {} -> {}".format(min, val, max), int(self.lcd.width / 2), int(lcd.height / 2), lcd.white)
         return
 
     ratio = (val - min) / (max - min)
     lcd.pie(lcd.width / 2, lcd.height / 2, lcd.width - 30, lcd.red, lcd.green, ratio)
 
-    lcd.text("{} / {}".format(val, max), int(lcd.width / 2), int(lcd.height / 2) - 5, lcd.white)
+    lcd.textC("{} / {}".format(val, max), int(lcd.width / 2), int(lcd.height / 2), lcd.white)
 
 class StateWaitTemp:
     def __init__(self, lcd):
@@ -64,7 +64,7 @@ class StateWaitTemp:
 
         async with self.lock:
             if self.temp == 0.0:
-                self.lcd.text("Setting temperature...", 0, int(self.lcd.height / 2) - 5, self.lcd.white)
+                self.lcd.textC("Setting temperature...", int(self.lcd.width / 2), int(self.lcd.height / 2), self.lcd.white)
             else:
                 draw_graph(self.lcd, self.min, self.temp, self.max)
 

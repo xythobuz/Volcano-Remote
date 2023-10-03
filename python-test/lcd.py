@@ -243,3 +243,6 @@ class LCD(framebuf.FrameBuffer):
         if v > 0.0:
             self.arc(int(x0), int(y0), int(w), int(w), c_circle, -90, int(v * 360) - 90)
         self.ring(int(x0), int(y0), int(w / 2), c_border)
+
+    def textC(self, s, x, y, c):
+        self.text(s, x - int(len(s) * 8 / 2), y - 5, c)
