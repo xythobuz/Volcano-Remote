@@ -44,10 +44,7 @@ class StatePump:
             self.done = True
 
     async def draw(self):
-        self.lcd.fill(self.lcd.black)
-
         device, workflow, index = self.value
-        self.lcd.text("Volcano Remote Control App", 0, 0, self.lcd.green)
         self.lcd.text("Running Workflow - Pump {}".format(workflow["steps"][index][2]), 0, 10, self.lcd.red)
 
         keys = self.lcd.buttons()
@@ -68,10 +65,11 @@ class StatePump:
 
             if self.done:
                 if self.value[2] >= (len(workflow["steps"]) - 1):
-                    # TODO notify
-                    return 4 # heater off
+                    if workflow["notify"] != None:
+                        return 9 # notify
+                    else:
+                        return 4 # heater off
                 else:
                     return 6 # wait for temperature
 
-        self.lcd.show()
         return -1 # stay in this state

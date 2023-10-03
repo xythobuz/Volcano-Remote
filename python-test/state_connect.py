@@ -29,7 +29,7 @@ class StateConnect:
             self.done = False
 
         if self.state:
-            client = await d.device.connect()
+            client = await d[0].device.connect()
             async with self.lock:
                 self.step = True
             await cache_services_characteristics(client)
@@ -39,12 +39,9 @@ class StateConnect:
 
         async with self.lock:
             self.done = True
-            self.client = client
+            self.client = (client, d[1])
 
     async def draw(self):
-        self.lcd.fill(self.lcd.black)
-
-        self.lcd.text("Volcano Remote Control App", 0, 0, self.lcd.green)
         self.lcd.text("Connecting to Bluetooth device", 0, 10, self.lcd.red)
 
         keys = self.lcd.buttons()
@@ -59,7 +56,7 @@ class StateConnect:
         async with self.lock:
             if self.done:
                 if self.state:
-                    return 2 # selection
+                    return 3 # heater on
                 else:
                     return 0 # scan
             else:
@@ -71,5 +68,4 @@ class StateConnect:
                     else:
                         self.lcd.text("Fetching parameters...", 0, int(self.lcd.height / 2) - 5, self.lcd.white)
 
-        self.lcd.show()
         return -1 # stay in this state

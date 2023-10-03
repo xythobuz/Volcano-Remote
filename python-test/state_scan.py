@@ -62,9 +62,6 @@ class StateScan:
             self.lcd.text(s2, 0, off + 12, c2)
 
     async def draw(self):
-        self.lcd.fill(self.lcd.black)
-
-        self.lcd.text("Volcano Remote Control App", 0, 0, self.lcd.green)
         self.lcd.text("Scanning for Bluetooth devices", 0, 10, self.lcd.red)
 
         keys = self.lcd.buttons()
@@ -72,7 +69,7 @@ class StateScan:
         async with self.lock:
             if keys.once("enter"):
                 if self.current < len(self.results):
-                    return 1 # connect
+                    return 2 # select
             elif keys.once("up"):
                 if self.current == None:
                     self.current = len(self.results) - 1
@@ -86,5 +83,4 @@ class StateScan:
 
             self.draw_list()
 
-        self.lcd.show()
         return -1 # stay in this state

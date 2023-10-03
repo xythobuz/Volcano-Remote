@@ -15,6 +15,7 @@ cp state_heat.py /pyboard
 cp state_wait_temp.py /pyboard
 cp state_wait_time.py /pyboard
 cp state_pump.py /pyboard
+cp state_notify.py /pyboard
 cp $1 /pyboard/main.py
 EOF
 else
@@ -32,6 +33,7 @@ cp state_heat.py /pyboard
 cp state_wait_temp.py /pyboard
 cp state_wait_time.py /pyboard
 cp state_pump.py /pyboard
+cp state_notify.py /pyboard
 rm /pyboard/main.py
 EOF
 fi

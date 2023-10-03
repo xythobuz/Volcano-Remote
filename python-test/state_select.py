@@ -32,9 +32,6 @@ class StateSelect:
             self.lcd.text(s2, 0, off + 12, c)
 
     async def draw(self):
-        self.lcd.fill(self.lcd.black)
-
-        self.lcd.text("Volcano Remote Control App", 0, 0, self.lcd.green)
         self.lcd.text("Please select your Workflow", 0, 10, self.lcd.red)
 
         keys = self.lcd.buttons()
@@ -49,9 +46,8 @@ class StateSelect:
             if self.current < (len(workflows) - 1):
                 self.current += 1
         elif keys.once("enter"):
-            return 3 # heater on
+            return 1 # connect
 
         self.draw_list()
 
-        self.lcd.show()
         return -1 # stay in this state

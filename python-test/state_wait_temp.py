@@ -10,10 +10,14 @@ def draw_graph(lcd, min, val, max):
 
     w = lcd.width - 10
     ratio = (val - min) / (max - min)
-    wfull = int(w * ratio)
-    wempty = w - wfull
-    lcd.rect(4, int(lcd.height / 2) - 5, wfull + 1, 50, lcd.green, True)
-    lcd.rect(4 + wfull, int(lcd.height / 2) - 5, wempty + 2, 50, lcd.green, False)
+
+    #wfull = int(w * ratio)
+    #wempty = w - wfull
+    #lcd.rect(4, int(lcd.height / 2) - 5, wfull + 1, 50, lcd.green, True)
+    #lcd.rect(4 + wfull, int(lcd.height / 2) - 5, wempty + 2, 50, lcd.green, False)
+
+    lcd.pie(lcd.width / 2, lcd.height / 2, w, lcd.red, lcd.green, ratio)
+
     lcd.text("{}".format(val), int(lcd.width / 2), 125, lcd.white)
 
 class StateWaitTemp:
@@ -60,10 +64,7 @@ class StateWaitTemp:
                 self.temp = temp
 
     async def draw(self):
-        self.lcd.fill(self.lcd.black)
-
         device, workflow, index = self.value
-        self.lcd.text("Volcano Remote Control App", 0, 0, self.lcd.green)
         self.lcd.text("Running Workflow - Heat {}".format(workflow["steps"][index][0]), 0, 10, self.lcd.red)
 
         keys = self.lcd.buttons()
@@ -82,5 +83,4 @@ class StateWaitTemp:
                 print("switch, {} >= {}".format(self.temp, self.max))
                 return 7 # wait for time
 
-        self.lcd.show()
         return -1 # stay in this state

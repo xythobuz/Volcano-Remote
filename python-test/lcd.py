@@ -1,9 +1,13 @@
 # https://www.waveshare.com/wiki/Pico-LCD-1.3
+# https://thepihut.com/blogs/raspberry-pi-tutorials/coding-graphics-with-micropython-on-raspberry-pi-pico-displays
+# https://api.arcade.academy/en/latest/_modules/arcade/draw_commands.html#draw_arc_filled
 
 from machine import Pin, SPI, PWM
+from array import array
 import framebuf
 import time
 import os
+import math
 
 class KeyCheck:
     def __init__(self, new, old):
@@ -206,67 +210,123 @@ class LCD(framebuf.FrameBuffer):
         self.spi.write(self.buffer)
         self.cs(1)
 
+    def circle(self, x, y, r, c):
+        self.hline(x-r,y,r*2,c)
+        for i in range(1,r):
+            a = int(math.sqrt(r*r-i*i)) # Pythagoras!
+            self.hline(x-a,y+i,a*2,c) # Lower half
+            self.hline(x-a,y-i,a*2,c) # Upper half
+
+    def ring(self, x, y, r, c):
+        self.pixel(x-r,y,c)
+        self.pixel(x+r,y,c)
+        self.pixel(x,y-r,c)
+        self.pixel(x,y+r,c)
+        for i in range(1, r):
+            a = int(math.sqrt(r*r-i*i))
+            self.pixel(x-a,y-i,c)
+            self.pixel(x+a,y-i,c)
+            self.pixel(x-a,y+i,c)
+            self.pixel(x+a,y+i,c)
+            self.pixel(x-i,y-a,c)
+            self.pixel(x+i,y-a,c)
+            self.pixel(x-i,y+a,c)
+            self.pixel(x+i,y+a,c)
+
+    def arc(self, x_off, y_off, w, h, c,
+                   start_angle, end_angle,
+                   filled = True,
+                   num_segments = 128):
+        point_list = [0, 0]
+
+        start_segment = int(start_angle / 360 * num_segments)
+        end_segment = int(end_angle / 360 * num_segments)
+
+        for segment in range(start_segment, end_segment + 1):
+            theta = 2.0 * 3.1415926 * segment / num_segments
+            x = w * math.cos(theta) / 2
+            y = h * math.sin(theta) / 2
+            point_list.append(int(x))
+            point_list.append(int(y))
+
+        self.poly(int(x_off), int(y_off), array('h', point_list), c, True)
+
+    def pie(self, x0, y0, w, c_border, c_circle, v):
+        if v > 0.0:
+            lcd.arc(int(x0), int(y0), int(w), int(w), c_circle, -90, int(v * 360) - 90)
+        lcd.ring(int(x0), int(y0), int(w / 2), c_border)
+
 if __name__  == '__main__':
+    start = time.time()
+    def gfx_test(lcd):
+        v = (time.time() - start)
+        lcd.fill(lcd.black)
+        lcd.pie(lcd.width / 2, lcd.height / 2, lcd.width, lcd.red, lcd.green, (v % 11) / 10)
+
+    def key_test(lcd):
+        lcd.fill(lcd.white)
+
+        if lcd.keyA.value() == 0:
+            lcd.fill_rect(208,15,30,30,lcd.red)
+        else:
+            lcd.fill_rect(208,15,30,30,lcd.white)
+            lcd.rect(208,15,30,30,lcd.red)
+
+        if lcd.keyB.value() == 0:
+            lcd.fill_rect(208,75,30,30,lcd.red)
+        else:
+            lcd.fill_rect(208,75,30,30,lcd.white)
+            lcd.rect(208,75,30,30,lcd.red)
+
+        if lcd.keyX.value() == 0:
+            lcd.fill_rect(208,135,30,30,lcd.red)
+        else:
+            lcd.fill_rect(208,135,30,30,lcd.white)
+            lcd.rect(208,135,30,30,lcd.red)
+
+        if lcd.keyY.value() == 0:
+            lcd.fill_rect(208,195,30,30,lcd.red)
+        else:
+            lcd.fill_rect(208,195,30,30,lcd.white)
+            lcd.rect(208,195,30,30,lcd.red)
+
+        if lcd.up.value() == 0:
+            lcd.fill_rect(60,60,30,30,lcd.red)
+        else:
+            lcd.fill_rect(60,60,30,30,lcd.white)
+            lcd.rect(60,60,30,30,lcd.red)
+
+        if lcd.down.value() == 0:
+            lcd.fill_rect(60,150,30,30,lcd.red)
+        else:
+            lcd.fill_rect(60,150,30,30,lcd.white)
+            lcd.rect(60,150,30,30,lcd.red)
+
+        if lcd.left.value() == 0:
+            lcd.fill_rect(15,105,30,30,lcd.red)
+        else:
+            lcd.fill_rect(15,105,30,30,lcd.white)
+            lcd.rect(15,105,30,30,lcd.red)
+
+        if lcd.right.value() == 0:
+            lcd.fill_rect(105,105,30,30,lcd.red)
+        else:
+            lcd.fill_rect(105,105,30,30,lcd.white)
+            lcd.rect(105,105,30,30,lcd.red)
+
+        if lcd.ctrl.value() == 0:
+            lcd.fill_rect(60,105,30,30,lcd.red)
+        else:
+            lcd.fill_rect(60,105,30,30,lcd.white)
+            lcd.rect(60,105,30,30,lcd.red)
+
     lcd = LCD()
     lcd.brightness(1.0)
 
     try:
         while True:
-            lcd.fill(lcd.white)
-
-            if lcd.keyA.value() == 0:
-                lcd.fill_rect(208,15,30,30,lcd.red)
-            else:
-                lcd.fill_rect(208,15,30,30,lcd.white)
-                lcd.rect(208,15,30,30,lcd.red)
-
-            if lcd.keyB.value() == 0:
-                lcd.fill_rect(208,75,30,30,lcd.red)
-            else:
-                lcd.fill_rect(208,75,30,30,lcd.white)
-                lcd.rect(208,75,30,30,lcd.red)
-
-            if lcd.keyX.value() == 0:
-                lcd.fill_rect(208,135,30,30,lcd.red)
-            else:
-                lcd.fill_rect(208,135,30,30,lcd.white)
-                lcd.rect(208,135,30,30,lcd.red)
-
-            if lcd.keyY.value() == 0:
-                lcd.fill_rect(208,195,30,30,lcd.red)
-            else:
-                lcd.fill_rect(208,195,30,30,lcd.white)
-                lcd.rect(208,195,30,30,lcd.red)
-
-            if lcd.up.value() == 0:
-                lcd.fill_rect(60,60,30,30,lcd.red)
-            else:
-                lcd.fill_rect(60,60,30,30,lcd.white)
-                lcd.rect(60,60,30,30,lcd.red)
-
-            if lcd.down.value() == 0:
-                lcd.fill_rect(60,150,30,30,lcd.red)
-            else:
-                lcd.fill_rect(60,150,30,30,lcd.white)
-                lcd.rect(60,150,30,30,lcd.red)
-
-            if lcd.left.value() == 0:
-                lcd.fill_rect(15,105,30,30,lcd.red)
-            else:
-                lcd.fill_rect(15,105,30,30,lcd.white)
-                lcd.rect(15,105,30,30,lcd.red)
-
-            if lcd.right.value() == 0:
-                lcd.fill_rect(105,105,30,30,lcd.red)
-            else:
-                lcd.fill_rect(105,105,30,30,lcd.white)
-                lcd.rect(105,105,30,30,lcd.red)
-
-            if lcd.ctrl.value() == 0:
-                lcd.fill_rect(60,105,30,30,lcd.red)
-            else:
-                lcd.fill_rect(60,105,30,30,lcd.white)
-                lcd.rect(60,105,30,30,lcd.red)
+            #key_test(lcd)
+            gfx_test(lcd)
 
             lcd.show()
             time.sleep(0.1)

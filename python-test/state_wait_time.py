@@ -18,10 +18,7 @@ class StateWaitTime:
         return (self.value[0], self.value[1], self.value[2])
 
     async def draw(self):
-        self.lcd.fill(self.lcd.black)
-
         device, workflow, index = self.value
-        self.lcd.text("Volcano Remote Control App", 0, 0, self.lcd.green)
         self.lcd.text("Running Workflow - Wait {}".format(workflow["steps"][index][1]), 0, 10, self.lcd.red)
 
         keys = self.lcd.buttons()
@@ -37,5 +34,4 @@ class StateWaitTime:
             print("switch, {} >= {}".format(now, self.end))
             return 8 # pump
 
-        self.lcd.show()
         return -1 # stay in this state
