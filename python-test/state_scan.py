@@ -10,9 +10,9 @@ class StateScan:
         self.lock = asyncio.Lock()
 
     def enter(self, val = None):
-        self.scanner = asyncio.create_task(self.scan())
         self.results = []
         self.current = None
+        self.scanner = asyncio.create_task(self.scan())
 
     def exit(self):
         self.scanner.cancel()
@@ -69,7 +69,7 @@ class StateScan:
         async with self.lock:
             if keys.once("enter"):
                 if self.current < len(self.results):
-                    return 2 # select
+                    return 2
             elif keys.once("up"):
                 if self.current == None:
                     self.current = len(self.results) - 1
@@ -83,4 +83,4 @@ class StateScan:
 
             self.draw_list()
 
-        return -1 # stay in this state
+        return -1

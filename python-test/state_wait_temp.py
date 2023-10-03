@@ -8,17 +8,10 @@ def draw_graph(lcd, min, val, max):
         lcd.text("{} -> {} -> {}".format(min, val, max), 0, int(lcd.height / 2) - 5, lcd.white)
         return
 
-    w = lcd.width - 10
     ratio = (val - min) / (max - min)
+    lcd.pie(lcd.width / 2, lcd.height / 2, lcd.width - 30, lcd.red, lcd.green, ratio)
 
-    #wfull = int(w * ratio)
-    #wempty = w - wfull
-    #lcd.rect(4, int(lcd.height / 2) - 5, wfull + 1, 50, lcd.green, True)
-    #lcd.rect(4 + wfull, int(lcd.height / 2) - 5, wempty + 2, 50, lcd.green, False)
-
-    lcd.pie(lcd.width / 2, lcd.height / 2, w, lcd.red, lcd.green, ratio)
-
-    lcd.text("{}".format(val), int(lcd.width / 2), 125, lcd.white)
+    lcd.text("{} / {}".format(val, max), int(lcd.width / 2), int(lcd.height / 2) - 5, lcd.white)
 
 class StateWaitTemp:
     def __init__(self, lcd):
@@ -28,10 +21,10 @@ class StateWaitTemp:
 
     def enter(self, val = None):
         self.value = val
-        self.poller = asyncio.create_task(self.poll())
         self.temp = 0.0
         self.min = 0.0
         self.max = 100.0
+        self.poller = asyncio.create_task(self.poll())
 
     def exit(self):
         self.poller.cancel()
@@ -49,17 +42,14 @@ class StateWaitTemp:
             self.max = workflow["steps"][index][0]
 
         temp = await get_current_temp(device)
-        print("initial temp: {}".format(temp))
         async with self.lock:
             self.temp = temp
             self.min = temp
 
-        print("Setting temperature: {}".format(self.max))
         await set_target_temp(device, self.max)
 
         while temp < self.max:
             temp = await get_current_temp(device)
-            print("now at {}".format(temp))
             async with self.lock:
                 self.temp = temp
 
@@ -70,8 +60,7 @@ class StateWaitTemp:
         keys = self.lcd.buttons()
 
         if keys.once("y"):
-            print("user abort")
-            return 4 # heat off
+            return 4
 
         async with self.lock:
             if self.temp == 0.0:
@@ -80,7 +69,6 @@ class StateWaitTemp:
                 draw_graph(self.lcd, self.min, self.temp, self.max)
 
             if self.temp >= self.max:
-                print("switch, {} >= {}".format(self.temp, self.max))
-                return 7 # wait for time
+                return 7
 
-        return -1 # stay in this state
+        return -1

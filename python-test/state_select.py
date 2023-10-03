@@ -37,8 +37,7 @@ class StateSelect:
         keys = self.lcd.buttons()
 
         if keys.once("y"):
-            print("user abort")
-            return 5 # disconnect
+            return 5
         elif keys.once("up"):
             if self.current > 0:
                 self.current -= 1
@@ -46,8 +45,8 @@ class StateSelect:
             if self.current < (len(workflows) - 1):
                 self.current += 1
         elif keys.once("enter"):
-            return 1 # connect
+            return 1
 
         self.draw_list()
 
-        return -1 # stay in this state
+        return -1

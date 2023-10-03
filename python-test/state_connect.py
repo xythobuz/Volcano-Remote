@@ -12,6 +12,7 @@ class StateConnect:
 
     def enter(self, val = None):
         self.step = False
+        self.iteration = 0.0
         self.done = False
         self.client = None
         self.connector = asyncio.create_task(self.connect(val))
@@ -24,6 +25,10 @@ class StateConnect:
 
         return self.client
 
+    async def progress(self, n):
+        async with self.lock:
+            self.iteration = n
+
     async def connect(self, d):
         async with self.lock:
             self.done = False
@@ -32,7 +37,8 @@ class StateConnect:
             client = await d[0].device.connect()
             async with self.lock:
                 self.step = True
-            await cache_services_characteristics(client)
+
+            await cache_services_characteristics(client, self.progress)
         else:
             await d[0].disconnect()
             client = None
@@ -47,18 +53,17 @@ class StateConnect:
         keys = self.lcd.buttons()
 
         if keys.once("y"):
-            print("user abort")
             if self.state:
-                return 5 # disconnect
+                return 5
             else:
-                return 0 # scan
+                return 0
 
         async with self.lock:
             if self.done:
                 if self.state:
-                    return 3 # heater on
+                    return 3
                 else:
-                    return 0 # scan
+                    return 0
             else:
                 if self.state == False:
                     self.lcd.text("Disconnecting...", 0, int(self.lcd.height / 2) - 5, self.lcd.white)
@@ -66,6 +71,7 @@ class StateConnect:
                     if self.step == False:
                         self.lcd.text("Connecting...", 0, int(self.lcd.height / 2) - 5, self.lcd.white)
                     else:
+                        self.lcd.pie(self.lcd.width / 2, self.lcd.height / 2, self.lcd.width - 30, self.lcd.red, self.lcd.green, self.iteration)
                         self.lcd.text("Fetching parameters...", 0, int(self.lcd.height / 2) - 5, self.lcd.white)
 
-        return -1 # stay in this state
+        return -1

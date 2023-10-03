@@ -8,6 +8,7 @@ import framebuf
 import time
 import os
 import math
+import gc
 
 class KeyCheck:
     def __init__(self, new, old):
@@ -34,6 +35,7 @@ class LCD(framebuf.FrameBuffer):
         self.dc = Pin(8, Pin.OUT)
         self.dc(1)
 
+        gc.collect()
         self.buffer = bytearray(self.height * self.width * 2)
 
         super().__init__(self.buffer, self.width, self.height, framebuf.RGB565)
@@ -112,45 +114,33 @@ class LCD(framebuf.FrameBuffer):
         self.rst(1)
         self.rst(0)
         self.rst(1)
-
         self.write_cmd(0x36)
         self.write_data(0x70)
-
-        self.write_cmd(0x3A) 
+        self.write_cmd(0x3A)
         self.write_data(0x05)
-
         self.write_cmd(0xB2)
         self.write_data(0x0C)
         self.write_data(0x0C)
         self.write_data(0x00)
         self.write_data(0x33)
         self.write_data(0x33)
-
         self.write_cmd(0xB7)
-        self.write_data(0x35) 
-
+        self.write_data(0x35)
         self.write_cmd(0xBB)
         self.write_data(0x19)
-
         self.write_cmd(0xC0)
         self.write_data(0x2C)
-
         self.write_cmd(0xC2)
         self.write_data(0x01)
-
         self.write_cmd(0xC3)
-        self.write_data(0x12)   
-
+        self.write_data(0x12)
         self.write_cmd(0xC4)
         self.write_data(0x20)
-
         self.write_cmd(0xC6)
-        self.write_data(0x0F) 
-
+        self.write_data(0x0F)
         self.write_cmd(0xD0)
         self.write_data(0xA4)
         self.write_data(0xA1)
-
         self.write_cmd(0xE0)
         self.write_data(0xD0)
         self.write_data(0x04)
@@ -166,7 +156,6 @@ class LCD(framebuf.FrameBuffer):
         self.write_data(0x0B)
         self.write_data(0x1F)
         self.write_data(0x23)
-
         self.write_cmd(0xE1)
         self.write_data(0xD0)
         self.write_data(0x04)
@@ -182,11 +171,8 @@ class LCD(framebuf.FrameBuffer):
         self.write_data(0x1F)
         self.write_data(0x20)
         self.write_data(0x23)
-        
         self.write_cmd(0x21)
-
         self.write_cmd(0x11)
-
         self.write_cmd(0x29)
 
     def show(self):
@@ -195,15 +181,12 @@ class LCD(framebuf.FrameBuffer):
         self.write_data(0x00)
         self.write_data(0x00)
         self.write_data(0xef)
-        
         self.write_cmd(0x2B)
         self.write_data(0x00)
         self.write_data(0x00)
         self.write_data(0x00)
         self.write_data(0xEF)
-
         self.write_cmd(0x2C)
-
         self.cs(1)
         self.dc(1)
         self.cs(0)
@@ -237,102 +220,26 @@ class LCD(framebuf.FrameBuffer):
                    start_angle, end_angle,
                    filled = True,
                    num_segments = 128):
-        point_list = [0, 0]
-
         start_segment = int(start_angle / 360 * num_segments)
         end_segment = int(end_angle / 360 * num_segments)
+
+        gc.collect()
+        point_list = array('h')
+        point_list.append(0)
+        point_list.append(0)
 
         for segment in range(start_segment, end_segment + 1):
             theta = 2.0 * 3.1415926 * segment / num_segments
             x = w * math.cos(theta) / 2
             y = h * math.sin(theta) / 2
+
+            i = (segment - start_segment + 1) * 2
             point_list.append(int(x))
             point_list.append(int(y))
 
-        self.poly(int(x_off), int(y_off), array('h', point_list), c, True)
+        self.poly(int(x_off), int(y_off), point_list, c, True)
 
     def pie(self, x0, y0, w, c_border, c_circle, v):
         if v > 0.0:
-            lcd.arc(int(x0), int(y0), int(w), int(w), c_circle, -90, int(v * 360) - 90)
-        lcd.ring(int(x0), int(y0), int(w / 2), c_border)
-
-if __name__  == '__main__':
-    start = time.time()
-    def gfx_test(lcd):
-        v = (time.time() - start)
-        lcd.fill(lcd.black)
-        lcd.pie(lcd.width / 2, lcd.height / 2, lcd.width, lcd.red, lcd.green, (v % 11) / 10)
-
-    def key_test(lcd):
-        lcd.fill(lcd.white)
-
-        if lcd.keyA.value() == 0:
-            lcd.fill_rect(208,15,30,30,lcd.red)
-        else:
-            lcd.fill_rect(208,15,30,30,lcd.white)
-            lcd.rect(208,15,30,30,lcd.red)
-
-        if lcd.keyB.value() == 0:
-            lcd.fill_rect(208,75,30,30,lcd.red)
-        else:
-            lcd.fill_rect(208,75,30,30,lcd.white)
-            lcd.rect(208,75,30,30,lcd.red)
-
-        if lcd.keyX.value() == 0:
-            lcd.fill_rect(208,135,30,30,lcd.red)
-        else:
-            lcd.fill_rect(208,135,30,30,lcd.white)
-            lcd.rect(208,135,30,30,lcd.red)
-
-        if lcd.keyY.value() == 0:
-            lcd.fill_rect(208,195,30,30,lcd.red)
-        else:
-            lcd.fill_rect(208,195,30,30,lcd.white)
-            lcd.rect(208,195,30,30,lcd.red)
-
-        if lcd.up.value() == 0:
-            lcd.fill_rect(60,60,30,30,lcd.red)
-        else:
-            lcd.fill_rect(60,60,30,30,lcd.white)
-            lcd.rect(60,60,30,30,lcd.red)
-
-        if lcd.down.value() == 0:
-            lcd.fill_rect(60,150,30,30,lcd.red)
-        else:
-            lcd.fill_rect(60,150,30,30,lcd.white)
-            lcd.rect(60,150,30,30,lcd.red)
-
-        if lcd.left.value() == 0:
-            lcd.fill_rect(15,105,30,30,lcd.red)
-        else:
-            lcd.fill_rect(15,105,30,30,lcd.white)
-            lcd.rect(15,105,30,30,lcd.red)
-
-        if lcd.right.value() == 0:
-            lcd.fill_rect(105,105,30,30,lcd.red)
-        else:
-            lcd.fill_rect(105,105,30,30,lcd.white)
-            lcd.rect(105,105,30,30,lcd.red)
-
-        if lcd.ctrl.value() == 0:
-            lcd.fill_rect(60,105,30,30,lcd.red)
-        else:
-            lcd.fill_rect(60,105,30,30,lcd.white)
-            lcd.rect(60,105,30,30,lcd.red)
-
-    lcd = LCD()
-    lcd.brightness(1.0)
-
-    try:
-        while True:
-            #key_test(lcd)
-            gfx_test(lcd)
-
-            lcd.show()
-            time.sleep(0.1)
-    except KeyboardInterrupt:
-        pass
-
-    lcd.fill(lcd.black)
-    lcd.show()
-    lcd.brightness(0.0)
+            self.arc(int(x0), int(y0), int(w), int(w), c_circle, -90, int(v * 360) - 90)
+        self.ring(int(x0), int(y0), int(w / 2), c_border)

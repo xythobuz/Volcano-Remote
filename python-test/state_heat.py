@@ -12,9 +12,9 @@ class StateHeat:
 
     def enter(self, val = None):
         self.value = val
-        self.heater = asyncio.create_task(self.heat())
         self.done = False
         self.step = False
+        self.heater = asyncio.create_task(self.heat())
 
     def exit(self):
         self.heater.cancel()
@@ -29,7 +29,6 @@ class StateHeat:
         if self.state == False:
             pump = False
 
-        print("Setting heater: {}".format(self.state))
         await set_state(self.value[0], (self.state, pump))
 
         if self.state == False:
@@ -38,7 +37,6 @@ class StateHeat:
 
             temp = self.value[1]["reset_temperature"]
             if temp != None:
-                print("Reset temperature to default value")
                 await set_target_temp(self.value[0], temp)
 
         async with self.lock:
@@ -50,22 +48,21 @@ class StateHeat:
         keys = self.lcd.buttons()
 
         if keys.once("y"):
-            print("user abort")
             if self.state:
                 async with self.lock:
                     if self.done:
-                        return 4 # heat off
+                        return 4
                     else:
-                        return 5 # disconnect
+                        return 5
             else:
-                return 5 # disconnect
+                return 5
 
         async with self.lock:
             if self.done:
                 if self.state == False:
-                    return 5 # disconnect
+                    return 5
                 else:
-                    return 6 # wait for temperature
+                    return 6
             else:
                 if self.state == False:
                     if self.state == False:
@@ -75,4 +72,4 @@ class StateHeat:
                 else:
                     self.lcd.text("Turning heater on...", 0, int(self.lcd.height / 2) - 5, self.lcd.white)
 
-        return -1 # stay in this state
+        return -1

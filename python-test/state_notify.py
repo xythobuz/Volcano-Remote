@@ -13,8 +13,10 @@ class StateNotify:
 
     def enter(self, val = None):
         self.value = val
-        self.notifier = asyncio.create_task(self.notify())
         self.done = False
+        self.step = 0
+        self.max = 0
+        self.notifier = asyncio.create_task(self.notify())
 
     def exit(self):
         self.notifier.cancel()
@@ -28,14 +30,19 @@ class StateNotify:
         device, workflow, index = self.value
         count, duration = workflow["notify"]
 
-        for i in range(0, count):
-            print("Turning on pump")
-            await set_state(device, (None, True))
-            await asyncio.sleep_ms(int(duration * 1000))
+        async with self.lock:
+            self.max = count * 2
 
-            print("Turning off pump")
-            await set_state(device, (None, False))
+        for i in range(0, count):
             await asyncio.sleep_ms(int(duration * 1000))
+            await set_state(device, (None, True))
+            async with self.lock:
+                self.step += 1
+
+            await asyncio.sleep_ms(int(duration * 1000))
+            await set_state(device, (None, False))
+            async with self.lock:
+                self.step += 1
 
         async with self.lock:
             self.done = True
@@ -46,11 +53,12 @@ class StateNotify:
         keys = self.lcd.buttons()
 
         if keys.once("y"):
-            print("user abort")
-            return 4 # heat off
+            return 4
 
         async with self.lock:
-            if self.done:
-                return 4 # heater off
+            draw_graph(self.lcd, 0, self.step, self.max)
 
-        return -1 # stay in this state
+            if self.done:
+                return 4
+
+        return -1

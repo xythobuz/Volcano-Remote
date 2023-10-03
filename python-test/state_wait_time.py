@@ -24,14 +24,12 @@ class StateWaitTime:
         keys = self.lcd.buttons()
 
         if keys.once("y"):
-            print("user abort")
-            return 4 # heat off
+            return 4
 
         now = time.time()
         draw_graph(self.lcd, 0.0, now - self.start, self.end - self.start)
 
         if now >= self.end:
-            print("switch, {} >= {}".format(now, self.end))
-            return 8 # pump
+            return 8
 
-        return -1 # stay in this state
+        return -1

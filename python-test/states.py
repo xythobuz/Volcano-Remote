@@ -34,7 +34,6 @@ class States:
 
         next = asyncio.run(self.draw())
         if next >= 0:
-            print("switch to {}".format(next))
             val = self.states[self.current].exit()
             self.current = next
             self.states[self.current].enter(val)
@@ -46,17 +45,14 @@ if True:#__name__ == "__main__":
     states = States(lcd)
 
     # 0 - Scan
-    # passes ScanResult to 2, select
     scan = StateScan(lcd)
     states.add(scan)
 
     # 1 - Connect
-    # passes device and selected workflow to 3, heater on
     conn = StateConnect(lcd, True)
     states.add(conn)
 
     # 2 - Select
-    # passes ScanResult and selected workflow to 1, connect
     select = StateSelect(lcd)
     states.add(select)
 

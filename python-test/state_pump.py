@@ -13,12 +13,13 @@ class StatePump:
 
     def enter(self, val = None):
         self.value = val
-        self.pumper = asyncio.create_task(self.pump())
         self.done = False
 
         device, workflow, index = self.value
         self.start = None
         self.duration = workflow["steps"][index][2]
+
+        self.pumper = asyncio.create_task(self.pump())
 
     def exit(self):
         self.pumper.cancel()
@@ -31,14 +32,12 @@ class StatePump:
     async def pump(self):
         device, workflow, index = self.value
 
-        print("Turning on pump")
         await set_state(device, (None, True))
         async with self.lock:
             self.start = time.time()
 
         await asyncio.sleep_ms(int(self.duration * 1000))
 
-        print("Turning off pump")
         await set_state(device, (None, False))
         async with self.lock:
             self.done = True
@@ -50,8 +49,7 @@ class StatePump:
         keys = self.lcd.buttons()
 
         if keys.once("y"):
-            print("user abort")
-            return 4 # heat off
+            return 4
 
         async with self.lock:
             if self.start != None:
@@ -66,10 +64,10 @@ class StatePump:
             if self.done:
                 if self.value[2] >= (len(workflow["steps"]) - 1):
                     if workflow["notify"] != None:
-                        return 9 # notify
+                        return 9
                     else:
-                        return 4 # heater off
+                        return 4
                 else:
-                    return 6 # wait for temperature
+                    return 6
 
-        return -1 # stay in this state
+        return -1
