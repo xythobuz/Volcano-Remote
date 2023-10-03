@@ -1,15 +1,6 @@
 #!/usr/bin/env python
 
 import uasyncio as asyncio
-from lcd import LCD
-from state_scan import StateScan
-from state_connect import StateConnect
-from state_select import StateSelect
-from state_heat import StateHeat
-from state_wait_temp import StateWaitTemp
-from state_wait_time import StateWaitTime
-from state_pump import StatePump
-from state_notify import StateNotify
 
 class States:
     def __init__(self, lcd):
@@ -38,25 +29,30 @@ class States:
             self.current = next
             self.states[self.current].enter(val)
 
-if True:#__name__ == "__main__":
-    lcd = LCD()
-    lcd.brightness(1.0)
+from lcd import LCD
+lcd = LCD()
+lcd.brightness(1.0)
 
+try:
     states = States(lcd)
 
     # 0 - Scan
+    from state_scan import StateScan
     scan = StateScan(lcd)
     states.add(scan)
 
     # 1 - Connect
+    from state_connect import StateConnect
     conn = StateConnect(lcd, True)
     states.add(conn)
 
     # 2 - Select
+    from state_select import StateSelect
     select = StateSelect(lcd)
     states.add(select)
 
     # 3 - Heater On
+    from state_heat import StateHeat
     heatOn = StateHeat(lcd, True)
     states.add(heatOn)
 
@@ -69,20 +65,28 @@ if True:#__name__ == "__main__":
     states.add(disconn)
 
     # 6 - Wait for temperature
+    from state_wait_temp import StateWaitTemp
     waitTemp = StateWaitTemp(lcd)
     states.add(waitTemp)
 
     # 7 - Wait for time
+    from state_wait_time import StateWaitTime
     waitTime = StateWaitTime(lcd)
     states.add(waitTime)
 
     # 8 - Pump
+    from state_pump import StatePump
     pump = StatePump(lcd)
     states.add(pump)
 
     # 9 - Notify
+    from state_notify import StateNotify
     notify = StateNotify(lcd)
     states.add(notify)
 
     while True:
         states.run()
+except Exception as e:
+    lcd.fill(self.lcd.black)
+    lcd.text(str(e), 0, int(lcd.height / 2) - 5, lcd.white)
+    lcd.show()
