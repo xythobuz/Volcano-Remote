@@ -90,7 +90,14 @@ lcd.brightness(1.0)
 try:
     state_machine(lcd)
 except Exception as e:
+    import io
+    import sys
+    os = io.StringIO()
+    sys.print_exception(e, os)
+    s = os.getvalue()
+    os.close()
+
     lcd.fill(lcd.black)
-    lcd.textC(str(e), int(lcd.width / 2), int(lcd.height / 2), lcd.white)
+    lcd.textBlock(s, lcd.white)
     lcd.show()
     raise e

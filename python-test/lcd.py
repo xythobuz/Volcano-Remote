@@ -246,3 +246,20 @@ class LCD(framebuf.FrameBuffer):
 
     def textC(self, s, x, y, c):
         self.text(s, x - int(len(s) * 8 / 2), y - 5, c)
+
+    def textLine(self, s, c, off = 0):
+        charsPerLine = int(self.width / 8)
+        lines = list(s[0+i:charsPerLine+i] for i in range(0, len(s), charsPerLine))
+        n = 0
+        for i, l in enumerate(lines):
+            self.text(l, 0, (i + off) * 10, c)
+            n += 1
+            if i >= (self.height / 10):
+                break
+        return n
+
+    def textBlock(self, s, c):
+        lines = s.split("\n")
+        off = 0
+        for l in lines:
+            off += self.textLine(l, c, off)

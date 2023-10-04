@@ -2,6 +2,7 @@
 
 import uasyncio as asyncio
 from scan import ble_scan
+import time
 
 class StateScan:
     def __init__(self, lcd):
@@ -30,7 +31,7 @@ class StateScan:
                 name = n.name()
                 mac = n.device.addr_hex()
                 rssi = n.rssi
-                value = [name, mac, rssi]
+                value = [name, mac, rssi, time.time()]
 
                 async with self.lock:
                     found = False
@@ -39,6 +40,7 @@ class StateScan:
                             found = True
                             self.results[i][0] = name
                             self.results[i][2] = rssi
+                            self.results[i][3] = time.time()
                             break
 
                     if found == False:
@@ -46,7 +48,7 @@ class StateScan:
 
     def draw_list(self):
         for i, d in enumerate(self.results):
-            name, mac, rssi = self.results[i]
+            name, mac, rssi, timeout = self.results[i]
             s1 = "{}: {}".format(i + 1, name)
             s2 = "[{}] {}".format(mac, rssi)
 
@@ -88,6 +90,12 @@ class StateScan:
                     self.current = 0
                 elif self.current < (len(self.results) - 1):
                     self.current += 1
+
+            # remove entries after timeout
+            self.results = [x for x in self.results if (time.time() - x[3]) < 10.0]
+            if self.current != None:
+                if self.current >= len(self.results):
+                    self.current = len(self.results) - 1
 
             self.draw_list()
 
