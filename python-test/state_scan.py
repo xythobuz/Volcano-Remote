@@ -21,7 +21,7 @@ class StateScan:
         if self.lock.locked():
             self.lock.release()
 
-        return self.results[self.current]
+        return self.results[self.current][4]
 
     async def scan(self):
         while True:
@@ -31,7 +31,7 @@ class StateScan:
                 name = n.name()
                 mac = n.device.addr_hex()
                 rssi = n.rssi
-                value = [name, mac, rssi, time.time()]
+                value = [name, mac, rssi, time.time(), n]
 
                 async with self.lock:
                     found = False
@@ -41,6 +41,7 @@ class StateScan:
                             self.results[i][0] = name
                             self.results[i][2] = rssi
                             self.results[i][3] = time.time()
+                            self.results[i][4] = n
                             break
 
                     if found == False:
@@ -48,7 +49,7 @@ class StateScan:
 
     def draw_list(self):
         for i, d in enumerate(self.results):
-            name, mac, rssi, timeout = self.results[i]
+            name, mac, rssi, timeout, device = self.results[i]
             s1 = "{}: {}".format(i + 1, name)
             s2 = "[{}] {}".format(mac, rssi)
 
