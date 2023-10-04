@@ -31,15 +31,29 @@ class StateNotify:
         count, duration = workflow["notify"]
 
         async with self.lock:
-            self.max = count * 2
+            self.max = count * 6
 
         for i in range(0, count):
-            await asyncio.sleep_ms(int(duration * 1000))
+            await asyncio.sleep_ms(int(duration * 500))
+            async with self.lock:
+                self.step += 1
+
+            await asyncio.sleep_ms(int(duration * 500))
+            async with self.lock:
+                self.step += 1
+
             await set_state(device, (None, True))
             async with self.lock:
                 self.step += 1
 
-            await asyncio.sleep_ms(int(duration * 1000))
+            await asyncio.sleep_ms(int(duration * 500))
+            async with self.lock:
+                self.step += 1
+
+            await asyncio.sleep_ms(int(duration * 500))
+            async with self.lock:
+                self.step += 1
+
             await set_state(device, (None, False))
             async with self.lock:
                 self.step += 1

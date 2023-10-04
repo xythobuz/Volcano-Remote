@@ -29,11 +29,7 @@ class States:
             self.current = next
             self.states[self.current].enter(val)
 
-from lcd import LCD
-lcd = LCD()
-lcd.brightness(1.0)
-
-try:
+def state_machine(lcd):
     states = States(lcd)
 
     # 0 - Scan
@@ -86,7 +82,15 @@ try:
 
     while True:
         states.run()
+
+from lcd import LCD
+lcd = LCD()
+lcd.brightness(1.0)
+
+try:
+    state_machine(lcd)
 except Exception as e:
-    lcd.fill(self.lcd.black)
-    lcd.text(str(e), 0, int(lcd.height / 2) - 5, lcd.white)
+    lcd.fill(lcd.black)
+    lcd.textC(str(e), int(lcd.width / 2), int(lcd.height / 2), lcd.white)
     lcd.show()
+    raise e

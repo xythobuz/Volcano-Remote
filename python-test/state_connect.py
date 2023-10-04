@@ -2,6 +2,7 @@
 
 import uasyncio as asyncio
 from poll import cache_services_characteristics
+import machine
 
 class StateConnect:
     def __init__(self, lcd, state):
@@ -22,6 +23,9 @@ class StateConnect:
 
         if self.lock.locked():
             self.lock.release()
+
+        if self.state == False:
+            machine.soft_reset()
 
         return self.client
 

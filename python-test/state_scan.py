@@ -26,28 +26,36 @@ class StateScan:
         while True:
             new = await ble_scan(None, None, 0.25)
 
-            async with self.lock:
-                for n in new:
+            for n in new:
+                name = n.name()
+                mac = n.device.addr_hex()
+                rssi = n.rssi
+                value = [name, mac, rssi]
+
+                async with self.lock:
                     found = False
-                    for r in self.results:
-                        if r.device.addr_hex() == n.device.addr_hex():
+                    for i in range(0, len(self.results)):
+                        if self.results[i][1] == mac:
                             found = True
-                            r = n
+                            self.results[i][0] = name
+                            self.results[i][2] = rssi
                             break
-                    if not found:
-                        self.results.append(n)
+
+                    if found == False:
+                        self.results.append(value)
 
     def draw_list(self):
         for i, d in enumerate(self.results):
-            s1 = "{}".format(d.name())
-            s2 = "{}: [{}] {}".format(i + 1, d.device.addr_hex(), d.rssi)
+            name, mac, rssi = self.results[i]
+            s1 = "{}: {}".format(i + 1, name)
+            s2 = "[{}] {}".format(mac, rssi)
 
             off = i * 25 + 30
             if off >= self.lcd.height:
                 break
 
             c1 = self.lcd.white
-            if s1 == "S&B VOLCANO H":
+            if name == "S&B VOLCANO H":
                 c1 = self.lcd.green
                 if self.current == None:
                     self.current = i
