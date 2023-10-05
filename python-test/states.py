@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 
 import uasyncio as asyncio
+import io
+import sys
 
 class States:
     def __init__(self, lcd):
@@ -85,13 +87,16 @@ def state_machine(lcd):
 
 from lcd import LCD
 lcd = LCD()
+
+lcd.fill(lcd.black)
+lcd.textC("S&B Volcano Remote", int(lcd.width / 2), int(lcd.height / 2) - 5, lcd.green)
+lcd.textC("by xythobuz", int(lcd.width / 2), int(lcd.height / 2) + 5, lcd.yellow)
+lcd.show()
 lcd.brightness(1.0)
 
 try:
     state_machine(lcd)
 except Exception as e:
-    import io
-    import sys
     os = io.StringIO()
     sys.print_exception(e, os)
     s = os.getvalue()

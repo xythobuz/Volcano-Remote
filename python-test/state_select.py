@@ -44,7 +44,7 @@ class StateSelect:
         elif keys.once("down"):
             if self.current < (len(workflows) - 1):
                 self.current += 1
-        elif keys.once("enter"):
+        elif keys.once("enter") or keys.once("a"):
             return 1
 
         self.draw_list()

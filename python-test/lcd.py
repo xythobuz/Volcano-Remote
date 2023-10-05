@@ -41,11 +41,12 @@ class LCD(framebuf.FrameBuffer):
         super().__init__(self.buffer, self.width, self.height, framebuf.RGB565)
         self.init_display()
 
-        self.red   = 0x07E0
-        self.green = 0x001f
-        self.blue  = 0xf800
-        self.white = 0xffff
-        self.black = 0x0000
+        self.red    = self.color(0xFF, 0x00, 0x00)
+        self.green  = self.color(0x00, 0xFF, 0x00)
+        self.blue   = self.color(0x00, 0x00, 0xFF)
+        self.yellow = self.color(0xFF, 0xFF, 0x00)
+        self.white  = self.color(0xFF, 0xFF, 0xFF)
+        self.black  = self.color(0x00, 0x00, 0x00)
 
         self.fill(self.black)
         self.show()
@@ -54,16 +55,15 @@ class LCD(framebuf.FrameBuffer):
         self.pwm.freq(1000)
         self.brightness(0.0)
 
-        self.keyA = Pin(15,Pin.IN,Pin.PULL_UP)
-        self.keyB = Pin(17,Pin.IN,Pin.PULL_UP)
-        self.keyX = Pin(19 ,Pin.IN,Pin.PULL_UP)
-        self.keyY= Pin(21 ,Pin.IN,Pin.PULL_UP)
-
-        self.up = Pin(2,Pin.IN,Pin.PULL_UP)
-        self.down = Pin(18,Pin.IN,Pin.PULL_UP)
-        self.left = Pin(16,Pin.IN,Pin.PULL_UP)
-        self.right = Pin(20,Pin.IN,Pin.PULL_UP)
-        self.ctrl = Pin(3,Pin.IN,Pin.PULL_UP)
+        self.keyA  = Pin(15, Pin.IN, Pin.PULL_UP)
+        self.keyB  = Pin(17, Pin.IN, Pin.PULL_UP)
+        self.keyX  = Pin(19, Pin.IN, Pin.PULL_UP)
+        self.keyY  = Pin(21, Pin.IN, Pin.PULL_UP)
+        self.up    = Pin( 2, Pin.IN, Pin.PULL_UP)
+        self.down  = Pin(18, Pin.IN, Pin.PULL_UP)
+        self.left  = Pin(16, Pin.IN, Pin.PULL_UP)
+        self.right = Pin(20, Pin.IN, Pin.PULL_UP)
+        self.ctrl  = Pin( 3, Pin.IN, Pin.PULL_UP)
 
         self.keys_old = {
             "a": False,
@@ -92,6 +92,10 @@ class LCD(framebuf.FrameBuffer):
         kc = KeyCheck(keys, self.keys_old)
         self.keys_old = keys.copy()
         return kc
+
+    # Convert RGB888 to RGB565
+    def color(self, R, G, B):
+        return (((G & 0b00011100) << 3) + ((B & 0b11111000) >> 3) << 8) + (R & 0b11111000) + ((G & 0b11100000) >> 5)
 
     def brightness(self, v):
         self.pwm.duty_u16(int(v * 65535))
