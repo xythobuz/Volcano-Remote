@@ -88,9 +88,11 @@ def state_machine(lcd):
 from lcd import LCD
 lcd = LCD()
 
+# splash screen
 lcd.fill(lcd.black)
-lcd.textC("S&B Volcano Remote", int(lcd.width / 2), int(lcd.height / 2) - 5, lcd.green)
-lcd.textC("by xythobuz", int(lcd.width / 2), int(lcd.height / 2) + 5, lcd.yellow)
+lcd.textC("S&B Volcano Remote", int(lcd.width / 2), int(lcd.height / 2) - 25, lcd.green)
+lcd.textC("by xythobuz", int(lcd.width / 2), int(lcd.height / 2), lcd.yellow)
+lcd.textC("Initializing...", int(lcd.width / 2), int(lcd.height / 2) + 25, lcd.white)
 lcd.show()
 lcd.brightness(1.0)
 

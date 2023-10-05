@@ -121,7 +121,7 @@ class StateScan:
             self.results = [x for x in self.results if (time.time() - x[3]) < 10.0]
 
             # filter out incompatible devices
-            #self.results = [x for x in self.results if (x[0] != None) and (("S&B" in x[0]) or ("STORZ&BICKEL" == x[0]))]
+            self.results = [x for x in self.results if (x[0] != None) and (("S&B" in x[0]) or ("STORZ&BICKEL" == x[0]))]
 
             if self.current != None:
                 if self.current >= len(self.results):

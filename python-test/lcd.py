@@ -20,6 +20,10 @@ class KeyCheck:
 
 class LCD(framebuf.FrameBuffer):
     def __init__(self):
+        self.pwm = PWM(Pin(13))
+        self.pwm.freq(1000)
+        self.brightness(0.0)
+
         self.width = 240
         self.height = 240
 
@@ -50,10 +54,6 @@ class LCD(framebuf.FrameBuffer):
 
         self.fill(self.black)
         self.show()
-
-        self.pwm = PWM(Pin(13))
-        self.pwm.freq(1000)
-        self.brightness(0.0)
 
         self.keyA  = Pin(15, Pin.IN, Pin.PULL_UP)
         self.keyB  = Pin(17, Pin.IN, Pin.PULL_UP)
