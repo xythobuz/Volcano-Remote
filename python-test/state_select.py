@@ -10,18 +10,22 @@ class StateSelect:
     def enter(self, val = None):
         self.client = val
         self.current = 0
+        self.menuOff = 0
 
     def exit(self):
         return self.client, workflows[self.current]
 
     def draw_list(self):
         for i, wf in enumerate(workflows):
+            if i < self.menuOff:
+                continue
+
+            off = (i - self.menuOff) * 25 + 30
+            if off >= (self.lcd.height - 10):
+                break
+
             s1 = "{}".format(wf["name"])
             s2 = "by: {}".format(wf["author"])
-
-            off = i * 25 + 30
-            if off >= self.lcd.height:
-                break
 
             c = self.lcd.white
             if self.current == i:
@@ -39,13 +43,20 @@ class StateSelect:
         if keys.once("y"):
             return 5
         elif keys.once("up"):
-            if self.current > 0:
-                self.current -= 1
+            self.current -= 1
         elif keys.once("down"):
-            if self.current < (len(workflows) - 1):
-                self.current += 1
+            self.current += 1
         elif keys.once("enter") or keys.once("a"):
             return 1
+
+        while self.current < 0:
+            self.current += len(workflows)
+        while self.current >= len(workflows):
+            self.current -= len(workflows)
+        while self.current < self.menuOff:
+            self.menuOff -= 1
+        while self.current >= (self.menuOff + int((self.lcd.height - 30 - 10) / 25)):
+            self.menuOff += 1
 
         self.draw_list()
 

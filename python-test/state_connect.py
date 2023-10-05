@@ -2,6 +2,7 @@
 
 import uasyncio as asyncio
 from poll import cache_services_characteristics
+from state_wait_temp import draw_graph
 import machine
 
 class StateConnect:
@@ -75,7 +76,7 @@ class StateConnect:
                     if self.step == False:
                         self.lcd.textC("Connecting...", int(self.lcd.width / 2), int(self.lcd.height / 2), self.lcd.white)
                     else:
-                        self.lcd.pie(self.lcd.width / 2, self.lcd.height / 2, self.lcd.width - 30, self.lcd.red, self.lcd.green, self.iteration)
-                        self.lcd.textC("Fetching parameters...", int(self.lcd.width / 2), int(self.lcd.height / 2), self.lcd.white)
+                        draw_graph(self.lcd, 0, int(self.iteration * 10), 10)
+                        self.lcd.textC("Fetching parameters...", int(self.lcd.width / 2), int(self.lcd.height / 2) - 10, self.lcd.white)
 
         return -1

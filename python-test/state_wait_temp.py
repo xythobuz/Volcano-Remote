@@ -2,14 +2,49 @@
 
 import uasyncio as asyncio
 from poll import set_target_temp, get_current_temp
+import math
+
+# https://github.com/pimoroni/pimoroni-pico
+def from_hsv(h, s, v):
+    i = math.floor(h * 6.0)
+    f = h * 6.0 - i
+    v *= 255.0
+    p = v * (1.0 - s)
+    q = v * (1.0 - f * s)
+    t = v * (1.0 - (1.0 - f) * s)
+
+    i = int(i) % 6
+    if i == 0:
+        return int(v), int(t), int(p)
+    if i == 1:
+        return int(q), int(v), int(p)
+    if i == 2:
+        return int(p), int(v), int(t)
+    if i == 3:
+        return int(p), int(q), int(v)
+    if i == 4:
+        return int(t), int(p), int(v)
+    if i == 5:
+        return int(v), int(p), int(q)
+
+# https://stackoverflow.com/a/1969274
+def translate(value, leftMin, leftMax, rightMin, rightMax):
+    leftSpan = leftMax - leftMin
+    rightSpan = rightMax - rightMin
+    valueScaled = float(value - leftMin) / float(leftSpan)
+    return rightMin + (valueScaled * rightSpan)
 
 def draw_graph(lcd, min, val, max):
     if max == min:
         lcd.textC("{} -> {} -> {}".format(min, val, max), int(self.lcd.width / 2), int(lcd.height / 2), lcd.white)
         return
 
+    hue = translate(val, min, max, 0.0, 0.333)
+    r, g, b = from_hsv(hue, 1.0, 1.0)
+    c = lcd.color(r, g, b)
+
     ratio = (val - min) / (max - min)
-    lcd.pie(lcd.width / 2, lcd.height / 2, lcd.width - 30, lcd.red, lcd.green, ratio)
+    lcd.pie(lcd.width / 2, lcd.height / 2, lcd.width - 42, lcd.white, c, ratio)
 
     lcd.textC("{} / {}".format(val, max), int(lcd.width / 2), int(lcd.height / 2), lcd.white)
 

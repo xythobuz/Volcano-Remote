@@ -59,7 +59,7 @@ class StateScan:
                 continue
 
             off = (i - self.menuOff) * 25 + 30
-            if off >= self.lcd.height:
+            if off >= (self.lcd.height - 10):
                 break
 
             selection = "  "
@@ -114,7 +114,7 @@ class StateScan:
                     self.current -= len(self.results)
                 while self.current < self.menuOff:
                     self.menuOff -= 1
-                while self.current >= (self.menuOff + int((self.lcd.height - 30) / 25)):
+                while self.current >= (self.menuOff + int((self.lcd.height - 30 - 10) / 25)):
                     self.menuOff += 1
 
             # remove entries after timeout
