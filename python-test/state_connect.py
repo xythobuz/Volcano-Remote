@@ -77,6 +77,6 @@ class StateConnect:
                         self.lcd.textC("Connecting...", int(self.lcd.width / 2), int(self.lcd.height / 2), self.lcd.white)
                     else:
                         draw_graph(self.lcd, 0, int(self.iteration * 10), 10)
-                        self.lcd.textC("Fetching parameters...", int(self.lcd.width / 2), int(self.lcd.height / 2) - 10, self.lcd.white)
+                        self.lcd.textC("Fetching parameters...", int(self.lcd.width / 2), int(self.lcd.height / 2) - 10, self.lcd.white, self.lcd.black)
 
         return -1

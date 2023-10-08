@@ -248,8 +248,14 @@ class LCD(framebuf.FrameBuffer):
             self.arc(int(x0), int(y0), int(w), int(w), c_circle, -90, int(v * 360) - 90)
         self.ring(int(x0), int(y0), int(w / 2), c_border)
 
-    def textC(self, s, x, y, c):
-        self.text(s, x - int(len(s) * 8 / 2), y - 5, c)
+    def textC(self, s, x, y, c, bgColor = None):
+        xStart = x - int(len(s) * 8 / 2)
+        yStart = y - 5
+
+        if bgColor != None:
+            self.rect(xStart, yStart - 1, len(s) * 8, 10, bgColor, True)
+
+        self.text(s, xStart, yStart, c)
 
     def textLine(self, s, c, off = 0):
         charsPerLine = int(self.width / 8)

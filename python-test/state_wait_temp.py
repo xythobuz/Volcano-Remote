@@ -46,7 +46,7 @@ def draw_graph(lcd, min, val, max):
     ratio = (val - min) / (max - min)
     lcd.pie(lcd.width / 2, lcd.height / 2, lcd.width - 42, lcd.white, c, ratio)
 
-    lcd.textC("{} / {}".format(val, max), int(lcd.width / 2), int(lcd.height / 2), lcd.white)
+    lcd.textC("{} / {}".format(val, max), int(lcd.width / 2), int(lcd.height / 2), lcd.white, lcd.black)
 
 class StateWaitTemp:
     def __init__(self, lcd):
