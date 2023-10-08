@@ -52,16 +52,13 @@ async def cache_services_characteristics(device, cb = None):
             characteristicc = c
             if cb != None:
                 val += 1
-                #await cb(val)
+                await cb(val)
 
         if c.uuid == uuidd:
             characteristicd = c
             if cb != None:
                 val += 1
-                #await cb(val)
-
-    if cb != None:
-        await cb(val)
+                await cb(val)
 
     # -------------------------------------------------------------------------
 
@@ -81,40 +78,37 @@ async def cache_services_characteristics(device, cb = None):
             characteristic1 = c
             if cb != None:
                 val += 1
-                #await cb(val)
+                await cb(val)
 
         if c.uuid == uuid3:
             characteristic3 = c
             if cb != None:
                 val += 1
-                #await cb(val)
+                await cb(val)
 
         if c.uuid == uuidf:
             characteristicf = c
             if cb != None:
                 val += 1
-                #await cb(val)
+                await cb(val)
 
         if c.uuid == uuid10:
             characteristic10 = c
             if cb != None:
                 val += 1
-                #await cb(val)
+                await cb(val)
 
         if c.uuid == uuid13:
             characteristic13 = c
             if cb != None:
                 val += 1
-                #await cb(val)
+                await cb(val)
 
         if c.uuid == uuid14:
             characteristic14 = c
             if cb != None:
                 val += 1
-                #await cb(val)
-
-    if cb != None:
-        await cb(val)
+                await cb(val)
 
     return (val >= 10)
 

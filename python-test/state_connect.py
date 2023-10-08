@@ -66,19 +66,19 @@ class StateConnect:
                 return 0
 
         async with self.lock:
+            if self.state == False:
+                self.lcd.textC("Disconnecting...", int(self.lcd.width / 2), int(self.lcd.height / 2), self.lcd.white)
+            else:
+                if self.step == False:
+                    self.lcd.textC("Connecting...", int(self.lcd.width / 2), int(self.lcd.height / 2), self.lcd.white)
+                else:
+                    draw_graph(self.lcd, 0, self.iteration, 10)
+                    self.lcd.textC("Fetching parameters...", int(self.lcd.width / 2), int(self.lcd.height / 2) - 10, self.lcd.white, self.lcd.black)
+
             if self.done:
                 if self.state:
                     return 3
                 else:
                     return 0
-            else:
-                if self.state == False:
-                    self.lcd.textC("Disconnecting...", int(self.lcd.width / 2), int(self.lcd.height / 2), self.lcd.white)
-                else:
-                    if self.step == False:
-                        self.lcd.textC("Connecting...", int(self.lcd.width / 2), int(self.lcd.height / 2), self.lcd.white)
-                    else:
-                        draw_graph(self.lcd, 0, self.iteration, 10)
-                        self.lcd.textC("Fetching parameters...", int(self.lcd.width / 2), int(self.lcd.height / 2) - 10, self.lcd.white, self.lcd.black)
 
         return -1
