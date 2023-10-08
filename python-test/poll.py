@@ -27,53 +27,96 @@ async def cache_services_characteristics(device, cb = None):
     global characteristicf, characteristic10
     global characteristic13, characteristic14
 
-    service3 = await device.service(serviceUuidVolcano3)
-    if cb != None:
-        await cb(0.1)
+    service3 = None
+    service4 = None
+    characteristic1 = None
+    characteristic3 = None
+    characteristicd = None
+    characteristicc = None
+    characteristicf = None
+    characteristic10 = None
+    characteristic13 = None
+    characteristic14 = None
 
-    service4 = await device.service(serviceUuidVolcano4)
-    if cb != None:
-        await cb(0.2)
+    val = 0
 
-    uuid1 = bluetooth.UUID("10110001-5354-4f52-5a26-4249434b454c")
-    characteristic1 = await service4.characteristic(uuid1)
+    service3 = await device.service(serviceUuidVolcano3, 100)
     if cb != None:
-        await cb(0.3)
-
-    uuid3 = bluetooth.UUID("10110003-5354-4f52-5a26-4249434b454c")
-    characteristic3 = await service4.characteristic(uuid3)
-    if cb != None:
-        await cb(0.4)
-
-    uuidd = bluetooth.UUID("1010000d-5354-4f52-5a26-4249434b454c")
-    characteristicd = await service3.characteristic(uuidd)
-    if cb != None:
-        await cb(0.5)
+        val += 1
+        await cb(val)
 
     uuidc = bluetooth.UUID("1010000c-5354-4f52-5a26-4249434b454c")
-    characteristicc = await service3.characteristic(uuidc)
-    if cb != None:
-        await cb(0.6)
+    uuidd = bluetooth.UUID("1010000d-5354-4f52-5a26-4249434b454c")
+    async for c in service3.characteristics(None, 100):
+        if c.uuid == uuidc:
+            characteristicc = c
+            if cb != None:
+                val += 1
+                #await cb(val)
 
+        if c.uuid == uuidd:
+            characteristicd = c
+            if cb != None:
+                val += 1
+                #await cb(val)
+
+    if cb != None:
+        await cb(val)
+
+    # -------------------------------------------------------------------------
+
+    service4 = await device.service(serviceUuidVolcano4, 100)
+    if cb != None:
+        val += 1
+        await cb(val)
+
+    uuid1 = bluetooth.UUID("10110001-5354-4f52-5a26-4249434b454c")
+    uuid3 = bluetooth.UUID("10110003-5354-4f52-5a26-4249434b454c")
     uuidf = bluetooth.UUID("1011000f-5354-4f52-5a26-4249434b454c")
-    characteristicf = await service4.characteristic(uuidf)
-    if cb != None:
-        await cb(0.7)
-
     uuid10 = bluetooth.UUID("10110010-5354-4f52-5a26-4249434b454c")
-    characteristic10 = await service4.characteristic(uuid10)
-    if cb != None:
-        await cb(0.8)
-
     uuid13 = bluetooth.UUID("10110013-5354-4f52-5a26-4249434b454c")
-    characteristic13 = await service4.characteristic(uuid13)
-    if cb != None:
-        await cb(0.9)
-
     uuid14 = bluetooth.UUID("10110014-5354-4f52-5a26-4249434b454c")
-    characteristic14 = await service4.characteristic(uuid14)
+    async for c in service4.characteristics(None, 100):
+        if c.uuid == uuid1:
+            characteristic1 = c
+            if cb != None:
+                val += 1
+                #await cb(val)
+
+        if c.uuid == uuid3:
+            characteristic3 = c
+            if cb != None:
+                val += 1
+                #await cb(val)
+
+        if c.uuid == uuidf:
+            characteristicf = c
+            if cb != None:
+                val += 1
+                #await cb(val)
+
+        if c.uuid == uuid10:
+            characteristic10 = c
+            if cb != None:
+                val += 1
+                #await cb(val)
+
+        if c.uuid == uuid13:
+            characteristic13 = c
+            if cb != None:
+                val += 1
+                #await cb(val)
+
+        if c.uuid == uuid14:
+            characteristic14 = c
+            if cb != None:
+                val += 1
+                #await cb(val)
+
     if cb != None:
-        await cb(1.0)
+        await cb(val)
+
+    return (val >= 10)
 
 async def get_current_temp(device):
     val = await characteristic1.read()

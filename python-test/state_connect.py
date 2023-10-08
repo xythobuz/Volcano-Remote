@@ -14,7 +14,7 @@ class StateConnect:
 
     def enter(self, val = None):
         self.step = False
-        self.iteration = 0.0
+        self.iteration = 0
         self.done = False
         self.client = None
         self.connector = asyncio.create_task(self.connect(val))
@@ -43,7 +43,9 @@ class StateConnect:
             async with self.lock:
                 self.step = True
 
-            await cache_services_characteristics(client, self.progress)
+            success = await cache_services_characteristics(client, self.progress)
+            if not success:
+                raise RuntimeError("Error fetching characteristics")
         else:
             await d[0].disconnect()
             client = None
@@ -76,7 +78,7 @@ class StateConnect:
                     if self.step == False:
                         self.lcd.textC("Connecting...", int(self.lcd.width / 2), int(self.lcd.height / 2), self.lcd.white)
                     else:
-                        draw_graph(self.lcd, 0, int(self.iteration * 10), 10)
+                        draw_graph(self.lcd, 0, self.iteration, 10)
                         self.lcd.textC("Fetching parameters...", int(self.lcd.width / 2), int(self.lcd.height / 2) - 10, self.lcd.white, self.lcd.black)
 
         return -1
