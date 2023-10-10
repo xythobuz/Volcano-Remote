@@ -223,7 +223,7 @@ class LCD(framebuf.FrameBuffer):
     def arc(self, x_off, y_off, w, h, c,
                    start_angle, end_angle,
                    filled = True,
-                   num_segments = 128):
+                   num_segments = 64):
         start_segment = int(start_angle / 360 * num_segments)
         end_segment = int(end_angle / 360 * num_segments)
 
@@ -241,7 +241,7 @@ class LCD(framebuf.FrameBuffer):
             point_list.append(int(x))
             point_list.append(int(y))
 
-        self.poly(int(x_off), int(y_off), point_list, c, True)
+        self.poly(int(x_off), int(y_off), point_list, c, filled)
 
     def pie(self, x0, y0, w, c_border, c_circle, v):
         if v > 0.0:

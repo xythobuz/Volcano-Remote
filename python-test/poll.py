@@ -149,11 +149,12 @@ async def get_state(device):
     return (heater, pump)
 
 async def set_state(device, state):
+    heater, pump = state
+
     attempts = 3
     while attempts > 0:
         attempts -= 1
         try:
-            heater, pump = state
             if heater == True:
                 await characteristicf.write(int(0).to_bytes(1, "little"))
             elif heater == False:

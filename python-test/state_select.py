@@ -41,7 +41,7 @@ class StateSelect:
         keys = self.lcd.buttons()
 
         if keys.once("y"):
-            return 5
+            return 0
         elif keys.once("up"):
             self.current -= 1
         elif keys.once("down"):
