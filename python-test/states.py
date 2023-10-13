@@ -153,26 +153,42 @@ def state_machine(lcd):
 from lcd import LCD
 lcd = LCD()
 
-# splash screen
-lcd.fill(lcd.black)
-lcd.textC("S&B Volcano Remote", int(lcd.width / 2), 10, lcd.green)
-lcd.textC("by xythobuz",        int(lcd.width / 2), 20, lcd.yellow)
-lcd.textC("Initializing...",    int(lcd.width / 2), 30, lcd.white)
-lcd.textC(os.uname()[0][ 0 : 30], int(lcd.width / 2), lcd.height - 50, lcd.green)
-lcd.textC(os.uname()[3][ 0 : 30], int(lcd.width / 2), lcd.height - 40, lcd.yellow)
-lcd.textC(os.uname()[3][30 : 60], int(lcd.width / 2), lcd.height - 30, lcd.yellow)
-lcd.textC(os.uname()[4][ 0 : 30], int(lcd.width / 2), lcd.height - 20, lcd.white)
-lcd.textC(os.uname()[4][30 : 60], int(lcd.width / 2), lcd.height - 10, lcd.white)
-lcd.show()
-lcd.brightness(1.0)
+def main():
+    # splash screen
+    from state_wait_temp import from_hsv
+    for x in range(0, lcd.width):
+        hue = x / (lcd.width - 1)
+        r, g, b = from_hsv(hue, 1.0, 1.0)
+        c = lcd.color(r, g, b)
+        lcd.rect(x, 0, 1, lcd.height, c)
 
-# bootloader access with face buttons
-keys = lcd.buttons()
-if keys.once("a") and keys.once("b"):
-    machine.bootloader()
+    lcd.textC("S&B Volcano Remote", int(lcd.width / 2), 10, lcd.green, lcd.black)
+    lcd.textC("by xythobuz",        int(lcd.width / 2), 20, lcd.yellow, lcd.black)
+    lcd.textC("Initializing...",    int(lcd.width / 2), 30, lcd.white, lcd.black)
+
+    import _git
+    lcd.textC(_git.git_branch, int(lcd.width / 2), int(lcd.height / 2) - 10, lcd.green, lcd.black)
+    lcd.textC(_git.git_hash, int(lcd.width / 2), int(lcd.height / 2), lcd.yellow, lcd.black)
+    lcd.textC(_git.build_date, int(lcd.width / 2), int(lcd.height / 2) + 10, lcd.white, lcd.black)
+
+    lcd.textC(os.uname()[0][ 0 : 30], int(lcd.width / 2), lcd.height - 50, lcd.green, lcd.black)
+    lcd.textC(os.uname()[3][ 0 : 30], int(lcd.width / 2), lcd.height - 40, lcd.yellow, lcd.black)
+    lcd.textC(os.uname()[3][30 : 60], int(lcd.width / 2), lcd.height - 30, lcd.yellow, lcd.black)
+    lcd.textC(os.uname()[4][ 0 : 30], int(lcd.width / 2), lcd.height - 20, lcd.white, lcd.black)
+    lcd.textC(os.uname()[4][30 : 60], int(lcd.width / 2), lcd.height - 10, lcd.white, lcd.black)
+
+    lcd.show()
+    lcd.brightness(1.0)
+
+    # bootloader access with face buttons
+    keys = lcd.buttons()
+    if keys.once("a") and keys.once("b"):
+        machine.bootloader()
+
+    state_machine(lcd)
 
 try:
-    state_machine(lcd)
+    main()
 except Exception as e:
     sys.print_exception(e)
 
