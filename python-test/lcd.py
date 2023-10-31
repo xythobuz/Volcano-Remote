@@ -36,6 +36,9 @@ class KeyCheck:
     def once(self, k):
         return self.new[k] and not self.old[k]
 
+    def held(self, k):
+        return self.new[k]
+
 class LCD(framebuf.FrameBuffer):
     def __init__(self):
         self.pwm = PWM(Pin(13))
@@ -50,8 +53,6 @@ class LCD(framebuf.FrameBuffer):
 
         self.cs(1)
 
-        #self.spi = SPI(1)
-        #self.spi = SPI(1,   1_000_000)
         self.spi = SPI(1, 100_000_000, polarity=0, phase=0, sck=Pin(10), mosi=Pin(11), miso=None)
 
         self.dc = Pin(8, Pin.OUT)
@@ -95,6 +96,15 @@ class LCD(framebuf.FrameBuffer):
             "enter": False,
         }
 
+        self.curr_brightness = 0.0
+        try:
+            with open("_cur_bright.txt", "r") as f:
+                s = next(f).split()[0]
+                self.curr_brightness = float(s)
+        except:
+            pass
+        self.brightness(self.curr_brightness)
+
     def buttons(self):
         keys = {
             "a": self.keyA.value() == 0,
@@ -115,7 +125,25 @@ class LCD(framebuf.FrameBuffer):
     def color(self, R, G, B):
         return (((G & 0b00011100) << 3) + ((B & 0b11111000) >> 3) << 8) + (R & 0b11111000) + ((G & 0b11100000) >> 5)
 
+    def store_brightness(self):
+        old = -1.0
+        try:
+            with open("_cur_bright.txt", "r") as f:
+                s = next(f).split()[0]
+                old = float(s)
+        except:
+            pass
+        if self.curr_brightness != old:
+            with open("_cur_bright.txt", "w") as f:
+                s = "{}\n".format(self.curr_brightness)
+                f.write(s)
+
     def brightness(self, v):
+        if v < 0.0:
+            v = 0.0
+        if v > 1.0:
+            v = 1.0
+        self.curr_brightness = v
         self.pwm.duty_u16(int(v * 65535))
 
     def write_cmd(self, cmd):

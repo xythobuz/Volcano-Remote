@@ -39,6 +39,8 @@ class StateScan:
         if self.lock.locked():
             self.lock.release()
 
+        self.lcd.store_brightness()
+
         return self.results[self.current][4]
 
     async def scan(self):
@@ -99,7 +101,7 @@ class StateScan:
             if self.current == i:
                 c2 = self.lcd.red
 
-            self.lcd.hline(0, off, self.lcd.width, self.lcd.blue)
+            self.lcd.hline(0, off - 3, self.lcd.width, self.lcd.blue)
             self.lcd.text(s1, 0, off + 2, c1)
             self.lcd.text(s2, 0, off + 12, c2)
 
@@ -122,6 +124,13 @@ class StateScan:
                     self.current = 0
                 else:
                     self.current += 1
+            elif keys.held("left"):
+                v = self.lcd.curr_brightness - 0.05
+                if v < 0.05:
+                    v = 0.05
+                self.lcd.brightness(v)
+            elif keys.held("right"):
+                self.lcd.brightness(self.lcd.curr_brightness + 0.05)
             elif keys.once("y"):
                 return 0
 
@@ -146,5 +155,8 @@ class StateScan:
                     self.current = len(self.results) - 1
 
             self.draw_list()
+
+        w = int(self.lcd.width * self.lcd.curr_brightness)
+        self.lcd.hline(0, 24, w, self.lcd.white)
 
         return -1

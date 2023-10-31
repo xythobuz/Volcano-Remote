@@ -29,6 +29,7 @@ class StateSelect:
         self.menuOff = 0
 
     def exit(self):
+        self.lcd.store_brightness()
         return self.client, workflows[self.current]
 
     def draw_list(self):
@@ -47,7 +48,7 @@ class StateSelect:
             if self.current == i:
                 c = self.lcd.red
 
-            self.lcd.hline(0, off, self.lcd.width, self.lcd.blue)
+            self.lcd.hline(0, off - 3, self.lcd.width, self.lcd.blue)
             self.lcd.text(s1, 0, off + 2, c)
             self.lcd.text(s2, 0, off + 12, c)
 
@@ -64,6 +65,13 @@ class StateSelect:
             self.current += 1
         elif keys.once("enter") or keys.once("a"):
             return 1
+        elif keys.held("left"):
+            v = self.lcd.curr_brightness - 0.05
+            if v < 0.05:
+                v = 0.05
+            self.lcd.brightness(v)
+        elif keys.held("right"):
+            self.lcd.brightness(self.lcd.curr_brightness + 0.05)
 
         while self.current < 0:
             self.current += len(workflows)
@@ -75,5 +83,8 @@ class StateSelect:
             self.menuOff += 1
 
         self.draw_list()
+
+        w = int(self.lcd.width * self.lcd.curr_brightness)
+        self.lcd.hline(0, 24, w, self.lcd.white)
 
         return -1

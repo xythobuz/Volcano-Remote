@@ -16,6 +16,9 @@
 # See <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 
+from lcd import LCD
+lcd = LCD()
+
 import uasyncio as asyncio
 import io
 import sys
@@ -23,13 +26,16 @@ import machine
 import os
 import gc
 import time
+from state_wait_temp import from_hsv, translate
 
 # https://github.com/pimoroni/pimoroni-pico/blob/main/micropython/examples/pico_lipo_shim/battery_pico.py
 # https://github.com/pimoroni/enviro/pull/146
 # TODO https://github.com/micropython/micropython/issues/11185
 
-full_battery = 4.2
+full_battery = 4.1
 empty_battery = 3.2
+batt_warn_limit = 15
+batt_reread_limit = 2.7
 
 charging = machine.Pin("WL_GPIO2", machine.Pin.IN)
 conversion_factor = 3 * 3.3 / 65535
@@ -51,7 +57,7 @@ def batteryVoltageAverage():
     old_pad = get_pad(29)
     set_pad(29, 128)  # no pulls, no output, no input
 
-    sample_count = 10
+    sample_count = 3
     voltage = 0
     for i in range(0, sample_count):
         voltage += batteryVoltageRead()
@@ -63,13 +69,17 @@ def batteryVoltageAverage():
 def batteryVoltage():
     global cachedVoltage, lastCaching
 
-    if ((time.time() - lastCaching) >= 2) or (cachedVoltage == None):
+    if ((time.time() - lastCaching) > 0) or (cachedVoltage == None):
         lastCaching = time.time()
         cachedVoltage = batteryVoltageAverage()
+        if cachedVoltage <= batt_reread_limit:
+            cachedVoltage = batteryVoltageAverage()
 
     percentage = 100.0 * ((cachedVoltage - empty_battery) / (full_battery - empty_battery))
-    if percentage > 100.0:
-        percentage = 100.0
+    if percentage >= 100.0:
+        percentage = 99.0
+    elif percentage < 0.0:
+        percentage = 0.0
 
     return cachedVoltage, percentage
 
@@ -86,20 +96,33 @@ class States:
         self.lcd.fill(self.lcd.black)
         self.lcd.text("Volcano Remote Control App", 0, 0, self.lcd.green)
 
-        r = await self.states[self.current].draw()
+        ret = await self.states[self.current].draw()
 
         voltage, percentage = batteryVoltage()
-        s = "Charging ({:.2f}V)".format(voltage)
-        c = self.lcd.green
+        s = "Charging"
+        c = self.lcd.white
         if charging.value() != 1:
             s = "{:.0f}% ({:.2f}V)".format(percentage, voltage)
-            c = self.lcd.white
-            if percentage <= 20:
+            if percentage <= batt_warn_limit:
                 c = self.lcd.red
-        self.lcd.text("Battery: {}".format(s), 0, self.lcd.height - 10, c)
+            else:
+                hue = translate(percentage, batt_warn_limit, 100, 0.0, 0.333)
+                r, g, b = from_hsv(hue, 1.0, 1.0)
+                c = self.lcd.color(r, g, b)
+        whole = "Batt: {}".format(s)
+        self.lcd.text(whole, 0, self.lcd.height - 10, c)
+
+        off = (len(whole) + 1) * 8
+        if percentage <= batt_warn_limit:
+            self.lcd.text("CHARGE NOW!", off, self.lcd.height - 10, self.lcd.red)
+        elif charging.value() != 1:
+            self.lcd.rect(off, self.lcd.height - 10, self.lcd.width - off, 8, c, False)
+            max_w = self.lcd.width - off - 2
+            w = int(percentage / 100.0 * max_w)
+            self.lcd.rect(off + 1, self.lcd.height - 9, w, 6, c, True)
 
         self.lcd.show()
-        return r
+        return ret
 
     def run(self):
         if self.current == None:
@@ -166,9 +189,6 @@ def state_machine(lcd):
     while True:
         states.run()
 
-from lcd import LCD
-lcd = LCD()
-
 def main():
     # splash screen
     from state_wait_temp import from_hsv
@@ -194,7 +214,6 @@ def main():
     lcd.textC(os.uname()[4][30 : 60], int(lcd.width / 2), lcd.height - 10, lcd.white, lcd.black)
 
     lcd.show()
-    lcd.brightness(1.0)
 
     # bootloader access with face buttons
     keys = lcd.buttons()
