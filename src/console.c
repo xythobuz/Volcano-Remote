@@ -29,6 +29,7 @@
 #include "debug.h"
 #include "console.h"
 #include "lipo.h"
+#include "ble.h"
 
 #define CNSL_BUFF_SIZE 1024
 #define CNSL_REPEAT_MS 500
@@ -73,6 +74,7 @@ static void cnsl_interpret(const char *line) {
         println("   help - print this message");
         println("  mount - make mass storage medium (un)available");
         println("  power - show Lipo battery status");
+        println("   scan - start or stop BLE scan");
         println("Press Enter with no input to repeat last command.");
         println("Use repeat to continuously execute last command.");
         println("Stop this by calling repeat again.");
@@ -89,6 +91,8 @@ static void cnsl_interpret(const char *line) {
         println("Battery: %.2fV = %.1f%% @ %s",
                 volt, lipo_percentage(volt),
                 lipo_charging() ? "charging" : "draining");
+    } else if (strcmp(line, "scan") == 0) {
+        ble_scan(2);
     } else {
         println("unknown command \"%s\"", line);
     }

@@ -28,6 +28,7 @@
 #include "usb.h"
 #include "fat_disk.h"
 #include "buttons.h"
+#include "ble.h"
 
 int main(void) {
     heartbeat_init();
@@ -43,9 +44,14 @@ int main(void) {
     // required for LiPo voltage reading
     adc_init();
 
+    // required for BLE and LiPo voltage reading
+    debug("cyw43_arch_init");
     if (cyw43_arch_init()) {
-        debug("cyw43_arch failed");
+        debug("cyw43_arch_init failed");
     }
+
+    debug("ble_init");
+    ble_init();
 
     debug("fat_disk_init");
     fat_disk_init();

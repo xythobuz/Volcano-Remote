@@ -1,5 +1,5 @@
 /*
- * lipo.h
+ * ble.h
  *
  * Copyright (c) 2023 Thomas Buck (thomas@xythobuz.de)
  *
@@ -16,11 +16,16 @@
  * See <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __LIPO_H__
-#define __LIPO_H__
+#ifndef __BLE_H__
+#define __BLE_H__
 
-bool lipo_charging(void);
-float lipo_voltage(void);
-float lipo_percentage(float voltage);
+void ble_init(void);
 
-#endif // __LIPO_H__
+enum ble_scan_mode {
+    BLE_SCAN_OFF    = 0,
+    BLE_SCAN_ON     = 1,
+    BLE_SCAN_TOGGLE = 2,
+};
+void ble_scan(enum ble_scan_mode mode);
+
+#endif // __BLE_H__

@@ -55,6 +55,7 @@ target_sources(gadget PUBLIC
     src/debug.c
     src/buttons.c
     src/lipo.c
+    src/ble.c
 
     ${CMAKE_CURRENT_BINARY_DIR}/fatfs/ff.c
     ${CMAKE_CURRENT_BINARY_DIR}/fatfs/ffunicode.c
