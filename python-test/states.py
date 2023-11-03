@@ -120,6 +120,8 @@ class States:
             max_w = self.lcd.width - off - 2
             w = int(percentage / 100.0 * max_w)
             self.lcd.rect(off + 1, self.lcd.height - 9, w, 6, c, True)
+        else:
+            pass # TODO charge indicator (lightning bolt?)
 
         self.lcd.show()
         return ret
@@ -185,6 +187,11 @@ def state_machine(lcd):
     from state_notify import StateNotify
     notify = StateNotify(lcd)
     states.add(notify)
+
+    # 10 - OTA Update
+    #from ota import StateUpdate
+    #update = StateUpdate(lcd)
+    #states.add(update)
 
     while True:
         states.run()

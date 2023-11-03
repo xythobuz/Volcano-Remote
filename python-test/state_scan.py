@@ -124,6 +124,8 @@ class StateScan:
                     self.current = 0
                 else:
                     self.current += 1
+            elif keys.once("x"):
+                return 10
             elif keys.held("left"):
                 v = self.lcd.curr_brightness - 0.05
                 if v < 0.05:
