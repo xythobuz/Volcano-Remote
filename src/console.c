@@ -28,6 +28,7 @@
 #include "usb_msc.h"
 #include "debug.h"
 #include "console.h"
+#include "lipo.h"
 
 #define CNSL_BUFF_SIZE 1024
 #define CNSL_REPEAT_MS 500
@@ -65,13 +66,13 @@ static void cnsl_interpret(const char *line) {
     } else if ((strcmp(line, "help") == 0)
             || (strcmp(line, "h") == 0)
             || (strcmp(line, "?") == 0)) {
-        println("Trackball Firmware Usage:");
+        println("VolcanoRC Firmware Usage:");
         println("  reset - reset back into this firmware");
         println("   \\x18 - reset to bootloader");
         println(" repeat - repeat last command every %d milliseconds", CNSL_REPEAT_MS);
         println("   help - print this message");
         println("  mount - make mass storage medium (un)available");
-        //println("    foo - bar");
+        println("  power - show Lipo battery status");
         println("Press Enter with no input to repeat last command.");
         println("Use repeat to continuously execute last command.");
         println("Stop this by calling repeat again.");
@@ -83,6 +84,11 @@ static void cnsl_interpret(const char *line) {
                 state ? "mounted" : "unmounted",
                 state ? "Unplugging" : "Plugging in");
         msc_set_medium_available(!state);
+    } else if (strcmp(line, "power") == 0) {
+        float volt = lipo_voltage();
+        println("Battery: %.2fV = %.1f%% @ %s",
+                volt, lipo_percentage(volt),
+                lipo_charging() ? "charging" : "draining");
     } else {
         println("unknown command \"%s\"", line);
     }

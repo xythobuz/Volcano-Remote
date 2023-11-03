@@ -19,6 +19,7 @@
 #include "pico/stdlib.h"
 #include "pico/cyw43_arch.h"
 #include "hardware/watchdog.h"
+#include "hardware/adc.h"
 
 #include "config.h"
 #include "util.h"
@@ -38,6 +39,9 @@ int main(void) {
     if (watchdog_caused_reboot()) {
         debug("reset by watchdog");
     }
+
+    // required for LiPo voltage reading
+    adc_init();
 
     if (cyw43_arch_init()) {
         debug("cyw43_arch failed");

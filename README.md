@@ -2,7 +2,7 @@
 
 For use with Raspberry Pi Pico W boards with the [Waveshare Pico LCD 1.3](https://www.waveshare.com/wiki/Pico-LCD-1.3) and the [Pimoroni Pico Lipo Shim](https://shop.pimoroni.com/products/pico-lipo-shim).
 
-Adapted from the [tinyusb-cdc-example](https://github.com/hathach/tinyusb/blob/master/examples/device/cdc_msc/src/main.c), [standalone client example](https://github.com/raspberrypi/pico-examples/blob/master/pico_w/bt/standalone/client.c) and my [Trackball firmware](https://git.xythobuz.de/thomas/Trackball).
+Adapted from the [tinyusb-cdc-example](https://github.com/hathach/tinyusb/blob/master/examples/device/cdc_msc/src/main.c), [adc example](https://github.com/raspberrypi/pico-examples/tree/master/adc/read_vsys), [standalone client example](https://github.com/raspberrypi/pico-examples/blob/master/pico_w/bt/standalone/client.c) and my [Trackball firmware](https://git.xythobuz.de/thomas/Trackball).
 
 ## Quick Start
 
