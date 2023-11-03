@@ -37,6 +37,9 @@ void heartbeat_init(void) {
     gpio_set_dir(PICO_DEFAULT_LED_PIN, GPIO_OUT);
     gpio_put(PICO_DEFAULT_LED_PIN, 1);
 #endif // PICO_DEFAULT_LED_PIN
+#ifdef CYW43_WL_GPIO_LED_PIN
+    cyw43_arch_gpio_put(CYW43_WL_GPIO_LED_PIN, 1);
+#endif // CYW43_WL_GPIO_LED_PIN
 }
 
 void heartbeat_run(void) {

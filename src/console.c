@@ -30,6 +30,9 @@
 #include "console.h"
 #include "lipo.h"
 #include "ble.h"
+#include "text.h"
+#include "lcd.h"
+#include "image.h"
 
 #define CNSL_BUFF_SIZE 1024
 #define CNSL_REPEAT_MS 500
@@ -75,6 +78,10 @@ static void cnsl_interpret(const char *line) {
         println("  mount - make mass storage medium (un)available");
         println("  power - show Lipo battery status");
         println("   scan - start or stop BLE scan");
+        println("  clear - blank screen");
+        println(" splash - draw image on screen");
+        println("  fonts - show font list");
+        println("   text - draw text on screen");
         println("Press Enter with no input to repeat last command.");
         println("Use repeat to continuously execute last command.");
         println("Stop this by calling repeat again.");
@@ -93,6 +100,58 @@ static void cnsl_interpret(const char *line) {
                 lipo_charging() ? "charging" : "draining");
     } else if (strcmp(line, "scan") == 0) {
         ble_scan(2);
+    } else if (strcmp(line, "clear") == 0) {
+        lcd_clear();
+    } else if (strcmp(line, "splash") == 0) {
+        draw_splash();
+    } else if (strcmp(line, "fonts") == 0) {
+        const struct mf_font_list_s *f = mf_get_font_list();
+
+        debug("Font list:");
+        while (f) {
+            debug("full_name: %s", f->font->full_name);
+            debug("short_name: %s", f->font->short_name);
+            debug("size: %d %d", f->font->width, f->font->height);
+            debug("x_advance: %d %d", f->font->min_x_advance, f->font->max_x_advance);
+            debug("baseline: %d %d", f->font->baseline_x, f->font->baseline_y);
+            debug("line_height: %d", f->font->line_height);
+            debug("flags: %d", f->font->flags);
+            debug("fallback_character: %c", f->font->fallback_character);
+            debug("character_width: %p", f->font->character_width);
+            debug("render_character: %p", f->font->render_character);
+
+            f = f->next;
+            if (f) {
+                debug("");
+            }
+        }
+    } else if (strcmp(line, "text") == 0) {
+        uint16_t y_off = 0;
+        const struct mf_font_list_s *f = mf_get_font_list();
+        while (f) {
+            struct text_font font = {
+                .fontname = f->font->short_name,
+                //.scale = 1,
+                .font = f->font,
+            };
+            text_prepare_font(&font);
+
+            struct text_conf text = {
+                .text = font.fontname,
+                .x = 0,
+                .y = y_off,
+                .justify = false,
+                .alignment = MF_ALIGN_CENTER,
+                .width = 240,
+                .height = 240 - y_off,
+                .margin = 5,
+                .font = &font,
+            };
+            text_draw(&text);
+
+            y_off = text.y;
+            f = f->next;
+        }
     } else {
         println("unknown command \"%s\"", line);
     }

@@ -262,8 +262,10 @@ void lcd_set_backlight(uint16_t value) {
     pwm_set_chan_level(bl_slice, bl_channel, bl_value);
 }
 
+void lcd_clear(void) {
+    st7789_clear(&gs_handle);
+}
+
 void lcd_write_point(uint16_t x, uint16_t y, uint32_t color) {
     st7789_draw_point(&gs_handle, x, y, color);
-
-    st7789_display_on(&gs_handle);
 }

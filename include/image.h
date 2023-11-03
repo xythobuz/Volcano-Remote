@@ -1,5 +1,5 @@
 /*
- * lipo.h
+ * image.h
  *
  * Copyright (c) 2023 Thomas Buck (thomas@xythobuz.de)
  *
@@ -16,15 +16,9 @@
  * See <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __LCD_H__
-#define __LCD_H__
+#ifndef __IMAGE_H__
+#define __IMAGE_H__
 
-void lcd_init(void);
+void draw_splash(void);
 
-uint16_t lcd_get_backlight(void);
-void lcd_set_backlight(uint16_t value);
-
-void lcd_clear(void);
-void lcd_write_point(uint16_t x, uint16_t y, uint32_t color);
-
-#endif // __LCD_H__
+#endif // __IMAGE_H__

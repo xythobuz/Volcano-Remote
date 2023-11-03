@@ -30,43 +30,28 @@
 #include "buttons.h"
 #include "ble.h"
 #include "lcd.h"
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wtrigraphs"
-#include "logo.h"
-#pragma GCC diagnostic pop
-
-static void draw_splash(void) {
-    char *data = logo_rgb_data;
-    for (uint x = 0; x < logo_width; x++) {
-        for (uint y = 0; y < logo_height; y++) {
-            uint32_t pixel[3];
-            HEADER_PIXEL(data, pixel);
-
-            uint32_t color = (pixel[0] >> 3) << 11;
-            color |= (pixel[1] >> 2) << 5;
-            color |= pixel[2] >> 3;
-            lcd_write_point(240 - x, y, color);
-        }
-    }
-}
+#include "text.h"
+#include "image.h"
 
 int main(void) {
-    heartbeat_init();
-    buttons_init();
+    // required for debug console
     cnsl_init();
     usb_init();
 
     debug("lcd_init");
     lcd_init();
     draw_splash();
-    lcd_set_backlight(0x8000);
+    lcd_set_backlight(0x1000);
 
     if (watchdog_caused_reboot()) {
         debug("reset by watchdog");
     }
 
+    debug("buttons_init");
+    buttons_init();
+
     // required for LiPo voltage reading
+    debug("adc_init");
     adc_init();
 
     // required for BLE and LiPo voltage reading
@@ -74,6 +59,9 @@ int main(void) {
     if (cyw43_arch_init()) {
         debug("cyw43_arch_init failed");
     }
+
+    debug("heartbeat_init");
+    heartbeat_init();
 
     debug("ble_init");
     ble_init();
@@ -85,6 +73,7 @@ int main(void) {
     watchdog_enable(1000, 1);
 
     debug("init done");
+    lcd_set_backlight(0x8000);
 
     while (1) {
         watchdog_update();

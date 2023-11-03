@@ -21,6 +21,7 @@
 
 #include <stdarg.h>
 #include <stdbool.h>
+#include "pico/stdlib.h"
 
 // for output that is stored in the debug log.
 // will be re-played from buffer when terminal connects
