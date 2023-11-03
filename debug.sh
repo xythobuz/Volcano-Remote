@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-SERIAL=/dev/serial/by-id/usb-xythobuz_Trackball_*
+SERIAL=/dev/serial/by-id/usb-xythobuz_VolcanoRC_*
 
 echo -n Waiting for serial port to appear
 until [ -e $SERIAL ]

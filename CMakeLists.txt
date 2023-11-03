@@ -74,6 +74,7 @@ target_sources(gadget PUBLIC
 target_include_directories(gadget PUBLIC ${CMAKE_CURRENT_LIST_DIR}/include)
 target_include_directories(gadget PUBLIC ${CMAKE_CURRENT_BINARY_DIR}/fatfs)
 target_include_directories(gadget PUBLIC ${CMAKE_CURRENT_LIST_DIR}/st7789/src)
+target_include_directories(gadget PUBLIC ${CMAKE_CURRENT_LIST_DIR}/st7789/interface)
 target_include_directories(gadget PUBLIC ${CMAKE_CURRENT_LIST_DIR}/mcufont/decoder)
 target_include_directories(gadget PUBLIC ${CMAKE_CURRENT_LIST_DIR}/mcufont/fonts)
 
@@ -98,11 +99,12 @@ target_link_libraries(gadget
     hardware_spi
     pico_btstack_ble
     pico_btstack_cyw43
-    pico_cyw43_arch_none
+    pico_cyw43_arch_threadsafe_background
 )
 
 target_compile_definitions(gadget PUBLIC
     RUNNING_AS_CLIENT=1
+    CYW43_LWIP=0
 )
 
 # fix for Errata RP2040-E5 (the fix requires use of GPIO 15)

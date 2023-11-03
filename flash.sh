@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-SERIAL=/dev/serial/by-id/usb-xythobuz_Trackball_*
+SERIAL=/dev/serial/by-id/usb-xythobuz_VolcanoRC_*
 DISK=/dev/disk/by-label/RPI-RP2
 MOUNT=/mnt/tmp
 

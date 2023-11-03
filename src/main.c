@@ -17,6 +17,7 @@
  */
 
 #include "pico/stdlib.h"
+#include "pico/cyw43_arch.h"
 #include "hardware/watchdog.h"
 
 #include "config.h"
@@ -38,11 +39,15 @@ int main(void) {
         debug("reset by watchdog");
     }
 
+    if (cyw43_arch_init()) {
+        debug("cyw43_arch failed");
+    }
+
     debug("fat_disk_init");
     fat_disk_init();
 
-    // trigger after 500ms
-    watchdog_enable(500, 1);
+    // trigger after 1000ms
+    watchdog_enable(1000, 1);
 
     debug("init done");
 
