@@ -29,13 +29,38 @@
 #include "fat_disk.h"
 #include "buttons.h"
 #include "ble.h"
+#include "lcd.h"
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wtrigraphs"
+#include "logo.h"
+#pragma GCC diagnostic pop
+
+static void draw_splash(void) {
+    char *data = logo_rgb_data;
+    for (uint x = 0; x < logo_width; x++) {
+        for (uint y = 0; y < logo_height; y++) {
+            uint32_t pixel[3];
+            HEADER_PIXEL(data, pixel);
+
+            uint32_t color = (pixel[0] >> 3) << 11;
+            color |= (pixel[1] >> 2) << 5;
+            color |= pixel[2] >> 3;
+            lcd_write_point(240 - x, y, color);
+        }
+    }
+}
 
 int main(void) {
     heartbeat_init();
     buttons_init();
-
     cnsl_init();
     usb_init();
+
+    debug("lcd_init");
+    lcd_init();
+    draw_splash();
+    lcd_set_backlight(0x8000);
 
     if (watchdog_caused_reboot()) {
         debug("reset by watchdog");

@@ -56,6 +56,7 @@ target_sources(gadget PUBLIC
     src/buttons.c
     src/lipo.c
     src/ble.c
+    src/lcd.c
 
     ${CMAKE_CURRENT_BINARY_DIR}/fatfs/ff.c
     ${CMAKE_CURRENT_BINARY_DIR}/fatfs/ffunicode.c
@@ -100,6 +101,8 @@ target_link_libraries(gadget
     tinyusb_board
     hardware_spi
     hardware_adc
+    hardware_gpio
+    hardware_pwm
     pico_btstack_ble
     pico_btstack_cyw43
     pico_cyw43_arch_threadsafe_background

@@ -19,6 +19,7 @@
 #ifndef __LOG_H__
 #define __LOG_H__
 
+#include <stdarg.h>
 #include <stdbool.h>
 
 // for output that is stored in the debug log.
@@ -35,6 +36,7 @@
 
 void debug_log(bool log, const char *format, ...) __attribute__((format(printf, 2, 3)));
 void debug_wait_input(const char *format, ...) __attribute__((format(printf, 1, 2)));
+void debug_log_va(bool log, const char *format, va_list args);
 
 void log_dump_to_usb(void);
 void log_dump_to_disk(void);

@@ -16,7 +16,6 @@
  * See <http://www.gnu.org/licenses/>.
  */
 
-#include <stdarg.h>
 #include <stdio.h>
 
 #include "pico/stdlib.h"
@@ -29,6 +28,7 @@
 #include "log.h"
 
 static char log_buff[4096];
+static char line_buff[512];
 static size_t head = 0, tail = 0;
 static bool full = false;
 static bool got_input = false;
@@ -106,28 +106,16 @@ void log_dump_to_disk(void) {
     }
 }
 
-static int format_debug_log(char *buff, size_t len, const char *format, va_list args) {
-    int l = vsnprintf(buff, len, format, args);
+void debug_log_va(bool log, const char *format, va_list args) {
+    int l = vsnprintf(line_buff, sizeof(line_buff), format, args);
 
     if (l < 0) {
         // encoding error
-        l = snprintf(buff, len, "%s: encoding error\r\n", __func__);
-    } else if (l >= (ssize_t)len) {
+        l = snprintf(line_buff, sizeof(line_buff), "%s: encoding error\r\n", __func__);
+    } else if (l >= (ssize_t)sizeof(line_buff)) {
         // not enough space for string
-        l = snprintf(buff, len, "%s: message too long (%d)\r\n", __func__, l);
+        l = snprintf(line_buff, sizeof(line_buff), "%s: message too long (%d)\r\n", __func__, l);
     }
-
-    return l;
-}
-
-void debug_log(bool log, const char* format, ...) {
-    static char line_buff[512];
-
-    va_list args;
-    va_start(args, format);
-    int l = format_debug_log(line_buff, sizeof(line_buff), format, args);
-    va_end(args);
-
     if ((l > 0) && (l <= (int)sizeof(line_buff))) {
         usb_cdc_write(line_buff, l);
 
@@ -135,6 +123,13 @@ void debug_log(bool log, const char* format, ...) {
             add_to_log(line_buff, l);
         }
     }
+}
+
+void debug_log(bool log, const char* format, ...) {
+    va_list args;
+    va_start(args, format);
+    debug_log_va(log, format, args);
+    va_end(args);
 }
 
 void debug_handle_input(char *buff, uint32_t len) {
@@ -146,16 +141,10 @@ void debug_handle_input(char *buff, uint32_t len) {
 }
 
 void debug_wait_input(const char *format, ...) {
-    static char line_buff[512];
-
     va_list args;
     va_start(args, format);
-    int l = format_debug_log(line_buff, sizeof(line_buff), format, args);
+    debug_log_va(false, format, args);
     va_end(args);
-
-    if ((l > 0) && (l <= (int)sizeof(line_buff))) {
-        usb_cdc_write(line_buff, l);
-    }
 
     got_input = false;
     usb_cdc_set_reroute(true);
