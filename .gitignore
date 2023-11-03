@@ -1,2 +1,9 @@
 web-app/*.js
+web-app/*/*.js
 __pycache__
+build
+build_debug
+*.stl
+*.sl1
+*.wow
+.directory

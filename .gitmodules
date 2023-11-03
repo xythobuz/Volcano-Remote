@@ -1,0 +1,12 @@
+[submodule "pico-sdk"]
+	path = pico-sdk
+	url = https://github.com/raspberrypi/pico-sdk
+[submodule "fatfs"]
+	path = fatfs
+	url = https://github.com/abbrev/fatfs
+[submodule "mcufont"]
+	path = mcufont
+	url = https://github.com/mcufont/mcufont
+[submodule "st7789"]
+	path = st7789
+	url = https://github.com/hepingood/st7789
