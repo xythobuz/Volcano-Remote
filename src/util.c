@@ -100,3 +100,10 @@ void hexdump(uint8_t *buff, size_t len) {
         println();
     }
 }
+
+float map(float value, float leftMin, float leftMax, float rightMin, float rightMax) {
+    float leftSpan = leftMax - leftMin;
+    float rightSpan = rightMax - rightMin;
+    float valueScaled = (value - leftMin) / leftSpan;
+    return rightMin + (valueScaled * rightSpan);
+}

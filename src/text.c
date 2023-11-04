@@ -26,6 +26,26 @@ typedef struct {
     uint16_t anchor;
 } state_t;
 
+static uint32_t blend(uint32_t fg_c, uint32_t bg_c, uint8_t alpha) {
+    float bg[4] = { RGB_565_REV(bg_c), 1.0f };
+    float fg[4] = { RGB_565_REV(fg_c), alpha / 255.0f };
+    float r[4];
+    r[3] = 1.0f - (1.0f - fg[3]) * (1.0f - bg[3]);
+    if (r[3] < 1.0e-6f) {
+        r[0] = 0.0f;
+        r[1] = 0.0f;
+        r[2] = 0.0f;
+    } else {
+        r[0] = fg[0] * fg[3] / r[3] + bg[0] * bg[3] * (1.0f - fg[3]) / r[3];
+        r[1] = fg[1] * fg[3] / r[3] + bg[1] * bg[3] * (1.0f - fg[3]) / r[3];
+        r[2] = fg[2] * fg[3] / r[3] + bg[2] * bg[3] * (1.0f - fg[3]) / r[3];
+    }
+
+    return RGB_565((uint32_t)(r[0] * 255.0f),
+                   (uint32_t)(r[1] * 255.0f),
+                   (uint32_t)(r[2] * 255.0f));
+}
+
 static void pixel_callback(int16_t x, int16_t y, uint8_t count, uint8_t alpha,
                            void *state) {
     state_t *s = (state_t*)state;
@@ -34,8 +54,8 @@ static void pixel_callback(int16_t x, int16_t y, uint8_t count, uint8_t alpha,
     if (x < 0 || x + count >= s->options->width) return;
 
     while (count--) {
-        uint32_t c = RGB_565(alpha, alpha, alpha);
-        lcd_write_point(240 - y - 1, x, c);
+        lcd_write_point(240 - y - 1, x,
+                        blend(s->options->fg, s->options->bg, alpha));
         x++;
     }
 }

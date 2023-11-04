@@ -22,6 +22,7 @@
 #include "lcd.h"
 #include "text.h"
 #include "lipo.h"
+#include "util.h"
 #include "image.h"
 
 #pragma GCC diagnostic push
@@ -65,6 +66,7 @@ void draw_splash(void) {
         .width = 240,
         .height = 240,
         .margin = 2,
+        .fg = RGB_565(0xFF, 0xFF, 0xFF),
         .bg = RGB_565(0x00, 0x00, 0x00),
         .font = &font_big,
     };
@@ -79,6 +81,7 @@ void draw_splash(void) {
         .width = 240,
         .height = 240,
         .margin = 2,
+        .fg = RGB_565(0xFF, 0xFF, 0xFF),
         .bg = RGB_565(0x00, 0x00, 0x00),
         .font = &font_small,
     };
@@ -86,13 +89,22 @@ void draw_splash(void) {
 }
 
 void draw_battery_indicator(void) {
-    float v = lipo_voltage();
+    static const float batt_warn_limit = 15.0f;
     static char s[30];
+    float v = lipo_voltage();
+    uint32_t c = RGB_565(0xFF, 0x00, 0x00);
     if (lipo_charging()) {
         //                     "Batt:   99.9%   (4.20V)"
         snprintf(s, sizeof(s), "Batt: Charging! (%.2fV)", v);
+        c = RGB_565(0xFF, 0xFF, 0x00);
     } else {
-        snprintf(s, sizeof(s), "Batt:   %02.1f%%   (%.2fV)", lipo_percentage(v), v);
+        float percentage = lipo_percentage(v);
+        snprintf(s, sizeof(s), "Batt:   %02.1f%%   (%.2fV)", percentage, v);
+
+        if (percentage > batt_warn_limit) {
+            float hue = map(percentage, batt_warn_limit, 100, 0.0, 0.333);
+            c = from_hsv(hue, 1.0, 1.0);
+        }
     }
 
     static struct text_font font = {
@@ -112,6 +124,7 @@ void draw_battery_indicator(void) {
         .width = 240,
         .height = 240,
         .margin = 2,
+        .fg = c,
         .bg = RGB_565(0x00, 0x00, 0x00),
         .font = &font,
     };

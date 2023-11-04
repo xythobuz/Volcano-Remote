@@ -26,6 +26,11 @@
     | (((g) >> 2) << 5)    \
     |  ((b) >> 3)          \
 )
+#define RGB_565_REV(c)            \
+    ((c & 0xF800) >> 8) / 255.0f, \
+    ((c & 0x07E0) >> 3) / 255.0f, \
+    ((c & 0x001F) << 3) / 255.0f
+uint32_t from_hsv(float h, float s, float v);
 
 void lcd_init(void);
 

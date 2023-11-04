@@ -31,4 +31,6 @@ void reset_to_main(void);
 
 void hexdump(uint8_t *buff, size_t len);
 
+float map(float value, float leftMin, float leftMax, float rightMin, float rightMax);
+
 #endif // __UTIL_H__

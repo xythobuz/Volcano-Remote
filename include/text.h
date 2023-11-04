@@ -39,6 +39,7 @@ struct text_conf {
     int width;
     int height;
     int margin;
+    int fg;
     int bg;
 
     struct text_font *font;

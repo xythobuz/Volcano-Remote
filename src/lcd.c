@@ -16,6 +16,8 @@
  * See <http://www.gnu.org/licenses/>.
  */
 
+#include <math.h>
+
 #include "pico/stdlib.h"
 #include "hardware/spi.h"
 #include "hardware/pwm.h"
@@ -272,4 +274,36 @@ void lcd_write_point(uint16_t x, uint16_t y, uint32_t color) {
 
 void lcd_write_rect(uint16_t left, uint16_t top, uint16_t right, uint16_t bottom, uint32_t color) {
     st7789_fill_rect(&gs_handle, left, top, right, bottom, color);
+}
+
+uint32_t from_hsv(float h, float s, float v) {
+    float i = floorf(h * 6.0f);
+    float f = h * 6.0f - i;
+    v *= 255.0f;
+    float p = v * (1.0f - s);
+    float q = v * (1.0f - f * s);
+    float t = v * (1.0f - (1.0f - f) * s);
+
+    switch (((uint32_t)i) % 6) {
+    case 0:
+        return RGB_565((uint32_t)v, (uint32_t)t, (uint32_t)p);
+
+    case 1:
+        return RGB_565((uint32_t)q, (uint32_t)v, (uint32_t)p);
+
+    case 2:
+        return RGB_565((uint32_t)p, (uint32_t)v, (uint32_t)t);
+
+    case 3:
+        return RGB_565((uint32_t)p, (uint32_t)q, (uint32_t)v);
+
+    case 4:
+        return RGB_565((uint32_t)t, (uint32_t)p, (uint32_t)v);
+
+    case 5:
+        return RGB_565((uint32_t)v, (uint32_t)p, (uint32_t)q);
+
+    default:
+        return RGB_565(0, 0, 0);
+    }
 }
