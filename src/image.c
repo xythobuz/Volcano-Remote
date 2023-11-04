@@ -16,15 +16,20 @@
  * See <http://www.gnu.org/licenses/>.
  */
 
+#include <stdio.h>
+
 #include "config.h"
 #include "lcd.h"
 #include "text.h"
+#include "lipo.h"
 #include "image.h"
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wtrigraphs"
 #include "logo.h"
 #pragma GCC diagnostic pop
+
+#define BATT_INTERVAL_MS 777
 
 void image_draw(char *data, uint width, uint height) {
     for (uint x = 0; x < width; x++) {
@@ -66,7 +71,7 @@ void draw_splash(void) {
     text_draw(&text1);
 
     struct text_conf text2 = {
-        .text = __DATE__ " " __TIME__,
+        .text = __DATE__ " @ " __TIME__,
         .x = 0,
         .y = 195,
         .justify = false,
@@ -78,4 +83,46 @@ void draw_splash(void) {
         .font = &font_small,
     };
     text_draw(&text2);
+}
+
+void draw_battery_indicator(void) {
+    float v = lipo_voltage();
+    static char s[30];
+    if (lipo_charging()) {
+        //                     "Batt:   99.9%   (4.20V)"
+        snprintf(s, sizeof(s), "Batt: Charging! (%.2fV)", v);
+    } else {
+        snprintf(s, sizeof(s), "Batt:   %02.1f%%   (%.2fV)", lipo_percentage(v), v);
+    }
+
+    static struct text_font font = {
+        .fontname = "fixed_10x20",
+        .font = NULL,
+    };
+    if (font.font == NULL) {
+        text_prepare_font(&font);
+    }
+
+    struct text_conf text = {
+        .text = s,
+        .x = 0,
+        .y = 219,
+        .justify = false,
+        .alignment = MF_ALIGN_CENTER,
+        .width = 240,
+        .height = 240,
+        .margin = 2,
+        .bg = RGB_565(0x00, 0x00, 0x00),
+        .font = &font,
+    };
+    text_draw(&text);
+}
+
+void battery_run(void) {
+    static uint32_t last_run = 0;
+    uint32_t now = to_ms_since_boot(get_absolute_time());
+    if (now >= (last_run + BATT_INTERVAL_MS)) {
+        last_run = now;
+        draw_battery_indicator();
+    }
 }

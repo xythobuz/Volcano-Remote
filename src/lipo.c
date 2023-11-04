@@ -18,6 +18,8 @@
  * See <http://www.gnu.org/licenses/>.
  */
 
+#include <math.h>
+
 #include "stdbool.h"
 #include "hardware/adc.h"
 
@@ -37,6 +39,7 @@
 
 static const float full_battery = 4.1f;
 static const float empty_battery = 3.2f;
+static const float low_pass_factor = 0.9f;
 
 bool lipo_charging(void) {
 #if defined CYW43_WL_GPIO_VBUS_PIN
@@ -57,7 +60,7 @@ float lipo_voltage(void) {
 #if CYW43_USES_VSYS_PIN
     cyw43_thread_enter();
     // Make sure cyw43 is awake
-    cyw43_arch_gpio_get(CYW43_WL_GPIO_VBUS_PIN);
+    bool charging = cyw43_arch_gpio_get(CYW43_WL_GPIO_VBUS_PIN);
 #endif
 
     // setup adc
@@ -91,13 +94,25 @@ float lipo_voltage(void) {
 
     // Generate voltage
     const float conversion_factor = 3.3f / (1 << 12);
-    return vsys * 3 * conversion_factor;
+    float v_now = vsys * 3 * conversion_factor;
+
+    static float v_prev = NAN;
+    if (charging) {
+        v_prev = NAN;
+        return v_now;
+    } else {
+        if (isnan(v_prev)) {
+            v_prev = v_now;
+        }
+        v_prev = (v_prev * low_pass_factor) + (v_now * (1.0f - low_pass_factor));
+        return v_prev;
+    }
 }
 
 float lipo_percentage(float voltage) {
     float percentage = 100.0f * ((voltage - empty_battery) / (full_battery - empty_battery));
-    if (percentage >= 100.0f) {
-        percentage = 100.0f;
+    if (percentage >= 99.9f) {
+        percentage = 99.9f;
     } else if (percentage < 0.0f) {
         percentage = 0.0f;
     }

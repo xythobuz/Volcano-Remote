@@ -82,6 +82,7 @@ static void cnsl_interpret(const char *line) {
         println(" splash - draw image on screen");
         println("  fonts - show font list");
         println("   text - draw text on screen");
+        println("    bat - draw battery indicator");
         println("Press Enter with no input to repeat last command.");
         println("Use repeat to continuously execute last command.");
         println("Stop this by calling repeat again.");
@@ -153,6 +154,8 @@ static void cnsl_interpret(const char *line) {
             y_off = text.y;
             f = f->next;
         }
+    } else if (strcmp(line, "bat") == 0) {
+        draw_battery_indicator();
     } else {
         println("unknown command \"%s\"", line);
     }

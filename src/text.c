@@ -117,8 +117,6 @@ void text_draw(struct text_conf *tc) {
         return;
     }
 
-    debug("'%s' %d", tc->text, tc->y);
-
     state_t state;
     state.options = tc;
 

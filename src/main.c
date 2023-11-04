@@ -82,6 +82,8 @@ int main(void) {
         buttons_run();
         usb_run();
         cnsl_run();
+
+        battery_run();
     }
 
     return 0;

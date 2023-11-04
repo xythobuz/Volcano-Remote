@@ -24,5 +24,7 @@
 void image_draw(char *data, uint width, uint height);
 
 void draw_splash(void);
+void draw_battery_indicator(void);
+void battery_run(void);
 
 #endif // __IMAGE_H__
