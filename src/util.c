@@ -89,7 +89,7 @@ void reset_to_main(void) {
     }
 }
 
-void hexdump(uint8_t *buff, size_t len) {
+void hexdump(const uint8_t *buff, size_t len) {
     for (size_t i = 0; i < len; i += 16) {
         for (size_t j = 0; (j < 16) && ((i + j) < len); j++) {
             print("0x%02X", buff[i + j]);

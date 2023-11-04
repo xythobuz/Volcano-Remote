@@ -78,6 +78,7 @@ static void cnsl_interpret(const char *line) {
         println("  mount - make mass storage medium (un)available");
         println("  power - show Lipo battery status");
         println("   scan - start or stop BLE scan");
+        println("scanres - print list of found BLE devices");
         println("  clear - blank screen");
         println(" splash - draw image on screen");
         println("  fonts - show font list");
@@ -101,6 +102,21 @@ static void cnsl_interpret(const char *line) {
                 lipo_charging() ? "charging" : "draining");
     } else if (strcmp(line, "scan") == 0) {
         ble_scan(2);
+    } else if (strcmp(line, "scanres") == 0) {
+        struct ble_scan_result results[BLE_MAX_SCAN_RESULTS] = {0};
+        int n = ble_get_scan_results(results, BLE_MAX_SCAN_RESULTS);
+        if (n < 0) {
+            println("Error reading results (%d)", n);
+        } else {
+            println("%d results", n);
+            for (int i = 0; i < n; i++) {
+                uint32_t age = to_ms_since_boot(get_absolute_time()) - results[i].time;
+                println("addr=%s type=%d rssi=%d age=%.1fs name='%s'",
+                        bd_addr_to_str(results[i].addr),
+                        results[i].type, results[i].rssi,
+                        age / 1000.0, results[i].name);
+            }
+        }
     } else if (strcmp(line, "clear") == 0) {
         lcd_clear();
     } else if (strcmp(line, "splash") == 0) {
