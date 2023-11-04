@@ -21,6 +21,8 @@
 
 #include "mcufont.h"
 
+#define TEXT_BG_NONE -1
+
 struct text_font {
     const char *fontname;
     //int scale; // TODO not supported - requires somewhere to store scaled versions
@@ -37,6 +39,7 @@ struct text_conf {
     int width;
     int height;
     int margin;
+    int bg;
 
     struct text_font *font;
 };

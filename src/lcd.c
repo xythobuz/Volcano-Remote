@@ -269,3 +269,7 @@ void lcd_clear(void) {
 void lcd_write_point(uint16_t x, uint16_t y, uint32_t color) {
     st7789_draw_point(&gs_handle, x, y, color);
 }
+
+void lcd_write_rect(uint16_t left, uint16_t top, uint16_t right, uint16_t bottom, uint32_t color) {
+    st7789_fill_rect(&gs_handle, left, top, right, bottom, color);
+}

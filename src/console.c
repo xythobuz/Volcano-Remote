@@ -145,6 +145,7 @@ static void cnsl_interpret(const char *line) {
                 .width = 240,
                 .height = 240 - y_off,
                 .margin = 5,
+                .bg = TEXT_BG_NONE,
                 .font = &font,
             };
             text_draw(&text);

@@ -34,9 +34,7 @@ static void pixel_callback(int16_t x, int16_t y, uint8_t count, uint8_t alpha,
     if (x < 0 || x + count >= s->options->width) return;
 
     while (count--) {
-        uint32_t c = (alpha >> 3) << 11;
-        c |= (alpha >> 2) << 5;
-        c |= alpha >> 3;
+        uint32_t c = RGB_565(alpha, alpha, alpha);
         lcd_write_point(240 - y - 1, x, c);
         x++;
     }
@@ -51,6 +49,31 @@ static uint8_t character_callback(int16_t x, int16_t y, mf_char character,
 
 static bool line_callback(const char *line, uint16_t count, void *state) {
     state_t *s = (state_t*)state;
+
+    if (s->options->bg != TEXT_BG_NONE) {
+        int16_t width = mf_get_string_width(s->options->font->font, line, count, false) + 2 * s->options->margin;
+        int16_t line_height = s->options->font->font->line_height;
+
+        if (s->options->alignment == MF_ALIGN_LEFT) {
+            lcd_write_rect(240 - s->options->y - 1 - line_height,
+                           s->options->x,
+                           240 - s->options->y - 1,
+                           s->options->x + width,
+                           s->options->bg);
+        } else if (s->options->alignment == MF_ALIGN_CENTER) {
+            lcd_write_rect(240 - s->options->y - 1 - line_height,
+                           s->options->x + s->options->width / 2 - width / 2,
+                           240 - s->options->y - 1,
+                           s->options->x + s->options->width / 2 + width / 2,
+                           s->options->bg);
+        } else if (s->options->alignment == MF_ALIGN_RIGHT) {
+            lcd_write_rect(240 - s->options->y - 1 - line_height,
+                           s->options->x + s->options->width - width,
+                           240 - s->options->y - 1,
+                           s->options->x + s->options->width,
+                           s->options->bg);
+        }
+    }
 
     if (s->options->justify) {
         mf_render_justified(s->options->font->font, s->anchor + s->options->x, s->options->y,

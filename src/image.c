@@ -16,10 +16,9 @@
  * See <http://www.gnu.org/licenses/>.
  */
 
-#include "pico/stdlib.h"
-
 #include "config.h"
 #include "lcd.h"
+#include "text.h"
 #include "image.h"
 
 #pragma GCC diagnostic push
@@ -27,17 +26,56 @@
 #include "logo.h"
 #pragma GCC diagnostic pop
 
-void draw_splash(void) {
-    char *data = logo_rgb_data;
-    for (uint x = 0; x < logo_width; x++) {
-        for (uint y = 0; y < logo_height; y++) {
+void image_draw(char *data, uint width, uint height) {
+    for (uint x = 0; x < width; x++) {
+        for (uint y = 0; y < height; y++) {
             uint32_t pixel[3];
             HEADER_PIXEL(data, pixel);
 
-            uint32_t color = (pixel[0] >> 3) << 11;
-            color |= (pixel[1] >> 2) << 5;
-            color |= pixel[2] >> 3;
+            uint32_t color = RGB_565(pixel[0], pixel[1], pixel[2]);
             lcd_write_point(240 - x - 1, y, color);
         }
     }
+}
+
+void draw_splash(void) {
+    image_draw(logo_rgb_data, logo_width, logo_height);
+
+    struct text_font font_big = {
+        .fontname = "DejaVuSerif32",
+    };
+    text_prepare_font(&font_big);
+
+    struct text_font font_small = {
+        .fontname = "DejaVuSerif16",
+    };
+    text_prepare_font(&font_small);
+
+    struct text_conf text1 = {
+        .text = "xythobuz.de",
+        .x = 0,
+        .y = 0,
+        .justify = false,
+        .alignment = MF_ALIGN_CENTER,
+        .width = 240,
+        .height = 240,
+        .margin = 2,
+        .bg = RGB_565(0x00, 0x00, 0x00),
+        .font = &font_big,
+    };
+    text_draw(&text1);
+
+    struct text_conf text2 = {
+        .text = __DATE__ " " __TIME__,
+        .x = 0,
+        .y = 195,
+        .justify = false,
+        .alignment = MF_ALIGN_CENTER,
+        .width = 240,
+        .height = 240,
+        .margin = 2,
+        .bg = RGB_565(0x00, 0x00, 0x00),
+        .font = &font_small,
+    };
+    text_draw(&text2);
 }

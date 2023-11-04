@@ -19,6 +19,10 @@
 #ifndef __IMAGE_H__
 #define __IMAGE_H__
 
+#include "pico/stdlib.h"
+
+void image_draw(char *data, uint width, uint height);
+
 void draw_splash(void);
 
 #endif // __IMAGE_H__

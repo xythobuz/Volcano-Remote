@@ -19,6 +19,14 @@
 #ifndef __LCD_H__
 #define __LCD_H__
 
+#include <stdint.h>
+
+#define RGB_565(r, g, b) ( \
+      (((r) >> 3) << 11)   \
+    | (((g) >> 2) << 5)    \
+    |  ((b) >> 3)          \
+)
+
 void lcd_init(void);
 
 uint16_t lcd_get_backlight(void);
@@ -26,5 +34,6 @@ void lcd_set_backlight(uint16_t value);
 
 void lcd_clear(void);
 void lcd_write_point(uint16_t x, uint16_t y, uint32_t color);
+void lcd_write_rect(uint16_t left, uint16_t top, uint16_t right, uint16_t bottom, uint32_t color);
 
 #endif // __LCD_H__
