@@ -3,7 +3,6 @@
  *
  * https://github.com/raspberrypi/pico-examples/blob/master/pico_w/bt/standalone/client.c
  * https://vanhunteradams.com/Pico/BLE/BTStack_HCI.html
- * https://github.com/bluekitchen/btstack/blob/master/example/gap_inquiry.c
  *
  * Copyright (c) 2023 Thomas Buck (thomas@xythobuz.de)
  *
@@ -27,8 +26,6 @@
 #include "util.h"
 #include "ble.h"
 
-#define GAP_INQUIRY_INTERVAL 5 // *1.28s
-
 enum ble_state {
     TC_OFF = 0,
     TC_IDLE,
@@ -46,9 +43,7 @@ static struct ble_scan_result scans[BLE_MAX_SCAN_RESULTS] = {0};
 
 // TODO scan result entries are not aging out
 
-static void hci_add_scan_result(bd_addr_t addr, bd_addr_type_t type,
-                                int8_t rssi, uint8_t scan_mode,
-                                uint16_t clock_offset, uint32_t class) {
+static void hci_add_scan_result(bd_addr_t addr, bd_addr_type_t type, int8_t rssi) {
     int unused = -1;
 
     for (uint i = 0; i < BLE_MAX_SCAN_RESULTS; i++) {
@@ -60,23 +55,8 @@ static void hci_add_scan_result(bd_addr_t addr, bd_addr_type_t type,
         }
 
         if (memcmp(addr, scans[i].addr, sizeof(bd_addr_t)) == 0) {
-            // already in list, just update changed values
+            // already in list, just update time for aging
             scans[i].time = to_ms_since_boot(get_absolute_time());
-            if (scans[i].type == 0) {
-                scans[i].type = type;
-            }
-            if (scans[i].rssi == 0) {
-                scans[i].rssi = rssi;
-            }
-            if (scans[i].page_scan_repetition_mode == 0) {
-                scans[i].page_scan_repetition_mode = scan_mode;
-            }
-            if (scans[i].clock_offset == 0) {
-                scans[i].clock_offset = clock_offset;
-            }
-            if (scans[i].class == 0) {
-                scans[i].class = class;
-            }
             return;
         }
     }
@@ -89,13 +69,9 @@ static void hci_add_scan_result(bd_addr_t addr, bd_addr_type_t type,
     debug("new device with addr %s", bd_addr_to_str(addr));
     scans[unused].set = true;
     scans[unused].time = to_ms_since_boot(get_absolute_time());
-    scans[unused].state = BLE_NAME_REQUEST;
     memcpy(scans[unused].addr, addr, sizeof(bd_addr_t));
     scans[unused].type = type;
     scans[unused].rssi = rssi;
-    scans[unused].page_scan_repetition_mode = scan_mode;
-    scans[unused].clock_offset = clock_offset;
-    scans[unused].class = class;
     scans[unused].name[0] = '\0';
 }
 
@@ -119,27 +95,6 @@ static void hci_scan_result_add_name(bd_addr_t addr, const uint8_t *data, uint8_
     }
 
     debug("no matching entry for %s to add name '%.*s' to", bd_addr_to_str(addr), data_size, data);
-}
-
-static void hci_continue_name_requests(void) {
-    for (uint i = 0; i < BLE_MAX_SCAN_RESULTS; i++) {
-        if (!scans[i].set) {
-            continue;
-        }
-
-        if (scans[i].state == BLE_NAME_REQUEST) {
-            scans[i].state = BLE_NAME_INQUIRED;
-            debug("Inquire remote name of %s", bd_addr_to_str(scans[i].addr));
-            gap_remote_name_request(scans[i].addr,
-                                    scans[i].page_scan_repetition_mode,
-                                    scans[i].clock_offset | 0x8000);
-            return;
-        }
-    }
-
-    if (state == TC_W4_SCAN_RESULT) {
-        gap_inquiry_start(GAP_INQUIRY_INTERVAL);
-    }
 }
 
 static void hci_event_handler(uint8_t packet_type, uint16_t channel, uint8_t *packet, uint16_t size) {
@@ -188,7 +143,7 @@ static void hci_event_handler(uint8_t packet_type, uint16_t channel, uint8_t *pa
         rssi = (int8_t)gap_event_advertising_report_get_rssi(packet);
 
         // add data received so far
-        hci_add_scan_result(addr, type, rssi, 0, 0, 0);
+        hci_add_scan_result(addr, type, rssi);
 
         // get advertisement from report event
         const uint8_t *adv_data = gap_event_advertising_report_get_data(packet);
@@ -205,11 +160,11 @@ static void hci_event_handler(uint8_t packet_type, uint16_t channel, uint8_t *pa
             switch (data_type) {
             case BLUETOOTH_DATA_TYPE_SHORTENED_LOCAL_NAME:
             case BLUETOOTH_DATA_TYPE_COMPLETE_LOCAL_NAME:
-                // unfortunately not the name we're interested in for our targets...
                 hci_scan_result_add_name(addr, data, data_size);
                 break;
 
             case BLUETOOTH_DATA_TYPE_FLAGS:
+            case BLUETOOTH_DATA_TYPE_TX_POWER_LEVEL:
             case BLUETOOTH_DATA_TYPE_COMPLETE_LIST_OF_16_BIT_SERVICE_CLASS_UUIDS:
             case BLUETOOTH_DATA_TYPE_SERVICE_DATA_16_BIT_UUID:
             case BLUETOOTH_DATA_TYPE_MANUFACTURER_SPECIFIC_DATA:
@@ -222,82 +177,6 @@ static void hci_event_handler(uint8_t packet_type, uint16_t channel, uint8_t *pa
                 break;
             }
         }
-        break;
-    }
-
-    case GAP_EVENT_INQUIRY_RESULT: {
-        bd_addr_t addr;
-        gap_event_inquiry_result_get_bd_addr(packet, addr);
-
-        uint8_t scan_mode;
-        scan_mode = gap_event_inquiry_result_get_page_scan_repetition_mode(packet);
-
-        uint16_t clock_offset;
-        clock_offset = gap_event_inquiry_result_get_clock_offset(packet);
-
-        uint32_t class;
-        class = gap_event_inquiry_result_get_class_of_device(packet);
-
-        int8_t rssi = 0;
-        if (gap_event_inquiry_result_get_rssi_available(packet)) {
-            rssi = (int8_t)gap_event_inquiry_result_get_rssi(packet);
-        }
-
-        // add data received so far
-        hci_add_scan_result(addr, 0, rssi, scan_mode, clock_offset, class);
-
-        if (gap_event_inquiry_result_get_name_available(packet)) {
-            const uint8_t *data = gap_event_inquiry_result_get_name(packet);
-            uint8_t data_size = gap_event_inquiry_result_get_name_len(packet);
-            // still not the name we need
-            hci_scan_result_add_name(addr, data, data_size);
-        } else {
-            for (uint i = 0; i < BLE_MAX_SCAN_RESULTS; i++) {
-                if (!scans[i].set) {
-                    continue;
-                }
-                if (memcmp(addr, scans[i].addr, sizeof(bd_addr_t)) == 0) {
-                    scans[i].state = BLE_NAME_REQUEST;
-                    break;
-                }
-            }
-        }
-        break;
-    }
-
-    case HCI_EVENT_EXTENDED_INQUIRY_RESPONSE:
-        // TODO ?
-        break;
-
-    case GAP_EVENT_INQUIRY_COMPLETE:
-        // trigger re-read of all names
-        for (uint i = 0; i < BLE_MAX_SCAN_RESULTS; i++) {
-            if (scans[i].state == BLE_NAME_INQUIRED) {
-                scans[i].state = BLE_NAME_REQUEST;
-            }
-        }
-        hci_continue_name_requests();
-        break;
-
-    case HCI_EVENT_REMOTE_NAME_REQUEST_COMPLETE: {
-        bd_addr_t addr;
-        reverse_bd_addr(&packet[3], addr);
-        if (packet[2] != 0) {
-            debug("page timeout receiving name from %s", bd_addr_to_str(addr));
-        } else {
-            for (uint i = 0; i < BLE_MAX_SCAN_RESULTS; i++) {
-                if (!scans[i].set) {
-                    continue;
-                }
-                if (memcmp(addr, scans[i].addr, sizeof(bd_addr_t)) == 0) {
-                    scans[i].state = BLE_NAME_FETCHED;
-                    // also not the name we are looking for
-                    hci_scan_result_add_name(addr, &packet[9], strlen((char *)&packet[9]));
-                    break;
-                }
-            }
-        }
-        hci_continue_name_requests();
         break;
     }
 
@@ -334,8 +213,6 @@ void ble_init(void) {
 
     gatt_client_init();
 
-    hci_set_inquiry_mode(INQUIRY_MODE_RSSI_AND_EIR);
-
     hci_event_callback_registration.callback = &hci_event_handler;
     hci_add_event_handler(&hci_event_callback_registration);
 
@@ -350,18 +227,13 @@ void ble_scan(enum ble_scan_mode mode) {
         debug("stopping BLE scan");
         state = TC_IDLE;
         gap_stop_scan();
-        gap_inquiry_stop();
         break;
 
     case BLE_SCAN_ON:
         debug("starting BLE scan");
         state = TC_W4_SCAN_RESULT;
-
-        gap_set_scan_parameters(0,0x0030, 0x0030);
+        gap_set_scan_parameters(1, 0x0030, 0x0030);
         gap_start_scan();
-
-        // also start an inquiry scan
-        gap_inquiry_start(GAP_INQUIRY_INTERVAL);
         break;
 
     case BLE_SCAN_TOGGLE:

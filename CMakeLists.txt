@@ -109,7 +109,6 @@ target_link_libraries(gadget
     hardware_gpio
     hardware_pwm
     pico_btstack_ble
-    pico_btstack_classic
     pico_btstack_cyw43
     pico_cyw43_arch_threadsafe_background
 )
