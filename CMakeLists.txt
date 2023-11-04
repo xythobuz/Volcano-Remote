@@ -59,6 +59,7 @@ target_sources(gadget PUBLIC
     src/lcd.c
     src/text.c
     src/image.c
+    src/state.c
 
     ${CMAKE_CURRENT_BINARY_DIR}/fatfs/ff.c
     ${CMAKE_CURRENT_BINARY_DIR}/fatfs/ffunicode.c

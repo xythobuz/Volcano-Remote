@@ -1,5 +1,5 @@
 /*
- * ble.h
+ * state.h
  *
  * Copyright (c) 2023 Thomas Buck (thomas@xythobuz.de)
  *
@@ -16,33 +16,15 @@
  * See <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __BLE_H__
-#define __BLE_H__
+#ifndef __STATE_H__
+#define __STATE_H__
 
-#include "btstack.h"
-
-#define BLE_MAX_NAME_LENGTH 32
-#define BLE_MAX_SCAN_RESULTS 32
-
-enum ble_scan_mode {
-    BLE_SCAN_OFF    = 0,
-    BLE_SCAN_ON     = 1,
-    BLE_SCAN_TOGGLE = 2,
+enum system_state {
+    STATE_INIT = 0,
+    STATE_SCAN,
 };
 
-struct ble_scan_result {
-    bool set;
-    uint32_t time;
+void state_switch(enum system_state next);
+void state_run(void);
 
-    bd_addr_t addr;
-    bd_addr_type_t type;
-    int8_t rssi;
-    char name[BLE_MAX_NAME_LENGTH + 1];
-};
-
-void ble_init(void);
-bool ble_is_ready(void);
-void ble_scan(enum ble_scan_mode mode);
-int ble_get_scan_results(struct ble_scan_result *buf, uint len);
-
-#endif // __BLE_H__
+#endif // __STATE_H__

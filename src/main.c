@@ -32,6 +32,7 @@
 #include "lcd.h"
 #include "text.h"
 #include "image.h"
+#include "state.h"
 
 int main(void) {
     // required for debug console
@@ -74,6 +75,14 @@ int main(void) {
 
     debug("init done");
     lcd_set_backlight(0x8000);
+
+    // wait for BLE stack to be ready before using it
+    while (!ble_is_ready()) {
+        sleep_ms(10);
+    }
+
+    debug("starting app");
+    state_switch(STATE_SCAN);
 
     while (1) {
         watchdog_update();

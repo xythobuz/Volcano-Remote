@@ -203,9 +203,14 @@ static void hci_event_handler(uint8_t packet_type, uint16_t channel, uint8_t *pa
 }
 
 void ble_init(void) {
+    cyw43_thread_enter();
+
     for (uint i = 0; i < BLE_MAX_SCAN_RESULTS; i++) {
         scans[i].set = false;
     }
+    state = TC_OFF;
+
+    cyw43_thread_exit();
 
     l2cap_init();
     sm_init();
@@ -219,14 +224,23 @@ void ble_init(void) {
     hci_power_control(HCI_POWER_ON);
 }
 
+bool ble_is_ready(void) {
+    cyw43_thread_enter();
+
+    bool v = (state != TC_OFF);
+
+    cyw43_thread_exit();
+    return v;
+}
+
 void ble_scan(enum ble_scan_mode mode) {
     cyw43_thread_enter();
 
     switch (mode) {
     case BLE_SCAN_OFF:
         debug("stopping BLE scan");
-        state = TC_IDLE;
         gap_stop_scan();
+        state = TC_IDLE;
         break;
 
     case BLE_SCAN_ON:
