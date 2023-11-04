@@ -20,6 +20,7 @@
 #include <string.h>
 #include "pico/stdlib.h"
 #include <unistd.h>
+#include <stdio.h>
 
 #include "config.h"
 #include "log.h"
@@ -36,8 +37,6 @@
 
 #define CNSL_BUFF_SIZE 1024
 #define CNSL_REPEAT_MS 500
-
-//#define CNSL_REPEAT_PMW_STATUS_BY_DEFAULT
 
 static char cnsl_line_buff[CNSL_BUFF_SIZE + 1];
 static uint32_t cnsl_buff_pos = 0;
@@ -71,19 +70,25 @@ static void cnsl_interpret(const char *line) {
             || (strcmp(line, "h") == 0)
             || (strcmp(line, "?") == 0)) {
         println("VolcanoRC Firmware Usage:");
+        println("");
         println("  reset - reset back into this firmware");
         println("   \\x18 - reset to bootloader");
         println(" repeat - repeat last command every %d milliseconds", CNSL_REPEAT_MS);
         println("   help - print this message");
         println("  mount - make mass storage medium (un)available");
         println("  power - show Lipo battery status");
+        println("");
         println("   scan - start or stop BLE scan");
         println("scanres - print list of found BLE devices");
+        println("con M T - connect to (M)AC and (T)ype");
+        println(" discon - disconnect from BLE device");
+        println("");
         println("  clear - blank screen");
         println(" splash - draw image on screen");
         println("  fonts - show font list");
         println("   text - draw text on screen");
         println("    bat - draw battery indicator");
+        println("");
         println("Press Enter with no input to repeat last command.");
         println("Use repeat to continuously execute last command.");
         println("Stop this by calling repeat again.");
@@ -117,6 +122,21 @@ static void cnsl_interpret(const char *line) {
                         age / 1000.0, results[i].name);
             }
         }
+    } else if (str_startswith(line, "con ")) {
+        bd_addr_t addr;
+        bd_addr_type_t type;
+        int r = sscanf(line, "con %02hhX:%02hhX:%02hhX:%02hhX:%02hhX:%02hhX %hhu",
+                       &addr[0], &addr[1], &addr[2], &addr[3],
+                       &addr[4], &addr[5], &type);
+
+        if (r == 7) {
+            debug("connecting");
+            ble_connect(addr, type);
+        } else {
+            debug("invalid input (%d)", r);
+        }
+    } else if (strcmp(line, "discon") == 0) {
+        ble_disconnect();
     } else if (strcmp(line, "clear") == 0) {
         lcd_clear();
     } else if (strcmp(line, "splash") == 0) {
@@ -186,11 +206,6 @@ void cnsl_init(void) {
         cnsl_last_command[i] = '\0';
         cnsl_repeated_command[i] = '\0';
     }
-
-#ifdef CNSL_REPEAT_PMW_STATUS_BY_DEFAULT
-    strcpy(cnsl_repeated_command, "pmws");
-    repeat_command = true;
-#endif // CNSL_REPEAT_PMW_STATUS_BY_DEFAULT
 }
 
 static int32_t cnsl_find_line_end(void) {

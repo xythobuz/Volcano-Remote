@@ -26,22 +26,21 @@
 #include "util.h"
 #include "ble.h"
 
+#define BLE_MAX_SCAN_AGE_MS (10 * 1000)
+
 enum ble_state {
     TC_OFF = 0,
     TC_IDLE,
-    TC_W4_SCAN_RESULT,
+    TC_W4_SCAN,
     TC_W4_CONNECT,
-    TC_W4_SERVICE_RESULT,
-    TC_W4_CHARACTERISTIC_RESULT,
-    TC_W4_ENABLE_NOTIFICATIONS_COMPLETE,
-    TC_W4_READY
+    TC_READY
 };
 
 static btstack_packet_callback_registration_t hci_event_callback_registration;
+static hci_con_handle_t connection_handle;
+
 static enum ble_state state = TC_OFF;
 static struct ble_scan_result scans[BLE_MAX_SCAN_RESULTS] = {0};
-
-// TODO scan result entries are not aging out
 
 static void hci_add_scan_result(bd_addr_t addr, bd_addr_type_t type, int8_t rssi) {
     int unused = -1;
@@ -55,8 +54,9 @@ static void hci_add_scan_result(bd_addr_t addr, bd_addr_type_t type, int8_t rssi
         }
 
         if (memcmp(addr, scans[i].addr, sizeof(bd_addr_t)) == 0) {
-            // already in list, just update time for aging
+            // already in list, just update changing values
             scans[i].time = to_ms_since_boot(get_absolute_time());
+            scans[i].rssi = rssi;
             return;
         }
     }
@@ -102,7 +102,7 @@ static void hci_event_handler(uint8_t packet_type, uint16_t channel, uint8_t *pa
     UNUSED(channel);
 
     if (packet_type != HCI_EVENT_PACKET) {
-        debug("unexpected packet 0x%02X", packet_type);
+        //debug("unexpected packet 0x%02X", packet_type);
         return;
     }
 
@@ -119,16 +119,8 @@ static void hci_event_handler(uint8_t packet_type, uint16_t channel, uint8_t *pa
             }
         break;
 
-    case HCI_EVENT_INQUIRY_COMPLETE:
-    case HCI_EVENT_COMMAND_STATUS:
-    case HCI_EVENT_REMOTE_HOST_SUPPORTED_FEATURES:
-    case BTSTACK_EVENT_SCAN_MODE_CHANGED:
-    case HCI_EVENT_COMMAND_COMPLETE:
-    case HCI_EVENT_TRANSPORT_PACKET_SENT:
-        break;
-
     case GAP_EVENT_ADVERTISING_REPORT: {
-        if (state != TC_W4_SCAN_RESULT) {
+        if (state != TC_W4_SCAN) {
             debug("scan result in invalid state %d", state);
             return;
         }
@@ -163,17 +155,9 @@ static void hci_event_handler(uint8_t packet_type, uint16_t channel, uint8_t *pa
                 hci_scan_result_add_name(addr, data, data_size);
                 break;
 
-            case BLUETOOTH_DATA_TYPE_FLAGS:
-            case BLUETOOTH_DATA_TYPE_TX_POWER_LEVEL:
-            case BLUETOOTH_DATA_TYPE_COMPLETE_LIST_OF_16_BIT_SERVICE_CLASS_UUIDS:
-            case BLUETOOTH_DATA_TYPE_SERVICE_DATA_16_BIT_UUID:
-            case BLUETOOTH_DATA_TYPE_MANUFACTURER_SPECIFIC_DATA:
-            case BLUETOOTH_DATA_TYPE_SLAVE_CONNECTION_INTERVAL_RANGE:
-                break;
-
             default:
-                debug("Unexpected advertisement type 0x%02X from %s", data_type, bd_addr_to_str(addr));
-                hexdump(data, data_size);
+                //debug("Unexpected advertisement type 0x%02X from %s", data_type, bd_addr_to_str(addr));
+                //hexdump(data, data_size);
                 break;
             }
         }
@@ -182,22 +166,29 @@ static void hci_event_handler(uint8_t packet_type, uint16_t channel, uint8_t *pa
 
     case HCI_EVENT_LE_META:
         switch (hci_event_le_meta_get_subevent_code(packet)) {
-            case HCI_SUBEVENT_LE_ADVERTISING_REPORT:
-                // handled internally by BTstack
-                break;
-
             case HCI_SUBEVENT_LE_CONNECTION_COMPLETE:
-                debug("connection complete?!");
+                if (state != TC_W4_CONNECT) {
+                    return;
+                }
+                debug("connection complete");
+                connection_handle = hci_subevent_le_connection_complete_get_connection_handle(packet);
+                state = TC_READY;
                 break;
 
             default:
-                debug("unexpected LE meta event 0x%02X", hci_event_le_meta_get_subevent_code(packet));
+                //debug("unexpected LE meta event 0x%02X", hci_event_le_meta_get_subevent_code(packet));
                 break;
         }
         break;
 
+    case HCI_EVENT_DISCONNECTION_COMPLETE:
+        debug("disconnected");
+        connection_handle = HCI_CON_HANDLE_INVALID;
+        state = TC_IDLE;
+        break;
+
     default:
-        debug("unexpected event 0x%02X", hci_event_packet_get_type(packet));
+        //debug("unexpected event 0x%02X", hci_event_packet_get_type(packet));
         break;
     }
 }
@@ -236,6 +227,11 @@ bool ble_is_ready(void) {
 void ble_scan(enum ble_scan_mode mode) {
     cyw43_thread_enter();
 
+    if (state == TC_OFF) {
+        cyw43_thread_exit();
+        return;
+    }
+
     switch (mode) {
     case BLE_SCAN_OFF:
         debug("stopping BLE scan");
@@ -245,14 +241,14 @@ void ble_scan(enum ble_scan_mode mode) {
 
     case BLE_SCAN_ON:
         debug("starting BLE scan");
-        state = TC_W4_SCAN_RESULT;
+        state = TC_W4_SCAN;
         gap_set_scan_parameters(1, 0x0030, 0x0030);
         gap_start_scan();
         break;
 
     case BLE_SCAN_TOGGLE:
         switch (state) {
-        case TC_W4_SCAN_RESULT:
+        case TC_W4_SCAN:
             cyw43_thread_exit();
             ble_scan(0);
             return;
@@ -283,10 +279,21 @@ int ble_get_scan_results(struct ble_scan_result *buf, uint len) {
 
     cyw43_thread_enter();
 
+    if (state == TC_OFF) {
+        cyw43_thread_exit();
+        return -1;
+    }
+
     uint pos = 0;
     for (uint i = 0; i < BLE_MAX_SCAN_RESULTS; i++) {
         if (!scans[i].set) {
             continue;
+        }
+
+        uint32_t diff = to_ms_since_boot(get_absolute_time()) - scans[i].time;
+        if (diff >= BLE_MAX_SCAN_AGE_MS) {
+            //debug("removing %s due to age", bd_addr_to_str(scans[i].addr));
+            scans[i].set = false;
         }
 
         memcpy(buf + pos, scans + i, sizeof(struct ble_scan_result));
@@ -299,4 +306,43 @@ int ble_get_scan_results(struct ble_scan_result *buf, uint len) {
 
     cyw43_thread_exit();
     return pos;
+}
+
+void ble_connect(bd_addr_t addr, bd_addr_type_t type) {
+    cyw43_thread_enter();
+
+    switch (state) {
+    case TC_OFF:
+        cyw43_thread_exit();
+        return;
+
+    case TC_W4_SCAN:
+        cyw43_thread_exit();
+        ble_scan(0);
+        cyw43_thread_enter();
+        break;
+
+    case TC_READY:
+        gap_disconnect(connection_handle);
+        break;
+
+    default:
+        break;
+    }
+
+    debug("connecting to %s", bd_addr_to_str(addr));
+    state = TC_W4_CONNECT;
+    gap_connect(addr, type);
+
+    cyw43_thread_exit();
+}
+
+void ble_disconnect(void) {
+    cyw43_thread_enter();
+
+    if (state == TC_READY) {
+        gap_disconnect(connection_handle);
+    }
+
+    cyw43_thread_exit();
 }

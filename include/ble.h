@@ -44,5 +44,7 @@ void ble_init(void);
 bool ble_is_ready(void);
 void ble_scan(enum ble_scan_mode mode);
 int ble_get_scan_results(struct ble_scan_result *buf, uint len);
+void ble_connect(bd_addr_t addr, bd_addr_type_t type);
+void ble_disconnect(void);
 
 #endif // __BLE_H__
