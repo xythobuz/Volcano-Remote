@@ -93,6 +93,7 @@ int main(void) {
         cnsl_run();
 
         battery_run();
+        state_run();
     }
 
     return 0;

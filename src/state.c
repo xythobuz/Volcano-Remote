@@ -59,6 +59,14 @@ void state_switch(enum system_state next) {
 }
 
 void state_run(void) {
+    // TODO only for testing
+    static uint32_t last_heartbeat = 0;
+    uint32_t now = to_ms_since_boot(get_absolute_time());
+    if (now < (last_heartbeat + 1000)) {
+        return;
+    }
+    last_heartbeat = now;
+
     static struct text_font font = {
         .fontname = "fixed_10x20",
         .font = NULL,
