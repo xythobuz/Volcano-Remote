@@ -29,6 +29,8 @@
 #include "debug.h"
 #include "fat_disk.h"
 
+#include "pack_data.h"
+
 static uint8_t disk[DISK_BLOCK_COUNT * DISK_BLOCK_SIZE];
 
 void fat_disk_init(void) {
@@ -58,13 +60,43 @@ void fat_disk_init(void) {
         pos += snprintf(readme + pos, 1024 - pos, "\r\n");
         pos += snprintf(readme + pos, 1024 - pos, "Project by Thomas Buck <thomas@xythobuz.de>\r\n");
         pos += snprintf(readme + pos, 1024 - pos, "Licensed under GPLv3.\r\n");
-        pos += snprintf(readme + pos, 1024 - pos, "Source at https://git.xythobuz.de/thomas/sb-py\r\n");
+        pos += snprintf(readme + pos, 1024 - pos, "See included src.tar.xz for sources.\r\n");
+        pos += snprintf(readme + pos, 1024 - pos, "Repo at https://git.xythobuz.de/thomas/sb-py\r\n");
 
         size_t len = strlen(readme);
         UINT bw;
         res = f_write(&file, readme, len, &bw);
         if ((res != FR_OK) || (bw != len)) {
             debug("error: f_write returned %d", res);
+        }
+
+        res = f_close(&file);
+        if (res != FR_OK) {
+            debug("error: f_close returned %d", res);
+        }
+    }
+
+    res = f_open(&file, "src.tar.xz", FA_CREATE_ALWAYS | FA_WRITE);
+    if (res != FR_OK) {
+        debug("error: f_open returned %d", res);
+    } else {
+        UINT bw;
+        UINT len = 0;
+        while (1) {
+            debug("write %d", len);
+            res = f_write(&file, data_tar_xz + len, data_tar_xz_len - len, &bw);
+            if (bw == 0) {
+                debug("abort");
+                break;
+            }
+            len += bw;
+            if (res != FR_OK) {
+                debug("error: f_write returned %d", res);
+                break;
+            }
+            if (bw == data_tar_xz_len) {
+                break;
+            }
         }
 
         res = f_close(&file);

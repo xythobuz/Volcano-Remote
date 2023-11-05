@@ -16,7 +16,7 @@
  * See <http://www.gnu.org/licenses/>.
  */
 
-#define DISK_BLOCK_COUNT 256
+#define DISK_BLOCK_COUNT 300
 #define DISK_BLOCK_SIZE 512
 
 void fat_disk_init(void);

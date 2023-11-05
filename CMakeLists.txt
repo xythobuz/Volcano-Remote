@@ -84,6 +84,14 @@ target_include_directories(gadget PUBLIC ${CMAKE_CURRENT_LIST_DIR}/st7789/src)
 target_include_directories(gadget PUBLIC ${CMAKE_CURRENT_LIST_DIR}/st7789/interface)
 target_include_directories(gadget PUBLIC ${CMAKE_CURRENT_LIST_DIR}/mcufont/decoder)
 target_include_directories(gadget PUBLIC ${CMAKE_CURRENT_LIST_DIR}/mcufont/fonts)
+target_include_directories(gadget PUBLIC ${CMAKE_CURRENT_LIST_DIR}/build)
+
+# compress source code and stuff we want to include
+add_custom_target(pack bash -c "./pack_data.sh"
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    BYPRODUCTS "build/pack_data.h"
+)
+add_dependencies(gadget pack)
 
 # enable generous warnings
 target_compile_options(gadget PUBLIC
