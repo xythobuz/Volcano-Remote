@@ -78,7 +78,7 @@ int main(void) {
 
     // wait for BLE stack to be ready before using it
     while (!ble_is_ready()) {
-        sleep_ms(10);
+        sleep_ms(1);
     }
 
     debug("starting app");

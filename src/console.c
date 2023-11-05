@@ -34,6 +34,7 @@
 #include "text.h"
 #include "lcd.h"
 #include "image.h"
+#include "volcano.h"
 
 #define CNSL_BUFF_SIZE 1024
 #define CNSL_REPEAT_MS 500
@@ -89,6 +90,9 @@ static void cnsl_interpret(const char *line) {
         println("   text - draw text on screen");
         println("    bat - draw battery indicator");
         println("");
+        println("   vrct - Volcano read current temperature");
+        println("   vrtt - Volcano read target temperature");
+        println("");
         println("Press Enter with no input to repeat last command.");
         println("Use repeat to continuously execute last command.");
         println("Stop this by calling repeat again.");
@@ -106,7 +110,7 @@ static void cnsl_interpret(const char *line) {
                 volt, lipo_percentage(volt),
                 lipo_charging() ? "charging" : "draining");
     } else if (strcmp(line, "scan") == 0) {
-        ble_scan(2);
+        ble_scan(BLE_SCAN_TOGGLE);
     } else if (strcmp(line, "scanres") == 0) {
         struct ble_scan_result results[BLE_MAX_SCAN_RESULTS] = {0};
         int n = ble_get_scan_results(results, BLE_MAX_SCAN_RESULTS);
@@ -192,6 +196,12 @@ static void cnsl_interpret(const char *line) {
         }
     } else if (strcmp(line, "bat") == 0) {
         draw_battery_indicator();
+    } else if (strcmp(line, "vrct") == 0) {
+        int16_t r = volcano_get_current_temp();
+        println("volcano current temp: %.1f", r / 10.0);
+    } else if (strcmp(line, "vrtt") == 0) {
+        int16_t r = volcano_get_target_temp();
+        println("volcano target temp: %.1f", r / 10.0);
     } else {
         println("unknown command \"%s\"", line);
     }

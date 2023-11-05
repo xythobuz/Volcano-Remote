@@ -23,6 +23,7 @@
 
 #define BLE_MAX_NAME_LENGTH 32
 #define BLE_MAX_SCAN_RESULTS 32
+#define BLE_MAX_VALUE_LEN 64
 
 enum ble_scan_mode {
     BLE_SCAN_OFF    = 0,
@@ -42,9 +43,15 @@ struct ble_scan_result {
 
 void ble_init(void);
 bool ble_is_ready(void);
+
 void ble_scan(enum ble_scan_mode mode);
-int ble_get_scan_results(struct ble_scan_result *buf, uint len);
+int32_t ble_get_scan_results(struct ble_scan_result *buf, uint16_t len);
+
 void ble_connect(bd_addr_t addr, bd_addr_type_t type);
+bool ble_is_connected(void);
 void ble_disconnect(void);
+
+int32_t ble_read(const uint8_t *uuid, uint8_t *buff, uint16_t buff_len);
+int32_t ble_write(const uint8_t *uuid, uint8_t *buff, uint16_t buff_len);
 
 #endif // __BLE_H__

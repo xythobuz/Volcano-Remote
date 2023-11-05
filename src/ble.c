@@ -33,7 +33,9 @@ enum ble_state {
     TC_IDLE,
     TC_W4_SCAN,
     TC_W4_CONNECT,
-    TC_READY
+    TC_READY,
+    TC_W4_READ,
+    TC_READ_COMPLETE,
 };
 
 static btstack_packet_callback_registration_t hci_event_callback_registration;
@@ -41,6 +43,8 @@ static hci_con_handle_t connection_handle;
 
 static enum ble_state state = TC_OFF;
 static struct ble_scan_result scans[BLE_MAX_SCAN_RESULTS] = {0};
+static uint16_t read_len = 0;
+static uint8_t read_buff[BLE_MAX_VALUE_LEN] = {0};
 
 static void hci_add_scan_result(bd_addr_t addr, bd_addr_type_t type, int8_t rssi) {
     int unused = -1;
@@ -100,6 +104,9 @@ static void hci_scan_result_add_name(bd_addr_t addr, const uint8_t *data, uint8_
 static void hci_event_handler(uint8_t packet_type, uint16_t channel, uint8_t *packet, uint16_t size) {
     UNUSED(size);
     UNUSED(channel);
+
+    //debug("type=0x%02X size=%d", packet_type, size);
+    //hexdump(packet, size);
 
     if (packet_type != HCI_EVENT_PACKET) {
         //debug("unexpected packet 0x%02X", packet_type);
@@ -187,6 +194,30 @@ static void hci_event_handler(uint8_t packet_type, uint16_t channel, uint8_t *pa
         state = TC_IDLE;
         break;
 
+    case GATT_EVENT_CHARACTERISTIC_VALUE_QUERY_RESULT:
+        if (state != TC_W4_READ) {
+            debug("gatt query result in invalid state %d", state);
+            return;
+        }
+        uint16_t len = gatt_event_characteristic_value_query_result_get_value_length(packet);
+        if ((read_len + len) > BLE_MAX_VALUE_LEN) {
+            debug("not enough space for value (%d + %d > %d)", read_len, len, BLE_MAX_VALUE_LEN);
+            return;
+        }
+        memcpy(read_buff + read_len,
+               gatt_event_characteristic_value_query_result_get_value(packet),
+               len);
+        read_len += len;
+        break;
+
+    case GATT_EVENT_QUERY_COMPLETE:
+        if (state != TC_W4_READ) {
+            debug("gatt query complete in invalid state %d", state);
+            return;
+        }
+        state = TC_READ_COMPLETE;
+        break;
+
     default:
         //debug("unexpected event 0x%02X", hci_event_packet_get_type(packet));
         break;
@@ -272,7 +303,7 @@ void ble_scan(enum ble_scan_mode mode) {
     cyw43_thread_exit();
 }
 
-int ble_get_scan_results(struct ble_scan_result *buf, uint len) {
+int32_t ble_get_scan_results(struct ble_scan_result *buf, uint16_t len) {
     if (!buf || (len <= 0)) {
         return -1;
     }
@@ -284,8 +315,8 @@ int ble_get_scan_results(struct ble_scan_result *buf, uint len) {
         return -1;
     }
 
-    uint pos = 0;
-    for (uint i = 0; i < BLE_MAX_SCAN_RESULTS; i++) {
+    uint16_t pos = 0;
+    for (uint16_t i = 0; i < BLE_MAX_SCAN_RESULTS; i++) {
         if (!scans[i].set) {
             continue;
         }
@@ -337,6 +368,17 @@ void ble_connect(bd_addr_t addr, bd_addr_type_t type) {
     cyw43_thread_exit();
 }
 
+bool ble_is_connected(void) {
+    cyw43_thread_enter();
+
+    bool v = (state == TC_READY)
+             || (state == TC_W4_READ)
+             || (state == TC_READ_COMPLETE);
+
+    cyw43_thread_exit();
+    return v;
+}
+
 void ble_disconnect(void) {
     cyw43_thread_enter();
 
@@ -345,4 +387,63 @@ void ble_disconnect(void) {
     }
 
     cyw43_thread_exit();
+}
+
+int32_t ble_read(const uint8_t *uuid, uint8_t *buff, uint16_t buff_len) {
+    cyw43_thread_enter();
+
+    if (state != TC_READY) {
+        cyw43_thread_exit();
+        debug("invalid state for read (%d)", state);
+        return -1;
+    }
+
+    uint8_t r = gatt_client_read_value_of_characteristics_by_uuid128(hci_event_handler,
+                                                                     connection_handle,
+                                                                     0x0001, 0xFFFF, uuid);
+    if (r != ERROR_CODE_SUCCESS) {
+        cyw43_thread_exit();
+        debug("gatt read failed %d", r);
+        return -2;
+    }
+
+    state = TC_W4_READ;
+    read_len = 0;
+    cyw43_thread_exit();
+
+    while (1) {
+        sleep_ms(1);
+
+        // TODO timeout
+
+        cyw43_thread_enter();
+        enum ble_state state_cached = state;
+        cyw43_thread_exit();
+
+        if (state_cached == TC_READ_COMPLETE) {
+            break;
+        }
+    }
+
+    cyw43_thread_enter();
+
+    state = TC_READY;
+
+    if (read_len > buff_len) {
+        debug("buffer too short (%d < %d)", buff_len, read_len);
+        cyw43_thread_exit();
+        return -3;
+    }
+
+    memcpy(buff, read_buff, read_len);
+
+    cyw43_thread_exit();
+    return read_len;
+}
+
+int32_t ble_write(const uint8_t *uuid, uint8_t *buff, uint16_t buff_len) {
+    UNUSED(uuid);
+    UNUSED(buff);
+    UNUSED(buff_len);
+    return -1;
 }
