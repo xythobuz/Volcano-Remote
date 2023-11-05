@@ -4,10 +4,12 @@ set -euo pipefail
 cd "$(dirname "$0")"
 echo "Packing data"
 
+rm -rf build/src
 mkdir -p build/src
 cp COPYING build/src
 cp README.md build/src
 cp CMakeLists.txt build/src
+cp .gitmodules build/src/gitmodules
 cp -r include build/src
 cp -r src build/src
 

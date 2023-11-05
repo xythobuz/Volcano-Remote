@@ -52,7 +52,7 @@ target_sources(gadget PUBLIC
     src/usb_descriptors.c
     src/usb_msc.c
     src/fat_disk.c
-    src/debug.c
+    src/debug_disk.c
     src/buttons.c
     src/lipo.c
     src/ble.c

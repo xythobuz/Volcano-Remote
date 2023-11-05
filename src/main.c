@@ -27,6 +27,7 @@
 #include "log.h"
 #include "usb.h"
 #include "fat_disk.h"
+#include "debug_disk.h"
 #include "buttons.h"
 #include "ble.h"
 #include "lcd.h"
@@ -69,6 +70,9 @@ int main(void) {
 
     debug("fat_disk_init");
     fat_disk_init();
+
+    debug("debug_disk_init");
+    debug_disk_init();
 
     // trigger after 1000ms
     watchdog_enable(1000, 1);

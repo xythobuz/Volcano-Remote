@@ -27,7 +27,7 @@
 #include "util.h"
 #include "usb_cdc.h"
 #include "usb_msc.h"
-#include "debug.h"
+#include "debug_disk.h"
 #include "console.h"
 #include "lipo.h"
 #include "ble.h"

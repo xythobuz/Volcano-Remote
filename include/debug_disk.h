@@ -1,5 +1,5 @@
 /*
- * debug.h
+ * debug_disk.h
  *
  * Copyright (c) 2022 - 2023 Thomas Buck (thomas@xythobuz.de)
  *
@@ -16,13 +16,12 @@
  * See <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __DEBUG_H__
-#define __DEBUG_H__
+#ifndef __DEBUG_DISK_H__
+#define __DEBUG_DISK_H__
 
-int debug_msc_mount(void);
-int debug_msc_unmount(void);
+void debug_disk_init(void);
 
-void debug_msc_stats(void);
-void debug_msc_pmw3360(void);
+int debug_disk_mount(void);
+int debug_disk_unmount(void);
 
-#endif // __DEBUG_H__
+#endif // __DEBUG_DISK_H__
