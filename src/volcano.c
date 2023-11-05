@@ -23,7 +23,6 @@
 #include "volcano.h"
 
 // Volcano UUIDs are always the same, except for the 4th byte
-
 #define UUID_CURRENT_TEMP 0x01
 #define UUID_TARGET_TEMP  0x03
 #define UUID_HEATER_ON    0x0F
@@ -31,7 +30,7 @@
 #define UUID_PUMP_ON      0x13
 #define UUID_PUMP_OFF     0x14
 
-// "101100FF-5354-4f52-5a26-4249434b454c"
+// "101100xx-5354-4f52-5a26-4249434b454c"
 static uint8_t uuid_base[16] = {
     0x10, 0x11, 0x00, 0xFF, 0x53, 0x54, 0x4f, 0x52,
     0x5a, 0x26, 0x42, 0x49, 0x43, 0x4b, 0x45, 0x4c,

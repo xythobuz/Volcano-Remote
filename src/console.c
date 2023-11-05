@@ -39,6 +39,22 @@
 #define CNSL_BUFF_SIZE 1024
 #define CNSL_REPEAT_MS 500
 
+//#define TEST_VOLCANO_AUTO_CONNECT "xx:xx:xx:xx:xx:xx 1"
+
+#define VOLCANO_AUTO_CONNECT {                                    \
+    ble_scan(BLE_SCAN_OFF);                                       \
+    bd_addr_t addr;                                               \
+    bd_addr_type_t type;                                          \
+    const char *foo = TEST_VOLCANO_AUTO_CONNECT;                  \
+    sscanf(foo, "%02hhX:%02hhX:%02hhX:%02hhX:%02hhX:%02hhX %hhu", \
+            &addr[0], &addr[1], &addr[2], &addr[3],               \
+            &addr[4], &addr[5], &type);                           \
+    ble_connect(addr, type);                                      \
+    while (!ble_is_connected()) {                                 \
+        sleep_ms(1);                                              \
+    }                                                             \
+}
+
 static char cnsl_line_buff[CNSL_BUFF_SIZE + 1];
 static uint32_t cnsl_buff_pos = 0;
 
@@ -197,11 +213,27 @@ static void cnsl_interpret(const char *line) {
     } else if (strcmp(line, "bat") == 0) {
         draw_battery_indicator();
     } else if (strcmp(line, "vrct") == 0) {
+#ifdef TEST_VOLCANO_AUTO_CONNECT
+        VOLCANO_AUTO_CONNECT
+#endif // TEST_VOLCANO_AUTO_CONNECT
+
         int16_t r = volcano_get_current_temp();
         println("volcano current temp: %.1f", r / 10.0);
+
+#ifdef TEST_VOLCANO_AUTO_CONNECT
+        ble_disconnect();
+#endif // TEST_VOLCANO_AUTO_CONNECT
     } else if (strcmp(line, "vrtt") == 0) {
+#ifdef TEST_VOLCANO_AUTO_CONNECT
+        VOLCANO_AUTO_CONNECT
+#endif // TEST_VOLCANO_AUTO_CONNECT
+
         int16_t r = volcano_get_target_temp();
         println("volcano target temp: %.1f", r / 10.0);
+
+#ifdef TEST_VOLCANO_AUTO_CONNECT
+        ble_disconnect();
+#endif // TEST_VOLCANO_AUTO_CONNECT
     } else {
         println("unknown command \"%s\"", line);
     }
