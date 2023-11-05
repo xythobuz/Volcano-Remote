@@ -17,6 +17,7 @@
  */
 
 #include <stdio.h>
+#include <string.h>
 
 #include "config.h"
 #include "lcd.h"
@@ -90,7 +91,10 @@ void draw_splash(void) {
 
 void draw_battery_indicator(void) {
     static const float batt_warn_limit = 15.0f;
-    static char s[30];
+    static char prev_s[30] = {0};
+    static uint32_t prev_c = 0;
+
+    char s[30] = {0};
     float v = lipo_voltage();
     uint32_t c = RGB_565(0xFF, 0x00, 0x00);
     if (lipo_charging()) {
@@ -106,6 +110,13 @@ void draw_battery_indicator(void) {
             c = from_hsv(hue, 1.0, 1.0);
         }
     }
+
+    // only re-draw battery indicator when it has changed
+    if ((strcmp(s, prev_s) == 0) && (prev_c == c)) {
+        return;
+    }
+    strcpy(prev_s, s);
+    prev_c = c;
 
     static struct text_font font = {
         .fontname = "fixed_10x20",
