@@ -329,12 +329,12 @@ void cnsl_handle_input(const char *buf, uint32_t len) {
                 cnsl_buff_pos -= 1;
             }
 
-            usb_cdc_write("\b \b", 3);
+            usb_cdc_write((const uint8_t *)"\b \b", 3);
 
             // check for another backspace in this space
             i--;
         } else {
-            usb_cdc_write(cnsl_line_buff + i, 1);
+            usb_cdc_write((const uint8_t *)(cnsl_line_buff + i), 1);
         }
     }
 

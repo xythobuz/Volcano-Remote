@@ -34,10 +34,12 @@
 #include "text.h"
 #include "image.h"
 #include "state.h"
+#include "serial.h"
 
 int main(void) {
     // required for debug console
     cnsl_init();
+    serial_init();
     usb_init();
 
     debug("lcd_init");

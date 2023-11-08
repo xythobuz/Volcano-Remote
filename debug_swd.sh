@@ -15,7 +15,14 @@ while ! netstat -tna | grep 'LISTEN\>' | grep -q ':3333\>'; do
 done
 
 echo Starting GDB
-arm-none-eabi-gdb -ex "set history save" -ex "show print pretty" -ex "target extended-remote localhost:3333" $1
+arm-none-eabi-gdb \
+-ex "set history save" \
+-ex "show print pretty" \
+-ex "target extended-remote localhost:3333" \
+-ex "tui new-layout default asm 1 src 2 status 0 cmd 1" \
+-ex "tui layout default" \
+-ex "tui enable" \
+$1
 
 echo Killing OpenOCD instance in background
 kill $OPENOCD_PID

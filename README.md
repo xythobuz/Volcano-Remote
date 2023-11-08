@@ -54,11 +54,15 @@ For this you need to compile the `picoprobe` firmware, like this.
 
     git clone https://github.com/raspberrypi/picoprobe.git
     cd picoprobe
+
     git submodule update --init
     mkdir build
     cd build
+
     PICO_SDK_PATH=../../../pico-sdk cmake ..
     make -j4
+
+    cd ../.. # back to build_debug directory from before
 
 And flash the resulting `picoprobe.uf2` to your probe.
 Connect `GP2` of the probe to `SWCLK` of the target and `GP3` of the probe to `SWDIO` of the target.
@@ -68,8 +72,6 @@ You need some dependencies, mainly `gdb-multiarch` and the RP2040 fork of `OpenO
 
     sudo apt install gdb-multiarch   # Debian / Ubuntu
     sudo pacman -S arm-none-eabi-gdb # Arch Linux
-
-    cd ../.. # back to build_debug directory from before
 
     git clone https://github.com/raspberrypi/openocd.git --branch rp2040 --recursive --depth=1
     cd openocd
@@ -82,6 +84,8 @@ You need some dependencies, mainly `gdb-multiarch` and the RP2040 fork of `OpenO
     ./configure --enable-ftdi --enable-sysfsgpio --enable-bcm2835gpio
     make -j4
 
+    cd .. # back to build_debug directory from before
+
 Now we can flash a firmware image via OpenOCD.
 
     ./openocd/src/openocd -s openocd/tcl -f interface/cmsis-dap.cfg -f target/rp2040.cfg -c "adapter speed 5000" -c "cmsis_dap_vid_pid 0x2e8a 0x000c" -c "program gadget.elf verify reset exit"
@@ -91,6 +95,10 @@ And also start a GDB debugging session.
     ./openocd/src/openocd -s openocd/tcl -f interface/cmsis-dap.cfg -f target/rp2040.cfg -c "adapter speed 5000" -c "cmsis_dap_vid_pid 0x2e8a 0x000c"
     arm-none-eabi-gdb gadget.elf
     target extended-remote localhost:3333
+
+    load # program elf into flash
+    monitor reset init # put into clean initial state
+    continue # start program
 
 These commands have also been put in the `flash_swd.sh` and `debug_swd.sh` scripts, respectively.
 Call them from the `build_debug` folder where you checked out and built OpenOCD.

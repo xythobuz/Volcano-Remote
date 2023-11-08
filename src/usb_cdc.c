@@ -39,7 +39,7 @@
 
 static bool reroute_cdc_debug = false;
 
-void usb_cdc_write(const char *buf, uint32_t count) {
+void usb_cdc_write(const uint8_t *buf, size_t count) {
 #ifndef DISABLE_CDC_DTR_CHECK
     if (!tud_cdc_connected()) {
         return;
@@ -69,16 +69,14 @@ void usb_cdc_set_reroute(bool reroute) {
     reroute_cdc_debug = reroute;
 }
 
-void cdc_task(void) {
+static void cdc_task(void) {
     const uint32_t cdc_buf_len = 64;
 
     if (tud_cdc_available()) {
         char buf[cdc_buf_len + 1];
         uint32_t count = tud_cdc_read(buf, cdc_buf_len);
 
-        if ((count >= 1) && (buf[0] == 0x18)) {
-            // ASCII 0x18 = CAN (cancel)
-            debug("switching to bootloader");
+        if ((count >= 1) && (buf[0] == ENTER_BOOTLOADER_MAGIC)) {
             reset_to_bootloader();
         } else if (reroute_cdc_debug) {
             debug_handle_input(buf, count);

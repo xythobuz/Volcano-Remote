@@ -40,6 +40,7 @@ void debug_wait_input(const char *format, ...) __attribute__((format(printf, 1, 
 void debug_log_va(bool log, const char *format, va_list args);
 
 void log_dump_to_usb(void);
+void log_dump_to_uart(void);
 void log_dump_to_disk(void);
 
 void debug_handle_input(char *buff, uint32_t len);

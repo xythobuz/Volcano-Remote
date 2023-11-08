@@ -1,7 +1,7 @@
 /*
- * usb_cdc.h
+ * ring.h
  *
- * Copyright (c) 2022 - 2023 Thomas Buck (thomas@xythobuz.de)
+ * Copyright (c) 2023 Thomas Buck (thomas@xythobuz.de)
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,14 +16,24 @@
  * See <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __USB_CDC_H__
-#define __USB_CDC_H__
+#ifndef __RING_BUFFER_H__
+#define __RING_BUFFER_H__
 
 #include <stddef.h>
 #include <stdint.h>
 #include <stdbool.h>
 
-void usb_cdc_write(const uint8_t *buf, size_t count);
-void usb_cdc_set_reroute(bool reroute);
+struct ring_buffer {
+    uint8_t *buffer;
+    size_t size;
+    size_t head, tail;
+    bool full;
+};
+#define RB_INIT(b, s) { .buffer = b, .size = s, .head = 0, .tail = 0, .full = false }
 
-#endif // __USB_CDC_H__
+void rb_add(struct ring_buffer *rb, const uint8_t *data, size_t length);
+size_t rb_len(struct ring_buffer *rb);
+void rb_dump(struct ring_buffer *rb, void (*write)(const uint8_t *, size_t));
+uint8_t rb_pop(struct ring_buffer *rb);
+
+#endif // __RING_BUFFER_H__

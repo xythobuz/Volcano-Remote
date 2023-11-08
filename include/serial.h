@@ -1,7 +1,7 @@
 /*
- * config.h
+ * serial.h
  *
- * Copyright (c) 2022 - 2023 Thomas Buck (thomas@xythobuz.de)
+ * Copyright (c) 2023 Thomas Buck (thomas@xythobuz.de)
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,23 +16,15 @@
  * See <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __CONFIG_H__
-#define __CONFIG_H__
+#ifndef __SERIAL_H__
+#define __SERIAL_H__
 
-// ASCII 0x18 = CAN (cancel)
-#define ENTER_BOOTLOADER_MAGIC 0x18
+#include <stddef.h>
+#include <stdint.h>
+#include <stdbool.h>
 
-//#define DISABLE_CDC_DTR_CHECK
-#define DEBOUNCE_DELAY_MS 5
+void serial_init(void);
+void serial_write(const uint8_t *buf, size_t count);
+void serial_set_reroute(bool reroute);
 
-#define DEBUG_DISK_WRITE_SOURCES
-
-#define DISK_BLOCK_SIZE 512
-
-#ifdef DEBUG_DISK_WRITE_SOURCES
-#define DISK_BLOCK_COUNT (256 + 128)
-#else // DEBUG_DISK_WRITE_SOURCES
-#define DISK_BLOCK_COUNT 256
-#endif // DEBUG_DISK_WRITE_SOURCES
-
-#endif // __CONFIG_H__
+#endif // __SERIAL_H__

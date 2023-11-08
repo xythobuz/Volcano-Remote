@@ -24,96 +24,79 @@
 #include "config.h"
 #include "usb.h"
 #include "usb_cdc.h"
+#include "serial.h"
+#include "ring.h"
 #include "log.h"
 
-static char log_buff[4096];
-static char line_buff[512];
-static size_t head = 0, tail = 0;
-static bool full = false;
-static bool got_input = false;
+static uint8_t log_buff[4096] = {0};
+static struct ring_buffer log = RB_INIT(log_buff, sizeof(log_buff));
 
-static void add_to_log(const char *buff, int len) {
-    for (int i = 0; i < len; i++) {
-        log_buff[head] = buff[i];
+static uint8_t line_buff[128] = {0};
+static volatile bool got_input = false;
+static FIL log_file_fat;
 
-        if (full && (++tail == sizeof(log_buff))) {
-            tail = 0;
-        }
+static void add_to_log(const uint8_t *buff, size_t len) {
+    rb_add(&log, buff, len);
+}
 
-        if (++(head) == sizeof(log_buff)) {
-            head = 0;
-        }
+static void log_dump_to_x(void (*write)(const uint8_t *, size_t)) {
+    if (rb_len(&log) == 0) {
+        return;
+    }
 
-        full = (head == tail);
+    int l = snprintf((char *)line_buff, sizeof(line_buff), "\r\n\r\nbuffered log output:\r\n");
+    if ((l > 0) && (l <= (int)sizeof(line_buff))) {
+        write(line_buff, l);
+    }
+
+    rb_dump(&log, write);
+
+    l = snprintf((char *)line_buff, sizeof(line_buff), "\r\n\r\nlive log:\r\n");
+    if ((l > 0) && (l <= (int)sizeof(line_buff))) {
+        write(line_buff, l);
     }
 }
 
 void log_dump_to_usb(void) {
-    if (head == tail) {
-        return;
-    }
+    log_dump_to_x(usb_cdc_write);
+}
 
-    char buff[32];
-    int l = snprintf(buff, sizeof(buff), "\r\n\r\nbuffered log output:\r\n");
-    if ((l > 0) && (l <= (int)sizeof(buff))) {
-        usb_cdc_write(buff, l);
-    }
+void log_dump_to_uart(void) {
+    log_dump_to_x(serial_write);
+}
 
-    if (head > tail) {
-        usb_cdc_write(log_buff + tail, head - tail);
-    } else {
-        usb_cdc_write(log_buff + tail, sizeof(log_buff) - tail);
-        usb_cdc_write(log_buff, head);
-    }
-
-    l = snprintf(buff, sizeof(buff), "\r\n\r\nlive log:\r\n");
-    if ((l > 0) && (l <= (int)sizeof(buff))) {
-        usb_cdc_write(buff, l);
+static void log_file_write_callback(const uint8_t *data, size_t len) {
+    UINT bw;
+    FRESULT res = f_write(&log_file_fat, data, len, &bw);
+    if ((res != FR_OK) || (bw != len)) {
+        debug("error: f_write %u returned %d", len, res);
     }
 }
 
 void log_dump_to_disk(void) {
-    FIL file;
-    FRESULT res = f_open(&file, "log.txt", FA_CREATE_ALWAYS | FA_WRITE);
+    FRESULT res = f_open(&log_file_fat, "log.txt", FA_CREATE_ALWAYS | FA_WRITE);
     if (res != FR_OK) {
         debug("error: f_open returned %d", res);
         return;
     }
 
-    UINT bw;
+    rb_dump(&log, log_file_write_callback);
 
-    if (head > tail) {
-        res = f_write(&file, log_buff + tail, head - tail, &bw);
-        if ((res != FR_OK) || (bw != head - tail)) {
-            debug("error: f_write (A) returned %d", res);
-        }
-    } else if (head < tail) {
-        res = f_write(&file, log_buff + tail, sizeof(log_buff) - tail, &bw);
-        if ((res != FR_OK) || (bw != sizeof(log_buff) - tail)) {
-            debug("error: f_write (B) returned %d", res);
-        } else {
-            res = f_write(&file, log_buff, head, &bw);
-            if ((res != FR_OK) || (bw != head)) {
-                debug("error: f_write (C) returned %d", res);
-            }
-        }
-    }
-
-    res = f_close(&file);
+    res = f_close(&log_file_fat);
     if (res != FR_OK) {
         debug("error: f_close returned %d", res);
     }
 }
 
 void debug_log_va(bool log, const char *format, va_list args) {
-    int l = vsnprintf(line_buff, sizeof(line_buff), format, args);
+    int l = vsnprintf((char *)line_buff, sizeof(line_buff), format, args);
 
     if (l < 0) {
         // encoding error
-        l = snprintf(line_buff, sizeof(line_buff), "%s: encoding error\r\n", __func__);
+        l = snprintf((char *)line_buff, sizeof(line_buff), "%s: encoding error\r\n", __func__);
     } else if (l >= (ssize_t)sizeof(line_buff)) {
         // not enough space for string
-        l = snprintf(line_buff, sizeof(line_buff), "%s: message too long (%d)\r\n", __func__, l);
+        l = snprintf((char *)line_buff, sizeof(line_buff), "%s: message too long (%d)\r\n", __func__, l);
     }
     if ((l > 0) && (l <= (int)sizeof(line_buff))) {
         usb_cdc_write(line_buff, l);
@@ -147,6 +130,7 @@ void debug_wait_input(const char *format, ...) {
 
     got_input = false;
     usb_cdc_set_reroute(true);
+    serial_set_reroute(true);
 
     while (!got_input) {
         watchdog_update();
@@ -154,4 +138,5 @@ void debug_wait_input(const char *format, ...) {
     }
 
     usb_cdc_set_reroute(false);
+    serial_set_reroute(false);
 }
