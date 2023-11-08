@@ -16,9 +16,6 @@
  * See <http://www.gnu.org/licenses/>.
  */
 
-#define DISK_BLOCK_COUNT 300
-#define DISK_BLOCK_SIZE 512
-
 void fat_disk_init(void);
 
 uint8_t *fat_disk_get_sector(uint32_t sector);

@@ -22,4 +22,14 @@
 //#define DISABLE_CDC_DTR_CHECK
 #define DEBOUNCE_DELAY_MS 5
 
+#define DEBUG_DISK_WRITE_SOURCES
+
+#define DISK_BLOCK_SIZE 512
+
+#ifdef DEBUG_DISK_WRITE_SOURCES
+#define DISK_BLOCK_COUNT (256 + 128)
+#else // DEBUG_DISK_WRITE_SOURCES
+#define DISK_BLOCK_COUNT 128 // 128 is minimum size for fatfs lib
+#endif // DEBUG_DISK_WRITE_SOURCES
+
 #endif // __CONFIG_H__
