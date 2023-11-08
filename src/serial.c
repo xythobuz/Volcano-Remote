@@ -76,8 +76,10 @@ static void serial_irq(void) {
 
 void serial_init(void) {
     uart_init(UART_ID, BAUD_RATE);
+
     gpio_set_function(UART_TX_PIN, GPIO_FUNC_UART);
     gpio_set_function(UART_RX_PIN, GPIO_FUNC_UART);
+
     uart_set_hw_flow(UART_ID, false, false);
     uart_set_format(UART_ID, DATA_BITS, STOP_BITS, PARITY);
     uart_set_fifo_enabled(UART_ID, true);
@@ -85,11 +87,30 @@ void serial_init(void) {
     irq_set_exclusive_handler(UART_IRQ, serial_irq);
     irq_set_enabled(UART_IRQ, true);
 
-    uart_set_irq_enables(UART_ID, true, false);
+    uart_set_irq_enables(UART_ID, true, true);
 }
 
 void serial_write(const uint8_t *buf, size_t count) {
-    rb_add(&tx, buf, count);
+    uart_set_irq_enables(UART_ID, true, false);
+
+    size_t off = 0;
+
+#ifdef SERIAL_WRITES_BLOCK_WHEN_BUFFER_FULL
+    while (count > rb_space(&tx)) {
+        size_t space = rb_space(&tx);
+        rb_add(&tx, buf + off, space);
+        count -= space;
+        off += space;
+
+        uart_set_irq_enables(UART_ID, true, true);
+        sleep_ms(1);
+        uart_set_irq_enables(UART_ID, true, false);
+    }
+#endif // SERIAL_WRITES_BLOCK_WHEN_BUFFER_FULL
+
+    rb_add(&tx, buf + off, count);
+
+    uart_set_irq_enables(UART_ID, true, true);
 }
 
 void serial_set_reroute(bool reroute) {

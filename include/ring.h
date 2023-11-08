@@ -33,6 +33,7 @@ struct ring_buffer {
 
 void rb_add(struct ring_buffer *rb, const uint8_t *data, size_t length);
 size_t rb_len(struct ring_buffer *rb);
+#define rb_space(rb) ((rb)->size - rb_len(rb))
 void rb_dump(struct ring_buffer *rb, void (*write)(const uint8_t *, size_t));
 uint8_t rb_pop(struct ring_buffer *rb);
 
