@@ -51,7 +51,8 @@ void ble_connect(bd_addr_t addr, bd_addr_type_t type);
 bool ble_is_connected(void);
 void ble_disconnect(void);
 
-int32_t ble_read(const uint8_t *uuid, uint8_t *buff, uint16_t buff_len);
-int32_t ble_write(const uint8_t *uuid, uint8_t *buff, uint16_t buff_len);
+int32_t ble_read(const uint8_t *characteristic, uint8_t *buff, uint16_t buff_len);
+int8_t ble_write(const uint8_t *service, const uint8_t *characteristic,
+                 uint8_t *buff, uint16_t buff_len);
 
 #endif // __BLE_H__

@@ -108,6 +108,7 @@ static void cnsl_interpret(const char *line) {
         println("");
         println("   vrct - Volcano read current temperature");
         println("   vrtt - Volcano read target temperature");
+        println(" vwtt X - Volcano write target temperature");
         println("");
         println("Press Enter with no input to repeat last command.");
         println("Use repeat to continuously execute last command.");
@@ -234,6 +235,30 @@ static void cnsl_interpret(const char *line) {
 #ifdef TEST_VOLCANO_AUTO_CONNECT
         ble_disconnect();
 #endif // TEST_VOLCANO_AUTO_CONNECT
+    } else if (str_startswith(line, "vwtt ")) {
+        float val;
+        int r = sscanf(line, "vwtt %f", &val);
+        if (r != 1) {
+            println("invalid input (%d)", r);
+        } else {
+            uint16_t v = val * 10.0;
+
+#ifdef TEST_VOLCANO_AUTO_CONNECT
+            VOLCANO_AUTO_CONNECT
+#endif // TEST_VOLCANO_AUTO_CONNECT
+
+            int8_t r = volcano_set_target_temp(v);
+
+#ifdef TEST_VOLCANO_AUTO_CONNECT
+            ble_disconnect();
+#endif // TEST_VOLCANO_AUTO_CONNECT
+
+            if (r < 0) {
+                println("error writing target temp %d", r);
+            } else {
+                println("success");
+            }
+        }
     } else {
         println("unknown command \"%s\"", line);
     }

@@ -27,6 +27,8 @@
 #include "ble.h"
 
 #define BLE_MAX_SCAN_AGE_MS (10 * 1000)
+#define BLE_MAX_SERVICES 8
+#define BLE_MAX_CHARACTERISTICS 8
 
 enum ble_state {
     TC_OFF = 0,
@@ -36,15 +38,35 @@ enum ble_state {
     TC_READY,
     TC_W4_READ,
     TC_READ_COMPLETE,
+    TC_W4_SERVICE,
+    TC_W4_CHARACTERISTIC,
+    TC_W4_WRITE,
+    TC_WRITE_COMPLETE,
+};
+
+struct ble_characteristic {
+    bool set;
+    gatt_client_characteristic_t c;
+};
+
+struct ble_service {
+    bool set;
+    gatt_client_service_t service;
+    struct ble_characteristic chars[BLE_MAX_CHARACTERISTICS];
 };
 
 static btstack_packet_callback_registration_t hci_event_callback_registration;
 static hci_con_handle_t connection_handle;
-
 static enum ble_state state = TC_OFF;
+
 static struct ble_scan_result scans[BLE_MAX_SCAN_RESULTS] = {0};
+
 static uint16_t read_len = 0;
-static uint8_t read_buff[BLE_MAX_VALUE_LEN] = {0};
+static uint8_t data_buff[BLE_MAX_VALUE_LEN] = {0};
+
+static struct ble_service services[BLE_MAX_SERVICES] = {0};
+static uint8_t service_idx = 0;
+static uint8_t characteristic_idx = 0;
 
 static void hci_add_scan_result(bd_addr_t addr, bd_addr_type_t type, int8_t rssi) {
     int unused = -1;
@@ -196,7 +218,7 @@ static void hci_event_handler(uint8_t packet_type, uint16_t channel, uint8_t *pa
 
     case GATT_EVENT_CHARACTERISTIC_VALUE_QUERY_RESULT:
         if (state != TC_W4_READ) {
-            debug("gatt query result in invalid state %d", state);
+            debug("gatt value query result in invalid state %d", state);
             return;
         }
         uint16_t len = gatt_event_characteristic_value_query_result_get_value_length(packet);
@@ -204,19 +226,64 @@ static void hci_event_handler(uint8_t packet_type, uint16_t channel, uint8_t *pa
             debug("not enough space for value (%d + %d > %d)", read_len, len, BLE_MAX_VALUE_LEN);
             return;
         }
-        memcpy(read_buff + read_len,
+        memcpy(data_buff + read_len,
                gatt_event_characteristic_value_query_result_get_value(packet),
                len);
         read_len += len;
         break;
 
-    case GATT_EVENT_QUERY_COMPLETE:
-        if (state != TC_W4_READ) {
-            debug("gatt query complete in invalid state %d", state);
+    case GATT_EVENT_SERVICE_QUERY_RESULT:
+        if (state != TC_W4_SERVICE) {
+            debug("gatt service query result in invalid state %d", state);
             return;
         }
-        state = TC_READ_COMPLETE;
+        gatt_event_service_query_result_get_service(packet, &services[service_idx].service);
+        debug("got service %s result", uuid128_to_str(services[service_idx].service.uuid128));
         break;
+
+    case GATT_EVENT_CHARACTERISTIC_QUERY_RESULT:
+        if (state != TC_W4_CHARACTERISTIC) {
+            debug("gatt characteristic query result in invalid state %d", state);
+            return;
+        }
+        gatt_event_characteristic_query_result_get_characteristic(packet, &services[service_idx].chars[characteristic_idx].c);
+        debug("got characteristic %s result", uuid128_to_str(services[service_idx].chars[characteristic_idx].c.uuid128));
+        break;
+
+    case GATT_EVENT_QUERY_COMPLETE: {
+        uint8_t att_status = gatt_event_query_complete_get_att_status(packet);
+        if (att_status != ATT_ERROR_SUCCESS){
+            debug("query result has ATT Error 0x%02x in %d", att_status, state);
+            state = TC_READY;
+            break;
+        }
+
+        switch (state) {
+        case TC_W4_READ:
+            state = TC_READ_COMPLETE;
+            break;
+
+        case TC_W4_SERVICE:
+            debug("service %s complete", uuid128_to_str(services[service_idx].service.uuid128));
+            state = TC_READY;
+            break;
+
+        case TC_W4_CHARACTERISTIC:
+            debug("characteristic %s complete", uuid128_to_str(services[service_idx].chars[characteristic_idx].c.uuid128));
+            state = TC_READY;
+            break;
+
+        case TC_W4_WRITE:
+            debug("write complete");
+            state = TC_WRITE_COMPLETE;
+            break;
+
+        default:
+            debug("gatt query complete in invalid state %d", state);
+            break;
+        }
+        break;
+    }
 
     default:
         //debug("unexpected event 0x%02X", hci_event_packet_get_type(packet));
@@ -227,10 +294,16 @@ static void hci_event_handler(uint8_t packet_type, uint16_t channel, uint8_t *pa
 void ble_init(void) {
     cyw43_thread_enter();
 
+    state = TC_OFF;
     for (uint i = 0; i < BLE_MAX_SCAN_RESULTS; i++) {
         scans[i].set = false;
     }
-    state = TC_OFF;
+    for (uint i = 0; i < BLE_MAX_SERVICES; i++) {
+        services[i].set = false;
+        for (uint j = 0; j < BLE_MAX_CHARACTERISTICS; j++) {
+            services[i].chars[j].set = false;
+        }
+    }
 
     cyw43_thread_exit();
 
@@ -389,7 +462,7 @@ void ble_disconnect(void) {
     cyw43_thread_exit();
 }
 
-int32_t ble_read(const uint8_t *uuid, uint8_t *buff, uint16_t buff_len) {
+int32_t ble_read(const uint8_t *characteristic, uint8_t *buff, uint16_t buff_len) {
     cyw43_thread_enter();
 
     if (state != TC_READY) {
@@ -400,7 +473,8 @@ int32_t ble_read(const uint8_t *uuid, uint8_t *buff, uint16_t buff_len) {
 
     uint8_t r = gatt_client_read_value_of_characteristics_by_uuid128(hci_event_handler,
                                                                      connection_handle,
-                                                                     0x0001, 0xFFFF, uuid);
+                                                                     0x0001, 0xFFFF,
+                                                                     characteristic);
     if (r != ERROR_CODE_SUCCESS) {
         cyw43_thread_exit();
         debug("gatt read failed %d", r);
@@ -435,15 +509,176 @@ int32_t ble_read(const uint8_t *uuid, uint8_t *buff, uint16_t buff_len) {
         return -3;
     }
 
-    memcpy(buff, read_buff, read_len);
+    memcpy(buff, data_buff, read_len);
 
     cyw43_thread_exit();
     return read_len;
 }
 
-int32_t ble_write(const uint8_t *uuid, uint8_t *buff, uint16_t buff_len) {
-    UNUSED(uuid);
-    UNUSED(buff);
-    UNUSED(buff_len);
-    return -1;
+int8_t ble_write(const uint8_t *service, const uint8_t *characteristic,
+                  uint8_t *buff, uint16_t buff_len) {
+    cyw43_thread_enter();
+
+    if (state != TC_READY) {
+        cyw43_thread_exit();
+        debug("invalid state for write (%d)", state);
+        return -1;
+    }
+
+    // check if service has already been discovered
+    int srvc = -1, free_srvc = -1;
+    for (int i = 0; i < BLE_MAX_SERVICES; i++) {
+        if (!services[i].set) {
+            if (free_srvc < 0) {
+                free_srvc = i;
+            }
+            continue;
+        }
+
+        if (memcmp(services[i].service.uuid128, service, 16) == 0) {
+            srvc = i;
+            break;
+        }
+    }
+
+    // if this service has not been discovered yet, add it
+    if (srvc < 0) {
+        if (free_srvc < 0) {
+            debug("no space left for BLE service. overwriting.");
+            free_srvc = 0;
+        }
+        srvc = free_srvc;
+        services[srvc].set = true;
+
+        debug("discovering service %s at %d", uuid128_to_str(service), srvc);
+
+        uint8_t r = gatt_client_discover_primary_services_by_uuid128(hci_event_handler,
+                                                                     connection_handle,
+                                                                     service);
+        if (r != ERROR_CODE_SUCCESS) {
+            cyw43_thread_exit();
+            debug("gatt service discovery failed %d", r);
+            return -2;
+        }
+
+        state = TC_W4_SERVICE;
+        service_idx = srvc;
+        cyw43_thread_exit();
+
+        debug("waiting for service discovery");
+        while (1) {
+            sleep_ms(1);
+
+            // TODO timeout
+
+            cyw43_thread_enter();
+            enum ble_state state_cached = state;
+            cyw43_thread_exit();
+
+            if (state_cached == TC_READY) {
+            debug("service discovery done");
+                break;
+            }
+        }
+    }
+
+    // check if characteristic has already been discovered
+    int ch = -1, free_ch = -1;
+    for (int i = 0; i < BLE_MAX_CHARACTERISTICS; i++) {
+        if (!services[srvc].chars[i].set) {
+            if (free_ch < 0) {
+                free_ch = i;
+            }
+            continue;
+        }
+
+        if (memcmp(services[srvc].chars[i].c.uuid128, characteristic, 16) == 0) {
+            ch = i;
+            break;
+        }
+    }
+
+    // if this characteristic has not been discovered yet, add it
+    if (ch < 0) {
+        if (free_ch < 0) {
+            debug("no space left for BLE characteristic. overwriting.");
+            free_ch = 0;
+        }
+        ch = free_ch;
+        services[srvc].chars[ch].set = true;
+
+        debug("discovering characteristic %s at %d", uuid128_to_str(characteristic), ch);
+
+        uint8_t r = gatt_client_discover_characteristics_for_service_by_uuid128(hci_event_handler,
+                                                                                connection_handle,
+                                                                                &services[srvc].service,
+                                                                                characteristic);
+        if (r != ERROR_CODE_SUCCESS) {
+            cyw43_thread_exit();
+            debug("gatt characteristic discovery failed %d", r);
+            return -3;
+        }
+
+        state = TC_W4_CHARACTERISTIC;
+        characteristic_idx = ch;
+        cyw43_thread_exit();
+
+        debug("waiting for characteristic discovery");
+        while (1) {
+            sleep_ms(1);
+
+            // TODO timeout
+
+            cyw43_thread_enter();
+            enum ble_state state_cached = state;
+            cyw43_thread_exit();
+
+            if (state_cached == TC_READY) {
+                debug("characteristic discovery done");
+                break;
+            }
+        }
+    }
+
+    if (buff_len > BLE_MAX_VALUE_LEN) {
+        buff_len = BLE_MAX_VALUE_LEN;
+    }
+    memcpy(data_buff, buff, buff_len);
+
+    uint8_t r = gatt_client_write_value_of_characteristic(hci_event_handler,
+                                                          connection_handle,
+                                                          services[srvc].chars[ch].c.value_handle,
+                                                          buff_len, data_buff);
+    if (r != ERROR_CODE_SUCCESS) {
+        cyw43_thread_exit();
+        debug("gatt write failed %d", r);
+        return -4;
+    }
+
+    state = TC_W4_WRITE;
+    cyw43_thread_exit();
+
+    debug("waiting for write");
+    while (1) {
+        sleep_ms(1);
+
+        // TODO timeout
+
+        cyw43_thread_enter();
+        enum ble_state state_cached = state;
+        cyw43_thread_exit();
+
+        if ((state_cached == TC_WRITE_COMPLETE) || (state_cached == TC_READY)) {
+            debug("write done (%s)", (state_cached == TC_READY) ? "error" : "success");
+            break;
+        }
+    }
+
+    cyw43_thread_enter();
+
+    int8_t ret = (state == TC_WRITE_COMPLETE) ? 0 : -1;
+    state = TC_READY;
+
+    cyw43_thread_exit();
+    return ret;
 }

@@ -23,6 +23,7 @@
 #include "volcano.h"
 
 // Volcano UUIDs are always the same, except for the 4th byte
+#define UUID_WRITE_SRVC   0x00
 #define UUID_CURRENT_TEMP 0x01
 #define UUID_TARGET_TEMP  0x03
 #define UUID_HEATER_ON    0x0F
@@ -32,6 +33,10 @@
 
 // "101100xx-5354-4f52-5a26-4249434b454c"
 static uint8_t uuid_base[16] = {
+    0x10, 0x11, 0x00, 0xFF, 0x53, 0x54, 0x4f, 0x52,
+    0x5a, 0x26, 0x42, 0x49, 0x43, 0x4b, 0x45, 0x4c,
+};
+static uint8_t uuid_base2[16] = {
     0x10, 0x11, 0x00, 0xFF, 0x53, 0x54, 0x4f, 0x52,
     0x5a, 0x26, 0x42, 0x49, 0x43, 0x4b, 0x45, 0x4c,
 };
@@ -65,16 +70,16 @@ int16_t volcano_get_target_temp(void) {
 }
 
 int8_t volcano_set_target_temp(uint16_t value) {
-    uuid_base[3] = UUID_TARGET_TEMP;
+    uuid_base[3] = UUID_WRITE_SRVC;
+    uuid_base2[3] = UUID_TARGET_TEMP;
 
     uint8_t buff[4];
     uint32_t *v = (uint32_t *)buff;
     *v = value;
 
-    int32_t r = ble_write(uuid_base, buff, 4);
-    if (r != 4) {
-        debug("ble_write unexpected value %ld", r);
-        return -1;
+    int8_t r = ble_write(uuid_base, uuid_base2, buff, 4);
+    if (r != 0) {
+        debug("ble_write unexpected value %d", r);
     }
-    return 0;
+    return r;
 }
