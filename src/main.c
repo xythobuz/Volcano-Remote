@@ -36,6 +36,13 @@
 #include "state.h"
 #include "serial.h"
 
+void main_loop_hw(void) {
+    watchdog_update();
+    usb_run();
+    serial_run();
+    heartbeat_run();
+}
+
 int main(void) {
     // required for debug console
     cnsl_init();
@@ -90,15 +97,9 @@ int main(void) {
     state_switch(STATE_SCAN);
 
     while (1) {
-        watchdog_update();
-
-        heartbeat_run();
+        main_loop_hw();
         buttons_run();
-
-        usb_run();
-        serial_run();
         cnsl_run();
-
         battery_run();
         state_run();
     }

@@ -39,4 +39,6 @@
 #define DISK_BLOCK_COUNT 256
 #endif // DEBUG_DISK_WRITE_SOURCES
 
+//#define TEST_VOLCANO_AUTO_CONNECT "xx:xx:xx:xx:xx:xx 1"
+
 #endif // __CONFIG_H__

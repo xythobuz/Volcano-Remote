@@ -18,9 +18,11 @@
 
 #include <inttypes.h>
 #include <string.h>
-#include "pico/stdlib.h"
 #include <unistd.h>
 #include <stdio.h>
+
+#include "pico/stdlib.h"
+#include "hardware/watchdog.h"
 
 #include "config.h"
 #include "log.h"
@@ -36,11 +38,10 @@
 #include "image.h"
 #include "volcano.h"
 #include "serial.h"
+#include "main.h"
 
-#define CNSL_BUFF_SIZE 1024
+#define CNSL_BUFF_SIZE 64
 #define CNSL_REPEAT_MS 500
-
-//#define TEST_VOLCANO_AUTO_CONNECT "xx:xx:xx:xx:xx:xx 1"
 
 #define VOLCANO_AUTO_CONNECT {                                    \
     ble_scan(BLE_SCAN_OFF);                                       \
@@ -112,6 +113,7 @@ static void cnsl_interpret(const char *line) {
         println(" vwtt X - Volcano write target temperature");
         println("  vwh X - Set heater to 1 or 0");
         println("  vwp X - Set heater to 1 or 0");
+        println("     vt - Run a hard-coded test workflow");
         println("");
         println("Press Enter with no input to repeat last command.");
         println("Use repeat to continuously execute last command.");
@@ -306,6 +308,94 @@ static void cnsl_interpret(const char *line) {
                 println("success");
             }
         }
+    } else if (strcmp(line, "vt") == 0) {
+#ifdef TEST_VOLCANO_AUTO_CONNECT
+        VOLCANO_AUTO_CONNECT
+#endif // TEST_VOLCANO_AUTO_CONNECT
+
+        println("init workflow test");
+        volcano_set_pump_state(false);
+        volcano_set_heater_state(false);
+        volcano_set_target_temp(1850);
+        volcano_set_heater_state(true);
+
+        println("wait for 185");
+        while (volcano_get_current_temp() < 1840) {
+            main_loop_hw();
+        }
+
+        println("wait for 10s");
+        uint32_t start = to_ms_since_boot(get_absolute_time());
+        while ((to_ms_since_boot(get_absolute_time()) - start) < (10 * 1000)) {
+            main_loop_hw();
+        }
+
+        println("pumping");
+        volcano_set_pump_state(true);
+
+        println("wait for 10s");
+        start = to_ms_since_boot(get_absolute_time());
+        while ((to_ms_since_boot(get_absolute_time()) - start) < (10 * 1000)) {
+            main_loop_hw();
+        }
+
+        println("step done");
+        volcano_set_pump_state(false);
+        volcano_set_target_temp(1950);
+
+        println("wait for 195");
+        while (volcano_get_current_temp() < 1940) {
+            main_loop_hw();
+        }
+
+        println("wait for 5s");
+        start = to_ms_since_boot(get_absolute_time());
+        while ((to_ms_since_boot(get_absolute_time()) - start) < (5 * 1000)) {
+            main_loop_hw();
+        }
+
+        println("pumping");
+        volcano_set_pump_state(true);
+
+        println("wait for 20s");
+        start = to_ms_since_boot(get_absolute_time());
+        while ((to_ms_since_boot(get_absolute_time()) - start) < (20 * 1000)) {
+            main_loop_hw();
+        }
+
+        println("step done");
+        volcano_set_pump_state(false);
+        volcano_set_target_temp(2050);
+
+        println("wait for 205");
+        while (volcano_get_current_temp() < 2040) {
+            main_loop_hw();
+        }
+
+        println("wait for 5s");
+        start = to_ms_since_boot(get_absolute_time());
+        while ((to_ms_since_boot(get_absolute_time()) - start) < (5 * 1000)) {
+            main_loop_hw();
+        }
+
+        println("pumping");
+        volcano_set_pump_state(true);
+
+        println("wait for 20s");
+        start = to_ms_since_boot(get_absolute_time());
+        while ((to_ms_since_boot(get_absolute_time()) - start) < (20 * 1000)) {
+            main_loop_hw();
+        }
+
+        println("turning off");
+        volcano_set_pump_state(false);
+        volcano_set_heater_state(false);
+
+        println("done");
+
+#ifdef TEST_VOLCANO_AUTO_CONNECT
+        ble_disconnect();
+#endif // TEST_VOLCANO_AUTO_CONNECT
     } else {
         println("unknown command \"%s\"", line);
     }

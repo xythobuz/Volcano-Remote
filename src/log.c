@@ -22,7 +22,7 @@
 #include "ff.h"
 
 #include "config.h"
-#include "usb.h"
+#include "main.h"
 #include "usb_cdc.h"
 #include "serial.h"
 #include "ring.h"
@@ -134,9 +134,7 @@ void debug_wait_input(const char *format, ...) {
     serial_set_reroute(true);
 
     while (!got_input) {
-        watchdog_update();
-        usb_run();
-        serial_run();
+        main_loop_hw();
     }
 
     usb_cdc_set_reroute(false);

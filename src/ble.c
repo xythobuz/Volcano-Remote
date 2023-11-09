@@ -243,7 +243,7 @@ static void hci_event_handler(uint8_t packet_type, uint16_t channel, uint8_t *pa
             return;
         }
         gatt_event_service_query_result_get_service(packet, &services[service_idx].service);
-        debug("got service %s result", uuid128_to_str(services[service_idx].service.uuid128));
+        //debug("got service %s result", uuid128_to_str(services[service_idx].service.uuid128));
         break;
 
     case GATT_EVENT_CHARACTERISTIC_QUERY_RESULT:
@@ -252,7 +252,7 @@ static void hci_event_handler(uint8_t packet_type, uint16_t channel, uint8_t *pa
             return;
         }
         gatt_event_characteristic_query_result_get_characteristic(packet, &services[service_idx].chars[characteristic_idx].c);
-        debug("got characteristic %s result", uuid128_to_str(services[service_idx].chars[characteristic_idx].c.uuid128));
+        //debug("got characteristic %s result", uuid128_to_str(services[service_idx].chars[characteristic_idx].c.uuid128));
         break;
 
     case GATT_EVENT_QUERY_COMPLETE: {
@@ -269,17 +269,17 @@ static void hci_event_handler(uint8_t packet_type, uint16_t channel, uint8_t *pa
             break;
 
         case TC_W4_SERVICE:
-            debug("service %s complete", uuid128_to_str(services[service_idx].service.uuid128));
+            //debug("service %s complete", uuid128_to_str(services[service_idx].service.uuid128));
             state = TC_READY;
             break;
 
         case TC_W4_CHARACTERISTIC:
-            debug("characteristic %s complete", uuid128_to_str(services[service_idx].chars[characteristic_idx].c.uuid128));
+            //debug("characteristic %s complete", uuid128_to_str(services[service_idx].chars[characteristic_idx].c.uuid128));
             state = TC_READY;
             break;
 
         case TC_W4_WRITE:
-            debug("write complete");
+            //debug("write complete");
             state = TC_WRITE_COMPLETE;
             break;
 
