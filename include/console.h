@@ -21,6 +21,6 @@
 
 void cnsl_init(void);
 void cnsl_run(void);
-void cnsl_handle_input(const char *buf, uint32_t len);
+void cnsl_handle_input(const uint8_t *buf, size_t len);
 
 #endif // __CONSOLE_H__

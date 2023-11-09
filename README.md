@@ -101,7 +101,8 @@ And also start a GDB debugging session.
     continue # start program
 
 These commands have also been put in the `flash_swd.sh` and `debug_swd.sh` scripts, respectively.
-Call them from the `build_debug` folder where you checked out and built OpenOCD.
+They require the `build_debug` folder where you checked out and built OpenOCD.
+Here are some [general GDB tips](https://beej.us/guide/bggdb/).
 
 ## License
 

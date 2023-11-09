@@ -35,6 +35,7 @@
 #include "lcd.h"
 #include "image.h"
 #include "volcano.h"
+#include "serial.h"
 
 #define CNSL_BUFF_SIZE 1024
 #define CNSL_REPEAT_MS 500
@@ -303,7 +304,7 @@ void cnsl_run(void) {
     }
 }
 
-void cnsl_handle_input(const char *buf, uint32_t len) {
+void cnsl_handle_input(const uint8_t *buf, size_t len) {
     if ((cnsl_buff_pos + len) > CNSL_BUFF_SIZE) {
         debug("error: console input buffer overflow! %lu > %u", cnsl_buff_pos + len, CNSL_BUFF_SIZE);
         cnsl_init();
@@ -312,7 +313,7 @@ void cnsl_handle_input(const char *buf, uint32_t len) {
     memcpy(cnsl_line_buff + cnsl_buff_pos, buf, len);
     cnsl_buff_pos += len;
 
-    // handle backspace
+    // handle backspace and local echo
     for (ssize_t i = cnsl_buff_pos - len; i < (ssize_t)cnsl_buff_pos; i++) {
         if ((cnsl_line_buff[i] == '\b') || (cnsl_line_buff[i] == 0x7F)) {
             if (i > 0) {
@@ -330,11 +331,13 @@ void cnsl_handle_input(const char *buf, uint32_t len) {
             }
 
             usb_cdc_write((const uint8_t *)"\b \b", 3);
+            serial_write((const uint8_t *)"\b \b", 3);
 
             // check for another backspace in this space
             i--;
         } else {
             usb_cdc_write((const uint8_t *)(cnsl_line_buff + i), 1);
+            serial_write((const uint8_t *)(cnsl_line_buff + i), 1);
         }
     }
 

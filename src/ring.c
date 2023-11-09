@@ -62,6 +62,22 @@ void rb_dump(struct ring_buffer *rb, void (*write)(const uint8_t *, size_t)) {
     }
 }
 
+void rb_move(struct ring_buffer *rb, void (*write)(const uint8_t *, size_t)) {
+    rb_dump(rb, write);
+    rb->head = 0;
+    rb->tail = 0;
+    rb->full = false;
+}
+
+uint8_t rb_peek(struct ring_buffer *rb) {
+    if (rb_len(rb) == 0) {
+        return 0;
+    }
+
+    uint8_t v = rb->buffer[rb->tail];
+    return v;
+}
+
 uint8_t rb_pop(struct ring_buffer *rb) {
     if (rb_len(rb) == 0) {
         return 0;

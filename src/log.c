@@ -100,6 +100,7 @@ void debug_log_va(bool log, const char *format, va_list args) {
     }
     if ((l > 0) && (l <= (int)sizeof(line_buff))) {
         usb_cdc_write(line_buff, l);
+        serial_write(line_buff, l);
 
         if (log) {
             add_to_log(line_buff, l);
@@ -114,7 +115,7 @@ void debug_log(bool log, const char* format, ...) {
     va_end(args);
 }
 
-void debug_handle_input(char *buff, uint32_t len) {
+void debug_handle_input(const uint8_t *buff, size_t len) {
     (void)buff;
 
     if (len > 0) {
@@ -135,6 +136,7 @@ void debug_wait_input(const char *format, ...) {
     while (!got_input) {
         watchdog_update();
         usb_run();
+        serial_run();
     }
 
     usb_cdc_set_reroute(false);

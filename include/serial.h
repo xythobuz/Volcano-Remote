@@ -26,5 +26,6 @@
 void serial_init(void);
 void serial_write(const uint8_t *buf, size_t count);
 void serial_set_reroute(bool reroute);
+void serial_run(void);
 
 #endif // __SERIAL_H__

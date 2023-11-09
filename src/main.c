@@ -95,7 +95,9 @@ int main(void) {
 
         heartbeat_run();
         buttons_run();
+
         usb_run();
+        serial_run();
         cnsl_run();
 
         battery_run();

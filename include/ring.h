@@ -32,9 +32,12 @@ struct ring_buffer {
 #define RB_INIT(b, s) { .buffer = b, .size = s, .head = 0, .tail = 0, .full = false }
 
 void rb_add(struct ring_buffer *rb, const uint8_t *data, size_t length);
+#define rb_push(rb, v) rb_add(rb, &v, 1)
 size_t rb_len(struct ring_buffer *rb);
 #define rb_space(rb) ((rb)->size - rb_len(rb))
 void rb_dump(struct ring_buffer *rb, void (*write)(const uint8_t *, size_t));
+void rb_move(struct ring_buffer *rb, void (*write)(const uint8_t *, size_t));
+uint8_t rb_peek(struct ring_buffer *rb);
 uint8_t rb_pop(struct ring_buffer *rb);
 
 #endif // __RING_BUFFER_H__

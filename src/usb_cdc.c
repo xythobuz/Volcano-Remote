@@ -79,9 +79,9 @@ static void cdc_task(void) {
         if ((count >= 1) && (buf[0] == ENTER_BOOTLOADER_MAGIC)) {
             reset_to_bootloader();
         } else if (reroute_cdc_debug) {
-            debug_handle_input(buf, count);
+            debug_handle_input((const uint8_t *)buf, count);
         } else {
-            cnsl_handle_input(buf, count);
+            cnsl_handle_input((const uint8_t *)buf, count);
         }
     }
 }

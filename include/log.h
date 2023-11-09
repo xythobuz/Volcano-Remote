@@ -43,6 +43,6 @@ void log_dump_to_usb(void);
 void log_dump_to_uart(void);
 void log_dump_to_disk(void);
 
-void debug_handle_input(char *buff, uint32_t len);
+void debug_handle_input(const uint8_t *buff, size_t len);
 
 #endif // __LOG_H__

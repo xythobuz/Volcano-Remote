@@ -1,6 +1,9 @@
 /*
  * serial.c
  *
+ * https://github.com/raspberrypi/pico-examples/blob/master/uart/uart_advanced/uart_advanced.c
+ * https://forums.raspberrypi.com/viewtopic.php?t=343110
+ *
  * Copyright (c) 2023 Thomas Buck (thomas@xythobuz.de)
  *
  * This program is free software: you can redistribute it and/or modify
@@ -28,7 +31,7 @@
 #define PARITY UART_PARITY_NONE
 #define STOP_BITS 1
 
-#define UART_HW_FIFO_LEN 32
+#define UART_RX_BUFF_LEN 64
 #define UART_TX_BUFF_LEN 128
 
 #include "hardware/uart.h"
@@ -41,37 +44,33 @@
 #include "ring.h"
 #include "serial.h"
 
+static uint8_t rx_buff[UART_RX_BUFF_LEN] = {0};
+static struct ring_buffer rx = RB_INIT(rx_buff, sizeof(rx_buff));
+
 static uint8_t tx_buff[UART_TX_BUFF_LEN] = {0};
 static struct ring_buffer tx = RB_INIT(tx_buff, sizeof(tx_buff));
+
 static bool reroute_serial_debug = false;
+static bool tx_irq_state = false;
 
 static void serial_irq(void) {
-    uint8_t buf[UART_HW_FIFO_LEN];
-    uint16_t count = 0;
-
     // Rx - read from UART FIFO to local buffer
-    while (uart_is_readable(UART_ID)) {
+    while (uart_is_readable(UART_ID) && (rb_space(&rx) > 0)) {
         uint8_t ch = uart_getc(UART_ID);
-        buf[count++] = ch;
+        rb_push(&rx, ch);
+    }
 
-        if (count >= UART_HW_FIFO_LEN) {
+    // Tx - write to UART FIFO if needed
+    while (uart_is_writable(UART_ID)) {
+        if (rb_len(&tx) > 0) {
+            uart_putc_raw(UART_ID, rb_pop(&tx));
+        } else {
+            uart_set_irq_enables(UART_ID, true, false);
+            tx_irq_state = false;
             break;
         }
     }
 
-    // Rx - pass local buffer to further processing
-    if ((count >= 1) && (buf[0] == ENTER_BOOTLOADER_MAGIC)) {
-        reset_to_bootloader();
-    } else if (reroute_serial_debug) {
-        debug_handle_input((char *)buf, count);
-    } else {
-        cnsl_handle_input((char *)buf, count);
-    }
-
-    // Tx - write to UART FIFO if needed
-    while (uart_is_writable(UART_ID) && (rb_len(&tx) > 0)) {
-        uart_putc_raw(UART_ID, rb_pop(&tx));
-    }
 }
 
 void serial_init(void) {
@@ -87,11 +86,22 @@ void serial_init(void) {
     irq_set_exclusive_handler(UART_IRQ, serial_irq);
     irq_set_enabled(UART_IRQ, true);
 
-    uart_set_irq_enables(UART_ID, true, true);
+    uart_set_irq_enables(UART_ID, true, false);
+    tx_irq_state = false;
 }
 
 void serial_write(const uint8_t *buf, size_t count) {
     uart_set_irq_enables(UART_ID, true, false);
+    tx_irq_state = false;
+
+    while ((rb_len(&tx) == 0) && uart_is_writable(UART_ID) && (count > 0)) {
+        uart_putc_raw(UART_ID, *buf++);
+        count--;
+    }
+
+    if (count == 0) {
+        return;
+    }
 
     size_t off = 0;
 
@@ -103,16 +113,39 @@ void serial_write(const uint8_t *buf, size_t count) {
         off += space;
 
         uart_set_irq_enables(UART_ID, true, true);
+        tx_irq_state = true;
+
         sleep_ms(1);
+
         uart_set_irq_enables(UART_ID, true, false);
+        tx_irq_state = false;
     }
+
 #endif // SERIAL_WRITES_BLOCK_WHEN_BUFFER_FULL
 
     rb_add(&tx, buf + off, count);
 
     uart_set_irq_enables(UART_ID, true, true);
+    tx_irq_state = true;
 }
 
 void serial_set_reroute(bool reroute) {
     reroute_serial_debug = reroute;
+}
+
+void serial_run(void) {
+    uart_set_irq_enables(UART_ID, false, tx_irq_state);
+
+    // Rx - pass local buffer to further processing
+    if (rb_len(&rx) >= 1) {
+        if (rb_peek(&rx) == ENTER_BOOTLOADER_MAGIC) {
+            reset_to_bootloader();
+        } else if (reroute_serial_debug) {
+            rb_move(&rx, debug_handle_input);
+        } else {
+            rb_move(&rx, cnsl_handle_input);
+        }
+    }
+
+    uart_set_irq_enables(UART_ID, true, tx_irq_state);
 }
