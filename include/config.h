@@ -19,6 +19,8 @@
 #ifndef __CONFIG_H__
 #define __CONFIG_H__
 
+#define WATCHDOG_PERIOD_MS 1000
+
 // ASCII 0x18 = CAN (cancel)
 #define ENTER_BOOTLOADER_MAGIC 0x18
 

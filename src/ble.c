@@ -20,12 +20,17 @@
  */
 
 #include "pico/cyw43_arch.h"
+#include "hardware/watchdog.h"
 
 #include "config.h"
 #include "log.h"
 #include "util.h"
 #include "ble.h"
 
+#define BLE_READ_TIMEOUT_MS 500
+#define BLE_SRVC_TIMEOUT_MS 500
+#define BLE_CHAR_TIMEOUT_MS 2000
+#define BLE_WRTE_TIMEOUT_MS 500
 #define BLE_MAX_SCAN_AGE_MS (10 * 1000)
 #define BLE_MAX_SERVICES 8
 #define BLE_MAX_CHARACTERISTICS 8
@@ -485,10 +490,18 @@ int32_t ble_read(const uint8_t *characteristic, uint8_t *buff, uint16_t buff_len
     read_len = 0;
     cyw43_thread_exit();
 
+    uint32_t start_time = to_ms_since_boot(get_absolute_time());
     while (1) {
         sleep_ms(1);
 
-        // TODO timeout
+        uint32_t now = to_ms_since_boot(get_absolute_time());
+        if ((now - start_time) >= BLE_READ_TIMEOUT_MS) {
+            debug("timeout waiting for read");
+            return -3;
+        }
+#if BLE_READ_TIMEOUT_MS >= (WATCHDOG_PERIOD_MS / 2)
+        watchdog_update();
+#endif
 
         cyw43_thread_enter();
         enum ble_state state_cached = state;
@@ -506,7 +519,7 @@ int32_t ble_read(const uint8_t *characteristic, uint8_t *buff, uint16_t buff_len
     if (read_len > buff_len) {
         debug("buffer too short (%d < %d)", buff_len, read_len);
         cyw43_thread_exit();
-        return -3;
+        return -4;
     }
 
     memcpy(buff, data_buff, read_len);
@@ -566,10 +579,19 @@ int8_t ble_write(const uint8_t *service, const uint8_t *characteristic,
         cyw43_thread_exit();
 
         debug("waiting for service discovery");
+
+        uint32_t start_time = to_ms_since_boot(get_absolute_time());
         while (1) {
             sleep_ms(1);
 
-            // TODO timeout
+            uint32_t now = to_ms_since_boot(get_absolute_time());
+            if ((now - start_time) >= BLE_SRVC_TIMEOUT_MS) {
+                debug("timeout waiting for service");
+                return -3;
+            }
+#if BLE_SRVC_TIMEOUT_MS >= (WATCHDOG_PERIOD_MS / 2)
+            watchdog_update();
+#endif
 
             cyw43_thread_enter();
             enum ble_state state_cached = state;
@@ -580,6 +602,11 @@ int8_t ble_write(const uint8_t *service, const uint8_t *characteristic,
                 break;
             }
         }
+
+        // allow some time for service discovery
+        watchdog_update();
+
+        cyw43_thread_enter();
     }
 
     // check if characteristic has already been discovered
@@ -616,7 +643,7 @@ int8_t ble_write(const uint8_t *service, const uint8_t *characteristic,
         if (r != ERROR_CODE_SUCCESS) {
             cyw43_thread_exit();
             debug("gatt characteristic discovery failed %d", r);
-            return -3;
+            return -4;
         }
 
         state = TC_W4_CHARACTERISTIC;
@@ -624,10 +651,19 @@ int8_t ble_write(const uint8_t *service, const uint8_t *characteristic,
         cyw43_thread_exit();
 
         debug("waiting for characteristic discovery");
+
+        uint32_t start_time = to_ms_since_boot(get_absolute_time());
         while (1) {
             sleep_ms(1);
 
-            // TODO timeout
+            uint32_t now = to_ms_since_boot(get_absolute_time());
+            if ((now - start_time) >= BLE_CHAR_TIMEOUT_MS) {
+                debug("timeout waiting for characteristic");
+                return -5;
+            }
+#if BLE_CHAR_TIMEOUT_MS >= (WATCHDOG_PERIOD_MS / 2)
+            watchdog_update();
+#endif
 
             cyw43_thread_enter();
             enum ble_state state_cached = state;
@@ -638,6 +674,11 @@ int8_t ble_write(const uint8_t *service, const uint8_t *characteristic,
                 break;
             }
         }
+
+        // allow some time for characteristic discovery
+        watchdog_update();
+
+        cyw43_thread_enter();
     }
 
     if (buff_len > BLE_MAX_VALUE_LEN) {
@@ -652,17 +693,26 @@ int8_t ble_write(const uint8_t *service, const uint8_t *characteristic,
     if (r != ERROR_CODE_SUCCESS) {
         cyw43_thread_exit();
         debug("gatt write failed %d", r);
-        return -4;
+        return -6;
     }
 
     state = TC_W4_WRITE;
     cyw43_thread_exit();
 
     debug("waiting for write");
+
+    uint32_t start_time = to_ms_since_boot(get_absolute_time());
     while (1) {
         sleep_ms(1);
 
-        // TODO timeout
+        uint32_t now = to_ms_since_boot(get_absolute_time());
+        if ((now - start_time) >= BLE_WRTE_TIMEOUT_MS) {
+            debug("timeout waiting for write");
+            return -7;
+        }
+#if BLE_WRTE_TIMEOUT_MS >= (WATCHDOG_PERIOD_MS / 2)
+        watchdog_update();
+#endif
 
         cyw43_thread_enter();
         enum ble_state state_cached = state;
@@ -676,7 +726,7 @@ int8_t ble_write(const uint8_t *service, const uint8_t *characteristic,
 
     cyw43_thread_enter();
 
-    int8_t ret = (state == TC_WRITE_COMPLETE) ? 0 : -1;
+    int8_t ret = (state == TC_WRITE_COMPLETE) ? 0 : -8;
     state = TC_READY;
 
     cyw43_thread_exit();

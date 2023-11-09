@@ -76,8 +76,7 @@ int main(void) {
     debug("debug_disk_init");
     debug_disk_init();
 
-    // trigger after 1000ms
-    watchdog_enable(1000, 1);
+    watchdog_enable(WATCHDOG_PERIOD_MS, 1);
 
     debug("init done");
     lcd_set_backlight(0x8000);

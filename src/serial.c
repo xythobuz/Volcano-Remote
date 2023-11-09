@@ -52,6 +52,19 @@ static struct ring_buffer tx = RB_INIT(tx_buff, sizeof(tx_buff));
 
 static bool reroute_serial_debug = false;
 static bool tx_irq_state = false;
+static bool rx_irq_state = false;
+#define SET_TX_IRQ(v) {                 \
+    tx_irq_state = v;                   \
+    uart_set_irq_enables(UART_ID,       \
+                         rx_irq_state,  \
+                         tx_irq_state); \
+}
+#define SET_RX_IRQ(v) {                 \
+    rx_irq_state = v;                   \
+    uart_set_irq_enables(UART_ID,       \
+                         rx_irq_state,  \
+                         tx_irq_state); \
+}
 
 static void serial_irq(void) {
     // Rx - read from UART FIFO to local buffer
@@ -65,8 +78,7 @@ static void serial_irq(void) {
         if (rb_len(&tx) > 0) {
             uart_putc_raw(UART_ID, rb_pop(&tx));
         } else {
-            uart_set_irq_enables(UART_ID, true, false);
-            tx_irq_state = false;
+            SET_TX_IRQ(false);
             break;
         }
     }
@@ -86,13 +98,12 @@ void serial_init(void) {
     irq_set_exclusive_handler(UART_IRQ, serial_irq);
     irq_set_enabled(UART_IRQ, true);
 
-    uart_set_irq_enables(UART_ID, true, false);
-    tx_irq_state = false;
+    SET_RX_IRQ(true);
+    SET_TX_IRQ(false);
 }
 
 void serial_write(const uint8_t *buf, size_t count) {
-    uart_set_irq_enables(UART_ID, true, false);
-    tx_irq_state = false;
+    SET_TX_IRQ(false);
 
     while ((rb_len(&tx) == 0) && uart_is_writable(UART_ID) && (count > 0)) {
         uart_putc_raw(UART_ID, *buf++);
@@ -112,21 +123,17 @@ void serial_write(const uint8_t *buf, size_t count) {
         count -= space;
         off += space;
 
-        uart_set_irq_enables(UART_ID, true, true);
-        tx_irq_state = true;
+        SET_TX_IRQ(true);
 
         sleep_ms(1);
 
-        uart_set_irq_enables(UART_ID, true, false);
-        tx_irq_state = false;
+        SET_TX_IRQ(false);
     }
-
 #endif // SERIAL_WRITES_BLOCK_WHEN_BUFFER_FULL
 
     rb_add(&tx, buf + off, count);
 
-    uart_set_irq_enables(UART_ID, true, true);
-    tx_irq_state = true;
+    SET_TX_IRQ(true);
 }
 
 void serial_set_reroute(bool reroute) {
@@ -134,9 +141,8 @@ void serial_set_reroute(bool reroute) {
 }
 
 void serial_run(void) {
-    uart_set_irq_enables(UART_ID, false, tx_irq_state);
+    SET_RX_IRQ(false);
 
-    // Rx - pass local buffer to further processing
     if (rb_len(&rx) >= 1) {
         if (rb_peek(&rx) == ENTER_BOOTLOADER_MAGIC) {
             reset_to_bootloader();
@@ -147,5 +153,5 @@ void serial_run(void) {
         }
     }
 
-    uart_set_irq_enables(UART_ID, true, tx_irq_state);
+    SET_RX_IRQ(true);
 }
