@@ -421,10 +421,6 @@ void ble_connect(bd_addr_t addr, bd_addr_type_t type) {
     cyw43_thread_enter();
 
     switch (state) {
-    case TC_OFF:
-        cyw43_thread_exit();
-        return;
-
     case TC_W4_SCAN:
         cyw43_thread_exit();
         ble_scan(0);
@@ -435,8 +431,13 @@ void ble_connect(bd_addr_t addr, bd_addr_type_t type) {
         gap_disconnect(connection_handle);
         break;
 
-    default:
+    case TC_IDLE:
         break;
+
+    default:
+        debug("invalid state for connect %d", state);
+        cyw43_thread_exit();
+        return;
     }
 
     debug("connecting to %s", bd_addr_to_str(addr));
@@ -461,7 +462,10 @@ void ble_disconnect(void) {
     cyw43_thread_enter();
 
     if (state == TC_READY) {
+        debug("disconnecting");
         gap_disconnect(connection_handle);
+    } else {
+        debug("invalid state for disconnect %d", state);
     }
 
     cyw43_thread_exit();
@@ -578,8 +582,6 @@ int8_t ble_write(const uint8_t *service, const uint8_t *characteristic,
         service_idx = srvc;
         cyw43_thread_exit();
 
-        debug("waiting for service discovery");
-
         uint32_t start_time = to_ms_since_boot(get_absolute_time());
         while (1) {
             sleep_ms(1);
@@ -598,7 +600,6 @@ int8_t ble_write(const uint8_t *service, const uint8_t *characteristic,
             cyw43_thread_exit();
 
             if (state_cached == TC_READY) {
-            debug("service discovery done");
                 break;
             }
         }
@@ -650,8 +651,6 @@ int8_t ble_write(const uint8_t *service, const uint8_t *characteristic,
         characteristic_idx = ch;
         cyw43_thread_exit();
 
-        debug("waiting for characteristic discovery");
-
         uint32_t start_time = to_ms_since_boot(get_absolute_time());
         while (1) {
             sleep_ms(1);
@@ -670,7 +669,6 @@ int8_t ble_write(const uint8_t *service, const uint8_t *characteristic,
             cyw43_thread_exit();
 
             if (state_cached == TC_READY) {
-                debug("characteristic discovery done");
                 break;
             }
         }
@@ -699,8 +697,6 @@ int8_t ble_write(const uint8_t *service, const uint8_t *characteristic,
     state = TC_W4_WRITE;
     cyw43_thread_exit();
 
-    debug("waiting for write");
-
     uint32_t start_time = to_ms_since_boot(get_absolute_time());
     while (1) {
         sleep_ms(1);
@@ -719,7 +715,6 @@ int8_t ble_write(const uint8_t *service, const uint8_t *characteristic,
         cyw43_thread_exit();
 
         if ((state_cached == TC_WRITE_COMPLETE) || (state_cached == TC_READY)) {
-            debug("write done (%s)", (state_cached == TC_READY) ? "error" : "success");
             break;
         }
     }

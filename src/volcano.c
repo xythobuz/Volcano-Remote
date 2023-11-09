@@ -83,3 +83,37 @@ int8_t volcano_set_target_temp(uint16_t value) {
     }
     return r;
 }
+
+int8_t volcano_set_heater_state(bool value) {
+    uuid_base[3] = UUID_WRITE_SRVC;
+
+    if (value) {
+        uuid_base2[3] = UUID_HEATER_ON;
+    } else {
+        uuid_base2[3] = UUID_HEATER_OFF;
+    }
+
+    uint8_t d = 0;
+    int8_t r = ble_write(uuid_base, uuid_base2, &d, 1);
+    if (r != 0) {
+        debug("ble_write unexpected value %d", r);
+    }
+    return r;
+}
+
+int8_t volcano_set_pump_state(bool value) {
+    uuid_base[3] = UUID_WRITE_SRVC;
+
+    if (value) {
+        uuid_base2[3] = UUID_PUMP_ON;
+    } else {
+        uuid_base2[3] = UUID_PUMP_OFF;
+    }
+
+    uint8_t d = 0;
+    int8_t r = ble_write(uuid_base, uuid_base2, &d, 1);
+    if (r != 0) {
+        debug("ble_write unexpected value %d", r);
+    }
+    return r;
+}

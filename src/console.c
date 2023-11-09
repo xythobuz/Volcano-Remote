@@ -110,6 +110,8 @@ static void cnsl_interpret(const char *line) {
         println("   vrct - Volcano read current temperature");
         println("   vrtt - Volcano read target temperature");
         println(" vwtt X - Volcano write target temperature");
+        println("  vwh X - Set heater to 1 or 0");
+        println("  vwp X - Set heater to 1 or 0");
         println("");
         println("Press Enter with no input to repeat last command.");
         println("Use repeat to continuously execute last command.");
@@ -256,6 +258,50 @@ static void cnsl_interpret(const char *line) {
 
             if (r < 0) {
                 println("error writing target temp %d", r);
+            } else {
+                println("success");
+            }
+        }
+    } else if (str_startswith(line, "vwh ")) {
+        int val;
+        int r = sscanf(line, "vwh %d", &val);
+        if ((r != 1) || ((val != 0) && (val != 1))) {
+            println("invalid input (%d %d)", r, val);
+        } else {
+#ifdef TEST_VOLCANO_AUTO_CONNECT
+            VOLCANO_AUTO_CONNECT
+#endif // TEST_VOLCANO_AUTO_CONNECT
+
+            int8_t r = volcano_set_heater_state(val == 1);
+
+#ifdef TEST_VOLCANO_AUTO_CONNECT
+            ble_disconnect();
+#endif // TEST_VOLCANO_AUTO_CONNECT
+
+            if (r < 0) {
+                println("error writing heater state %d", r);
+            } else {
+                println("success");
+            }
+        }
+    } else if (str_startswith(line, "vwp ")) {
+        int val;
+        int r = sscanf(line, "vwp %d", &val);
+        if ((r != 1) || ((val != 0) && (val != 1))) {
+            println("invalid input (%d %d)", r, val);
+        } else {
+#ifdef TEST_VOLCANO_AUTO_CONNECT
+            VOLCANO_AUTO_CONNECT
+#endif // TEST_VOLCANO_AUTO_CONNECT
+
+            int8_t r = volcano_set_pump_state(val == 1);
+
+#ifdef TEST_VOLCANO_AUTO_CONNECT
+            ble_disconnect();
+#endif // TEST_VOLCANO_AUTO_CONNECT
+
+            if (r < 0) {
+                println("error writing pump state %d", r);
             } else {
                 println("success");
             }

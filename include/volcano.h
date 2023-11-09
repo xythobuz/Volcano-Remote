@@ -19,11 +19,18 @@
 #ifndef __VOLCANO_H__
 #define __VOLCANO_H__
 
+#include <stdint.h>
+#include <stdbool.h>
+
 // in 1/10th degrees C, or < 0 on error
 int16_t volcano_get_current_temp(void);
 int16_t volcano_get_target_temp(void);
 
 // v in 1/10th degrees C, returns < 0 on error
 int8_t volcano_set_target_temp(uint16_t v);
+
+// returns < 0 on error
+int8_t volcano_set_heater_state(bool value);
+int8_t volcano_set_pump_state(bool value);
 
 #endif // __VOLCANO_H__
