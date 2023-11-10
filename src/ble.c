@@ -24,6 +24,7 @@
 
 #include "config.h"
 #include "log.h"
+#include "main.h"
 #include "util.h"
 #include "ble.h"
 
@@ -104,6 +105,7 @@ static void hci_add_scan_result(bd_addr_t addr, bd_addr_type_t type, int8_t rssi
     scans[unused].type = type;
     scans[unused].rssi = rssi;
     scans[unused].name[0] = '\0';
+    scans[unused].data_len = 0;
 }
 
 static void hci_scan_result_add_name(bd_addr_t addr, const uint8_t *data, uint8_t data_size) {
@@ -126,6 +128,28 @@ static void hci_scan_result_add_name(bd_addr_t addr, const uint8_t *data, uint8_
     }
 
     debug("no matching entry for %s to add name '%.*s' to", bd_addr_to_str(addr), data_size, data);
+}
+
+static void hci_scan_result_add_data(bd_addr_t addr, const uint8_t *data, uint8_t data_size) {
+    for (uint i = 0; i < BLE_MAX_SCAN_RESULTS; i++) {
+        if (!scans[i].set) {
+            continue;
+        }
+        if (memcmp(addr, scans[i].addr, sizeof(bd_addr_t)) != 0) {
+            continue;
+        }
+
+        uint8_t len = data_size;
+        if (len > BLE_MAX_DATA_LENGTH) {
+            len = BLE_MAX_DATA_LENGTH;
+        }
+        memcpy(scans[i].data, data, len);
+        scans[i].data_len = len;
+        scans[i].time = to_ms_since_boot(get_absolute_time());
+        return;
+    }
+
+    debug("no matching entry for %s to add data to", bd_addr_to_str(addr));
 }
 
 static void hci_event_handler(uint8_t packet_type, uint16_t channel, uint8_t *packet, uint16_t size) {
@@ -187,6 +211,18 @@ static void hci_event_handler(uint8_t packet_type, uint16_t channel, uint8_t *pa
             case BLUETOOTH_DATA_TYPE_SHORTENED_LOCAL_NAME:
             case BLUETOOTH_DATA_TYPE_COMPLETE_LOCAL_NAME:
                 hci_scan_result_add_name(addr, data, data_size);
+                break;
+
+            case BLUETOOTH_DATA_TYPE_SERVICE_DATA:
+            case BLUETOOTH_DATA_TYPE_MANUFACTURER_SPECIFIC_DATA:
+                // TODO ugly
+                if (data_size == 12) {
+                    // Crafty+
+                    hci_scan_result_add_data(addr, data, data_size);
+                } else if (data_size == 26) {
+                    // Volcano
+                    hci_scan_result_add_data(addr, data, data_size);
+                }
                 break;
 
             default:
@@ -399,10 +435,13 @@ int32_t ble_get_scan_results(struct ble_scan_result *buf, uint16_t len) {
             continue;
         }
 
-        uint32_t diff = to_ms_since_boot(get_absolute_time()) - scans[i].time;
-        if (diff >= BLE_MAX_SCAN_AGE_MS) {
-            //debug("removing %s due to age", bd_addr_to_str(scans[i].addr));
-            scans[i].set = false;
+        // only age out entries while scanning, otherwise keep results cached
+        if (state == TC_W4_SCAN) {
+            uint32_t diff = to_ms_since_boot(get_absolute_time()) - scans[i].time;
+            if (diff >= BLE_MAX_SCAN_AGE_MS) {
+                //debug("removing %s due to age", bd_addr_to_str(scans[i].addr));
+                scans[i].set = false;
+            }
         }
 
         memcpy(buf + pos, scans + i, sizeof(struct ble_scan_result));
@@ -497,15 +536,13 @@ int32_t ble_read(const uint8_t *characteristic, uint8_t *buff, uint16_t buff_len
     uint32_t start_time = to_ms_since_boot(get_absolute_time());
     while (1) {
         sleep_ms(1);
+        main_loop_hw();
 
         uint32_t now = to_ms_since_boot(get_absolute_time());
         if ((now - start_time) >= BLE_READ_TIMEOUT_MS) {
             debug("timeout waiting for read");
             return -3;
         }
-#if BLE_READ_TIMEOUT_MS >= (WATCHDOG_PERIOD_MS / 2)
-        watchdog_update();
-#endif
 
         cyw43_thread_enter();
         enum ble_state state_cached = state;
@@ -585,15 +622,13 @@ int8_t ble_write(const uint8_t *service, const uint8_t *characteristic,
         uint32_t start_time = to_ms_since_boot(get_absolute_time());
         while (1) {
             sleep_ms(1);
+            main_loop_hw();
 
             uint32_t now = to_ms_since_boot(get_absolute_time());
             if ((now - start_time) >= BLE_SRVC_TIMEOUT_MS) {
                 debug("timeout waiting for service");
                 return -3;
             }
-#if BLE_SRVC_TIMEOUT_MS >= (WATCHDOG_PERIOD_MS / 2)
-            watchdog_update();
-#endif
 
             cyw43_thread_enter();
             enum ble_state state_cached = state;
@@ -603,9 +638,6 @@ int8_t ble_write(const uint8_t *service, const uint8_t *characteristic,
                 break;
             }
         }
-
-        // allow some time for service discovery
-        watchdog_update();
 
         cyw43_thread_enter();
     }
@@ -654,15 +686,13 @@ int8_t ble_write(const uint8_t *service, const uint8_t *characteristic,
         uint32_t start_time = to_ms_since_boot(get_absolute_time());
         while (1) {
             sleep_ms(1);
+            main_loop_hw();
 
             uint32_t now = to_ms_since_boot(get_absolute_time());
             if ((now - start_time) >= BLE_CHAR_TIMEOUT_MS) {
                 debug("timeout waiting for characteristic");
                 return -5;
             }
-#if BLE_CHAR_TIMEOUT_MS >= (WATCHDOG_PERIOD_MS / 2)
-            watchdog_update();
-#endif
 
             cyw43_thread_enter();
             enum ble_state state_cached = state;
@@ -672,9 +702,6 @@ int8_t ble_write(const uint8_t *service, const uint8_t *characteristic,
                 break;
             }
         }
-
-        // allow some time for characteristic discovery
-        watchdog_update();
 
         cyw43_thread_enter();
     }
@@ -700,15 +727,13 @@ int8_t ble_write(const uint8_t *service, const uint8_t *characteristic,
     uint32_t start_time = to_ms_since_boot(get_absolute_time());
     while (1) {
         sleep_ms(1);
+        main_loop_hw();
 
         uint32_t now = to_ms_since_boot(get_absolute_time());
         if ((now - start_time) >= BLE_WRTE_TIMEOUT_MS) {
             debug("timeout waiting for write");
             return -7;
         }
-#if BLE_WRTE_TIMEOUT_MS >= (WATCHDOG_PERIOD_MS / 2)
-        watchdog_update();
-#endif
 
         cyw43_thread_enter();
         enum ble_state state_cached = state;

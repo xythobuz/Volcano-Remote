@@ -63,6 +63,7 @@ target_sources(gadget PUBLIC
     src/volcano.c
     src/serial.c
     src/ring.c
+    src/models.c
 
     ${CMAKE_CURRENT_BINARY_DIR}/fatfs/ff.c
     ${CMAKE_CURRENT_BINARY_DIR}/fatfs/ffunicode.c

@@ -30,7 +30,6 @@
 #include "usb_cdc.h"
 #include "usb_msc.h"
 #include "debug_disk.h"
-#include "console.h"
 #include "lipo.h"
 #include "ble.h"
 #include "text.h"
@@ -39,6 +38,8 @@
 #include "volcano.h"
 #include "serial.h"
 #include "main.h"
+#include "models.h"
+#include "console.h"
 
 #define CNSL_BUFF_SIZE 64
 #define CNSL_REPEAT_MS 500
@@ -141,11 +142,17 @@ static void cnsl_interpret(const char *line) {
         } else {
             println("%d results", n);
             for (int i = 0; i < n; i++) {
+                char info[32] = "";
+                enum known_devices dev = models_filter_name(results[i].name);
+                if (dev != DEV_UNKNOWN) {
+                    models_get_serial(results[i].data, results[i].data_len,
+                                      info, sizeof(info));
+                }
                 uint32_t age = to_ms_since_boot(get_absolute_time()) - results[i].time;
-                println("addr=%s type=%d rssi=%d age=%.1fs name='%s'",
+                println("addr=%s type=%d rssi=%d age=%.1fs name='%s' info='%s'",
                         bd_addr_to_str(results[i].addr),
                         results[i].type, results[i].rssi,
-                        age / 1000.0, results[i].name);
+                        age / 1000.0, results[i].name, info);
             }
         }
     } else if (str_startswith(line, "con ")) {

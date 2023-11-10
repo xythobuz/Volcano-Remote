@@ -22,6 +22,7 @@
 #include "btstack.h"
 
 #define BLE_MAX_NAME_LENGTH 32
+#define BLE_MAX_DATA_LENGTH 26
 #define BLE_MAX_SCAN_RESULTS 32
 #define BLE_MAX_VALUE_LEN 64
 
@@ -39,6 +40,8 @@ struct ble_scan_result {
     bd_addr_type_t type;
     int8_t rssi;
     char name[BLE_MAX_NAME_LENGTH + 1];
+    uint8_t data[BLE_MAX_DATA_LENGTH];
+    size_t data_len;
 };
 
 void ble_init(void);

@@ -90,6 +90,9 @@ void state_run(void) {
     };
 
     switch (state) {
+    case STATE_INIT:
+        break;
+
     case STATE_SCAN: {
         struct ble_scan_result results[BLE_MAX_SCAN_RESULTS] = {0};
         int n = ble_get_scan_results(results, BLE_MAX_SCAN_RESULTS);
