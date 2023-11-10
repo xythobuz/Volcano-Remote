@@ -1,7 +1,7 @@
 /*
  * state.c
  *
- * Copyright (c) 2022 - 2023 Thomas Buck (thomas@xythobuz.de)
+ * Copyright (c) 2023 Thomas Buck (thomas@xythobuz.de)
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,14 +16,9 @@
  * See <http://www.gnu.org/licenses/>.
  */
 
-#include <stdio.h>
-
 #include "config.h"
 #include "log.h"
-#include "buttons.h"
-#include "ble.h"
-#include "lcd.h"
-#include "text.h"
+#include "state_scan.h"
 #include "state.h"
 
 static enum system_state state = STATE_INIT;
@@ -37,7 +32,7 @@ void state_switch(enum system_state next) {
     switch (state) {
     case STATE_SCAN:
         debug("leaving STATE_SCAN");
-        ble_scan(BLE_SCAN_OFF);
+        state_scan_exit();
         break;
 
     default:
@@ -48,7 +43,7 @@ void state_switch(enum system_state next) {
     switch (next) {
     case STATE_SCAN:
         debug("entering STATE_SCAN");
-        ble_scan(BLE_SCAN_ON);
+        state_scan_enter();
         break;
 
     default:
@@ -67,49 +62,12 @@ void state_run(void) {
     }
     last_heartbeat = now;
 
-    static struct text_font font = {
-        .fontname = "fixed_10x20",
-        .font = NULL,
-    };
-    if (font.font == NULL) {
-        text_prepare_font(&font);
-    }
-
-    struct text_conf text = {
-        .text = "",
-        .x = 0,
-        .y = 50,
-        .justify = false,
-        .alignment = MF_ALIGN_CENTER,
-        .width = 240,
-        .height = 240 - 80,
-        .margin = 2,
-        .fg = RGB_565(0xFF, 0xFF, 0xFF),
-        .bg = RGB_565(0x00, 0x00, 0x00),
-        .font = &font,
-    };
-
     switch (state) {
     case STATE_INIT:
         break;
 
     case STATE_SCAN: {
-        struct ble_scan_result results[BLE_MAX_SCAN_RESULTS] = {0};
-        int n = ble_get_scan_results(results, BLE_MAX_SCAN_RESULTS);
-        if (n <= 0) {
-            text.text = "N\nO\nN\nE";
-            text_draw(&text);
-        } else {
-            char buff[1024] = {0};
-            uint pos = 0;
-
-            for (int i = 0; i < n; i++) {
-                pos += snprintf(buff + pos, sizeof(buff) - pos, "%s\n", results[i].name);
-            }
-
-            text.text = buff;
-            text_draw(&text);
-        }
+        state_scan_run();
         break;
     }
 

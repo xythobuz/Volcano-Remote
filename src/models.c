@@ -30,7 +30,7 @@ enum known_devices models_filter_name(const char *name) {
     } else if (strcmp(name, "S&B VOLCANO H") == 0) {
         return DEV_VOLCANO;
     } else if (strcmp(name, "STORZ&BICKEL") == 0) {
-        return DEV_VOLCANO;
+        return DEV_CRAFTY;
     } else {
         return DEV_UNKNOWN;
     }
