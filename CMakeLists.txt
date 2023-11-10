@@ -65,6 +65,7 @@ target_sources(gadget PUBLIC
     src/ring.c
     src/models.c
     src/state_scan.c
+    src/workflow.c
 
     ${CMAKE_CURRENT_BINARY_DIR}/fatfs/ff.c
     ${CMAKE_CURRENT_BINARY_DIR}/fatfs/ffunicode.c

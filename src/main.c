@@ -35,6 +35,7 @@
 #include "image.h"
 #include "state.h"
 #include "serial.h"
+#include "workflow.h"
 
 void main_loop_hw(void) {
     watchdog_update();
@@ -104,6 +105,7 @@ int main(void) {
         cnsl_run();
         battery_run();
         state_run();
+        wf_run();
     }
 
     return 0;
