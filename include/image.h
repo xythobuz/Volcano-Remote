@@ -21,7 +21,7 @@
 
 #include "pico/stdlib.h"
 
-void image_draw(char *data, uint width, uint height);
+void image_draw(const char *data, uint width, uint height);
 
 void draw_splash(void);
 void draw_battery_indicator(void);

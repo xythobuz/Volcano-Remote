@@ -33,7 +33,7 @@
 
 #define BATT_INTERVAL_MS 777
 
-void image_draw(char *data, uint width, uint height) {
+void image_draw(const char *data, uint width, uint height) {
     for (uint x = 0; x < width; x++) {
         for (uint y = 0; y < height; y++) {
             uint32_t pixel[3];
@@ -145,7 +145,7 @@ void draw_battery_indicator(void) {
 void battery_run(void) {
     static uint32_t last_run = 0;
     uint32_t now = to_ms_since_boot(get_absolute_time());
-    if (now >= (last_run + BATT_INTERVAL_MS)) {
+    if ((now >= (last_run + BATT_INTERVAL_MS)) || (last_run == 0)) {
         last_run = now;
         draw_battery_indicator();
     }

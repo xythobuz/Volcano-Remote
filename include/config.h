@@ -19,6 +19,9 @@
 #ifndef __CONFIG_H__
 #define __CONFIG_H__
 
+#define MENU_PREFER_VOLCANO
+//#define MENU_PREFER_CRAFTY
+
 #define WATCHDOG_PERIOD_MS 1000
 
 // ASCII 0x18 = CAN (cancel)

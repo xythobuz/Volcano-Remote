@@ -20,7 +20,7 @@
 #define __BUTTONS_H__
 
 enum buttons {
-    BTN_A,
+    BTN_A = 0,
     BTN_B,
     BTN_X,
     BTN_Y,
@@ -33,6 +33,7 @@ enum buttons {
 };
 
 void buttons_init(void);
+void buttons_callback(void (*fp)(enum buttons, bool));
 void buttons_run(void);
 
 #endif // __BUTTONS_H__

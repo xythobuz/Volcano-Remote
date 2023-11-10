@@ -39,6 +39,7 @@ struct button_state {
 };
 
 static struct button_state buttons[NUM_BTNS];
+static void (*callback)(enum buttons, bool) = NULL;
 
 void buttons_init(void) {
     for (uint i = 0; i < NUM_BTNS; i++) {
@@ -50,6 +51,10 @@ void buttons_init(void) {
         buttons[i].current_state = false;
         buttons[i].last_state = false;
     }
+}
+
+void buttons_callback(void (*fp)(enum buttons, bool)) {
+    callback = fp;
 }
 
 void buttons_run(void) {
@@ -64,6 +69,9 @@ void buttons_run(void) {
         if ((now - buttons[i].last_time) > DEBOUNCE_DELAY_MS) {
             if (state != buttons[i].current_state) {
                 buttons[i].current_state = state;
+                if (callback) {
+                    callback(i, state);
+                }
             }
         }
 

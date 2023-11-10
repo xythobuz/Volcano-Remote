@@ -1,7 +1,7 @@
 /*  GIMP header image file format (RGB)  */
 
-static unsigned int logo_width = 240;
-static unsigned int logo_height = 240;
+static const unsigned int logo_width = 240;
+static const unsigned int logo_height = 240;
 
 /*  Call this macro repeatedly.  After each use, the pixel data can be extracted  */
 
@@ -11,7 +11,7 @@ pixel[1] = ((((data[1] - 33) & 0xF) << 4) | ((data[2] - 33) >> 2)); \
 pixel[2] = ((((data[2] - 33) & 0x3) << 6) | ((data[3] - 33))); \
 data += 4; \
 }
-static char *logo_rgb_data =
+static const char *logo_rgb_data =
 	"````````````````````````````````````````````````````````````````"
 	"````````````````````````````````````````````````````````````````"
 	"````````````````````````````````````````````````````````````````"
