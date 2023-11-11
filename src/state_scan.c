@@ -24,6 +24,7 @@
 #include "models.h"
 #include "menu.h"
 #include "state.h"
+#include "state_volcano_run.h"
 #include "state_scan.h"
 
 static struct ble_scan_result results[BLE_MAX_SCAN_RESULTS] = {0};
@@ -39,6 +40,7 @@ static void enter_cb(int selection) {
 
         if (devs++ == selection) {
             if (dev == DEV_VOLCANO) {
+                state_volcano_run_target(results[i].addr, results[i].type);
                 state_switch(STATE_VOLCANO_WORKFLOW);
             }
             return;
@@ -52,6 +54,7 @@ void state_scan_enter(void) {
 }
 
 void state_scan_exit(void) {
+    menu_deinit();
     ble_scan(BLE_SCAN_OFF);
 }
 

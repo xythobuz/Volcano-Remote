@@ -68,6 +68,7 @@ target_sources(gadget PUBLIC
     src/workflow.c
     src/menu.c
     src/state_volcano_workflow.c
+    src/state_volcano_run.c
 
     ${CMAKE_CURRENT_BINARY_DIR}/fatfs/ff.c
     ${CMAKE_CURRENT_BINARY_DIR}/fatfs/ffunicode.c

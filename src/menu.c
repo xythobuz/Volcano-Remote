@@ -83,6 +83,10 @@ void menu_init(void (*cb)(int)) {
     buttons_callback(menu_buttons);
 }
 
+void menu_deinit(void) {
+    buttons_callback(NULL);
+}
+
 void menu_run(void (*draw)(struct menu_state *)) {
     if (draw) {
         draw(&menu);

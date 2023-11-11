@@ -20,6 +20,7 @@
 #include "log.h"
 #include "state_scan.h"
 #include "state_volcano_workflow.h"
+#include "state_volcano_run.h"
 #include "state.h"
 
 static enum system_state state = STATE_INIT;
@@ -41,6 +42,11 @@ void state_switch(enum system_state next) {
         state_volcano_wf_exit();
         break;
 
+    case STATE_VOLCANO_RUN:
+        debug("leaving STATE_VOLCANO_RUN");
+        state_volcano_run_exit();
+        break;
+
     default:
         break;
     }
@@ -55,6 +61,11 @@ void state_switch(enum system_state next) {
     case STATE_VOLCANO_WORKFLOW:
         debug("entering STATE_VOLCANO_WORKFLOW");
         state_volcano_wf_enter();
+        break;
+
+    case STATE_VOLCANO_RUN:
+        debug("entering STATE_VOLCANO_RUN");
+        state_volcano_run_enter();
         break;
 
     default:
@@ -75,6 +86,10 @@ void state_run(void) {
 
     case STATE_VOLCANO_WORKFLOW:
         state_volcano_wf_run();
+        break;
+
+    case STATE_VOLCANO_RUN:
+        state_volcano_run_run();
         break;
 
     default:

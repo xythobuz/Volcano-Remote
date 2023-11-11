@@ -240,6 +240,10 @@ void wf_start(uint16_t index) {
     do_step();
 }
 
+void wf_reset(void) {
+    status = WF_IDLE;
+}
+
 void wf_run(void) {
     if (status == WF_IDLE) {
         return;

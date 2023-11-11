@@ -30,6 +30,8 @@ struct menu_state {
 };
 
 void menu_init(void (*cb)(int));
+void menu_deinit(void);
+
 void menu_run(void (*cb)(struct menu_state *));
 
 #endif // __MENU_H__

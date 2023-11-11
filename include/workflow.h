@@ -40,6 +40,7 @@ const char *wf_author(uint16_t index);
 struct wf_state wf_status(void);
 void wf_start(uint16_t index);
 
+void wf_reset(void);
 void wf_run(void);
 
 #endif // __WORKFLOW_H__

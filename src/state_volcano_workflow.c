@@ -22,10 +22,15 @@
 #include "config.h"
 #include "menu.h"
 #include "workflow.h"
+#include "state.h"
+#include "state_volcano_run.h"
 #include "state_volcano_workflow.h"
 
 static void enter_cb(int selection) {
-    (void)(selection); // TODO
+    if ((selection >= 0) && (selection < wf_count())) {
+        state_volcano_run_index(selection);
+        state_switch(STATE_VOLCANO_RUN);
+    }
 }
 
 void state_volcano_wf_enter(void) {
@@ -33,7 +38,7 @@ void state_volcano_wf_enter(void) {
 }
 
 void state_volcano_wf_exit(void) {
-    // nothing to do
+    menu_deinit();
 }
 
 static void draw(struct menu_state *menu) {
