@@ -1,5 +1,5 @@
 /*
- * workflow.h
+ * menu.h
  *
  * Copyright (c) 2023 Thomas Buck (thomas@xythobuz.de)
  *
@@ -16,30 +16,20 @@
  * See <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __WORKFLOW_H__
-#define __WORKFLOW_H__
+#ifndef __MENU_H__
+#define __MENU_H__
 
-#include <stdint.h>
+#define MENU_MAX_LINES 5
+#define MENU_MAX_LEN (MENU_MAX_LINES * 32)
 
-enum wf_status {
-    WF_IDLE = 0,
-    WF_RUNNING,
+struct menu_state {
+    int off;
+    int selection;
+    int length;
+    char *buff;
 };
 
-struct wf_state {
-    enum wf_status status;
+void menu_init(void (*cb)(int));
+void menu_run(void (*cb)(struct menu_state *));
 
-    uint16_t step;
-    uint16_t count;
-};
-
-uint16_t wf_count(void);
-const char *wf_name(uint16_t index);
-const char *wf_author(uint16_t index);
-
-struct wf_state wf_status(void);
-void wf_start(uint16_t index);
-
-void wf_run(void);
-
-#endif // __WORKFLOW_H__
+#endif // __MENU_H__

@@ -22,6 +22,7 @@
 enum system_state {
     STATE_INIT = 0,
     STATE_SCAN,
+    STATE_VOLCANO_WORKFLOW,
 };
 
 void state_switch(enum system_state next);

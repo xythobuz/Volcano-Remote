@@ -21,8 +21,8 @@
 #include "volcano.h"
 #include "workflow.h"
 
-#define WF_MAX_STEPS 32
-#define WF_MAX_FLOWS 5
+#define WF_MAX_STEPS 42
+#define WF_MAX_FLOWS 6
 
 enum wf_op {
     OP_SET_TEMPERATURE = 0,
@@ -38,6 +38,7 @@ struct wf_step {
 
 struct workflow {
     const char *name;
+    const char *author;
     struct wf_step steps[WF_MAX_STEPS];
     uint16_t count;
 };
@@ -45,77 +46,18 @@ struct workflow {
 static const struct workflow wf[WF_MAX_FLOWS] = {
     {
         .name = "Default",
+        .author = "xythobuz",
         .steps = {
             { .op = OP_WAIT_TEMPERATURE, .val = 1850 },
-            { .op = OP_WAIT_TIME, .val = 15000 },
+            { .op = OP_WAIT_TIME, .val = 10000 },
             { .op = OP_PUMP_TIME, .val = 5000 },
 
             { .op = OP_WAIT_TEMPERATURE, .val = 1950 },
-            { .op = OP_WAIT_TIME, .val = 10000 },
+            { .op = OP_WAIT_TIME, .val = 5000 },
             { .op = OP_PUMP_TIME, .val = 20000 },
 
             { .op = OP_WAIT_TEMPERATURE, .val = 2050 },
-            { .op = OP_WAIT_TIME, .val = 10000 },
-            { .op = OP_PUMP_TIME, .val = 20000 },
-
-            { .op = OP_PUMP_TIME, .val = 1000 },
-            { .op = OP_WAIT_TIME, .val = 1000 },
-
-            { .op = OP_PUMP_TIME, .val = 1000 },
-            { .op = OP_WAIT_TIME, .val = 1000 },
-
-            { .op = OP_PUMP_TIME, .val = 1000 },
-            { .op = OP_WAIT_TIME, .val = 1000 },
-
-            { .op = OP_PUMP_TIME, .val = 1000 },
-            { .op = OP_WAIT_TIME, .val = 1000 },
-
-            { .op = OP_SET_TEMPERATURE, .val = 1900 },
-        },
-        .count = 18,
-    }, {
-        .name = "Relaxo",
-        .steps = {
-            { .op = OP_WAIT_TEMPERATURE, .val = 1750 },
-            { .op = OP_WAIT_TIME, .val = 15000 },
-            { .op = OP_PUMP_TIME, .val = 5000 },
-
-            { .op = OP_WAIT_TEMPERATURE, .val = 1850 },
-            { .op = OP_WAIT_TIME, .val = 10000 },
-            { .op = OP_PUMP_TIME, .val = 20000 },
-
-            { .op = OP_WAIT_TEMPERATURE, .val = 1950 },
-            { .op = OP_WAIT_TIME, .val = 10000 },
-            { .op = OP_PUMP_TIME, .val = 20000 },
-
-            { .op = OP_PUMP_TIME, .val = 1000 },
-            { .op = OP_WAIT_TIME, .val = 1000 },
-
-            { .op = OP_PUMP_TIME, .val = 1000 },
-            { .op = OP_WAIT_TIME, .val = 1000 },
-
-            { .op = OP_PUMP_TIME, .val = 1000 },
-            { .op = OP_WAIT_TIME, .val = 1000 },
-
-            { .op = OP_PUMP_TIME, .val = 1000 },
-            { .op = OP_WAIT_TIME, .val = 1000 },
-
-            { .op = OP_SET_TEMPERATURE, .val = 1900 },
-        },
-        .count = 18,
-    }, {
-        .name = "Hardcore",
-        .steps = {
-            { .op = OP_WAIT_TEMPERATURE, .val = 1900 },
-            { .op = OP_WAIT_TIME, .val = 15000 },
-            { .op = OP_PUMP_TIME, .val = 5000 },
-
-            { .op = OP_WAIT_TEMPERATURE, .val = 2050 },
-            { .op = OP_WAIT_TIME, .val = 10000 },
-            { .op = OP_PUMP_TIME, .val = 20000 },
-
-            { .op = OP_WAIT_TEMPERATURE, .val = 2200 },
-            { .op = OP_WAIT_TIME, .val = 10000 },
+            { .op = OP_WAIT_TIME, .val = 5000 },
             { .op = OP_PUMP_TIME, .val = 20000 },
 
             { .op = OP_PUMP_TIME, .val = 1000 },
@@ -135,6 +77,7 @@ static const struct workflow wf[WF_MAX_FLOWS] = {
         .count = 18,
     }, {
         .name = "Vorbi",
+        .author = "Rinor",
         .steps = {
             { .op = OP_WAIT_TEMPERATURE, .val = 1760 },
             { .op = OP_WAIT_TIME, .val = 10000 },
@@ -153,6 +96,68 @@ static const struct workflow wf[WF_MAX_FLOWS] = {
             { .op = OP_PUMP_TIME, .val = 10000 },
         },
         .count = 12,
+    }, {
+        .name = "Relaxo",
+        .author = "xythobuz",
+        .steps = {
+            { .op = OP_WAIT_TEMPERATURE, .val = 1750 },
+            { .op = OP_WAIT_TIME, .val = 10000 },
+            { .op = OP_PUMP_TIME, .val = 5000 },
+
+            { .op = OP_WAIT_TEMPERATURE, .val = 1850 },
+            { .op = OP_WAIT_TIME, .val = 5000 },
+            { .op = OP_PUMP_TIME, .val = 20000 },
+
+            { .op = OP_WAIT_TEMPERATURE, .val = 1950 },
+            { .op = OP_WAIT_TIME, .val = 5000 },
+            { .op = OP_PUMP_TIME, .val = 20000 },
+
+            { .op = OP_PUMP_TIME, .val = 1000 },
+            { .op = OP_WAIT_TIME, .val = 1000 },
+
+            { .op = OP_PUMP_TIME, .val = 1000 },
+            { .op = OP_WAIT_TIME, .val = 1000 },
+
+            { .op = OP_PUMP_TIME, .val = 1000 },
+            { .op = OP_WAIT_TIME, .val = 1000 },
+
+            { .op = OP_PUMP_TIME, .val = 1000 },
+            { .op = OP_WAIT_TIME, .val = 1000 },
+
+            { .op = OP_SET_TEMPERATURE, .val = 1900 },
+        },
+        .count = 18,
+    }, {
+        .name = "Hardcore",
+        .author = "xythobuz",
+        .steps = {
+            { .op = OP_WAIT_TEMPERATURE, .val = 1900 },
+            { .op = OP_WAIT_TIME, .val = 10000 },
+            { .op = OP_PUMP_TIME, .val = 5000 },
+
+            { .op = OP_WAIT_TEMPERATURE, .val = 2050 },
+            { .op = OP_WAIT_TIME, .val = 5000 },
+            { .op = OP_PUMP_TIME, .val = 20000 },
+
+            { .op = OP_WAIT_TEMPERATURE, .val = 2200 },
+            { .op = OP_WAIT_TIME, .val = 5000 },
+            { .op = OP_PUMP_TIME, .val = 20000 },
+
+            { .op = OP_PUMP_TIME, .val = 1000 },
+            { .op = OP_WAIT_TIME, .val = 1000 },
+
+            { .op = OP_PUMP_TIME, .val = 1000 },
+            { .op = OP_WAIT_TIME, .val = 1000 },
+
+            { .op = OP_PUMP_TIME, .val = 1000 },
+            { .op = OP_WAIT_TIME, .val = 1000 },
+
+            { .op = OP_PUMP_TIME, .val = 1000 },
+            { .op = OP_WAIT_TIME, .val = 1000 },
+
+            { .op = OP_SET_TEMPERATURE, .val = 1900 },
+        },
+        .count = 18,
     },
 };
 
@@ -194,8 +199,21 @@ const char *wf_name(uint16_t index) {
     return wf[index].name;
 }
 
-enum wf_status wf_status(void) {
-    return status;
+const char *wf_author(uint16_t index) {
+    if (index >= count) {
+        debug("invalid index %d", index);
+        return NULL;
+    }
+    return wf[index].author;
+}
+
+struct wf_state wf_status(void) {
+    struct wf_state s = {
+        .status = status,
+        .step = step,
+        .count = wf[wf_i].count,
+    };
+    return s;
 }
 
 void wf_start(uint16_t index) {

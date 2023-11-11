@@ -151,3 +151,32 @@ void text_draw(struct text_conf *tc) {
     mf_wordwrap(tc->font->font, tc->width - 2 * tc->margin,
                 tc->text, line_callback, &state);
 }
+
+void text_box(const char *s) {
+    static struct text_font font = {
+        .fontname = "fixed_10x20",
+        .font = NULL,
+    };
+    if (font.font == NULL) {
+        text_prepare_font(&font);
+    }
+
+    struct text_conf text = {
+        .text = "",
+        .x = 0,
+        .y = 50,
+        .justify = false,
+        .alignment = MF_ALIGN_CENTER,
+        .width = 240,
+        .height = 240 - 80,
+        .margin = 2,
+        .fg = RGB_565(0xFF, 0xFF, 0xFF),
+        .bg = RGB_565(0x00, 0x00, 0x00),
+        .font = &font,
+    };
+
+    // TODO clear background?!
+
+    text.text = s;
+    text_draw(&text);
+}

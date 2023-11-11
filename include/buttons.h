@@ -19,6 +19,8 @@
 #ifndef __BUTTONS_H__
 #define __BUTTONS_H__
 
+#include <stdbool.h>
+
 enum buttons {
     BTN_A = 0,
     BTN_B,

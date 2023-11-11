@@ -321,7 +321,7 @@ static void cnsl_interpret(const char *line) {
     } else if (strcmp(line, "wfl") == 0) {
         println("%d workflows", wf_count());
         for (int i = 0; i < wf_count(); i++) {
-            println("  %s", wf_name(i));
+            println("  '%s' by %s", wf_name(i), wf_author(i));
         }
     } else if (str_startswith(line, "wf ")) {
         int wf = -1;
@@ -335,7 +335,8 @@ static void cnsl_interpret(const char *line) {
         if (wf < 0) {
             println("unknown workflow");
         } else {
-            if (wf_status() != WF_IDLE) {
+            struct wf_state s = wf_status();
+            if (s.status != WF_IDLE) {
                 println("workflow in progress");
             } else {
 #ifdef TEST_VOLCANO_AUTO_CONNECT
@@ -345,9 +346,11 @@ static void cnsl_interpret(const char *line) {
                 println("starting workflow");
                 wf_start(wf);
 
-                while (wf_status() != WF_IDLE) {
+                s = wf_status();
+                while (s.status != WF_IDLE) {
                     main_loop_hw();
                     wf_run();
+                    s = wf_status();
                 }
 
                 println("done");
