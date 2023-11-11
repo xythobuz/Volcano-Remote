@@ -20,6 +20,7 @@
 #include <string.h>
 
 #include "config.h"
+#include "log.h"
 #include "workflow.h"
 #include "state.h"
 #include "state_volcano_run.h"
@@ -30,6 +31,7 @@ static uint16_t wf_index;
 static bd_addr_t ble_addr;
 static bd_addr_type_t ble_type;
 static bool wait_for_connect = false;
+static bool wait_for_disconnect = false;
 
 void state_volcano_run_index(uint16_t index) {
     wf_index = index;
@@ -41,13 +43,13 @@ void state_volcano_run_target(bd_addr_t addr, bd_addr_type_t type) {
 }
 
 void state_volcano_run_enter(void) {
+    debug("workflow connect");
     ble_connect(ble_addr, ble_type);
     wait_for_connect = true;
 }
 
 void state_volcano_run_exit(void) {
     wf_reset();
-    ble_disconnect();
 }
 
 static void draw(struct menu_state *menu) {
@@ -58,13 +60,24 @@ static void draw(struct menu_state *menu) {
 void state_volcano_run_run(void) {
     if (wait_for_connect && ble_is_connected()) {
         wait_for_connect = false;
+        debug("workflow start");
         wf_start(wf_index);
     }
 
     menu_run(draw);
 
-    struct wf_state state = wf_status();
-    if (state.status == WF_IDLE) {
+    if (!wait_for_connect) {
+        struct wf_state state = wf_status();
+        if (state.status == WF_IDLE) {
+            debug("workflow disconnect");
+            ble_disconnect();
+            wait_for_disconnect = true;
+        }
+    }
+
+    if (wait_for_disconnect && !ble_is_connected()) {
+        wait_for_disconnect = false;
+        debug("workflow done");
         state_switch(STATE_SCAN);
     }
 }

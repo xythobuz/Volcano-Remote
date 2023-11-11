@@ -161,21 +161,31 @@ void text_box(const char *s) {
         text_prepare_font(&font);
     }
 
+    int x = 0;
+    int width = 240;
+
+    int y = 50;
+    int height = 120;
+
     struct text_conf text = {
         .text = "",
-        .x = 0,
-        .y = 50,
+        .x = x,
+        .y = y,
         .justify = false,
         .alignment = MF_ALIGN_CENTER,
-        .width = 240,
-        .height = 240 - 80,
+        .width = width,
+        .height = height,
         .margin = 2,
         .fg = RGB_565(0xFF, 0xFF, 0xFF),
         .bg = RGB_565(0x00, 0x00, 0x00),
         .font = &font,
     };
 
-    // TODO clear background?!
+    lcd_write_rect(240 - y - 1 - height,
+                   x,
+                   240 - y - 1,
+                   x + width - 1,
+                   text.bg);
 
     text.text = s;
     text_draw(&text);

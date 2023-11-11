@@ -491,7 +491,11 @@ bool ble_is_connected(void) {
 
     bool v = (state == TC_READY)
              || (state == TC_W4_READ)
-             || (state == TC_READ_COMPLETE);
+             || (state == TC_READ_COMPLETE)
+             || (state == TC_W4_SERVICE)
+             || (state == TC_W4_CHARACTERISTIC)
+             || (state == TC_W4_WRITE)
+             || (state == TC_WRITE_COMPLETE);
 
     cyw43_thread_exit();
     return v;

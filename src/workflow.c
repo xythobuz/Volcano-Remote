@@ -43,6 +43,10 @@ struct workflow {
     uint16_t count;
 };
 
+#define NOTIFY \
+    { .op = OP_WAIT_TIME, .val = 1000 }, \
+    { .op = OP_PUMP_TIME, .val = 1000 }
+
 static const struct workflow wf[WF_MAX_FLOWS] = {
     {
         .name = "Default",
@@ -60,17 +64,7 @@ static const struct workflow wf[WF_MAX_FLOWS] = {
             { .op = OP_WAIT_TIME, .val = 5000 },
             { .op = OP_PUMP_TIME, .val = 20000 },
 
-            { .op = OP_PUMP_TIME, .val = 1000 },
-            { .op = OP_WAIT_TIME, .val = 1000 },
-
-            { .op = OP_PUMP_TIME, .val = 1000 },
-            { .op = OP_WAIT_TIME, .val = 1000 },
-
-            { .op = OP_PUMP_TIME, .val = 1000 },
-            { .op = OP_WAIT_TIME, .val = 1000 },
-
-            { .op = OP_PUMP_TIME, .val = 1000 },
-            { .op = OP_WAIT_TIME, .val = 1000 },
+            NOTIFY, NOTIFY, NOTIFY, NOTIFY,
 
             { .op = OP_SET_TEMPERATURE, .val = 1900 },
         },
@@ -112,23 +106,13 @@ static const struct workflow wf[WF_MAX_FLOWS] = {
             { .op = OP_WAIT_TIME, .val = 5000 },
             { .op = OP_PUMP_TIME, .val = 20000 },
 
-            { .op = OP_PUMP_TIME, .val = 1000 },
-            { .op = OP_WAIT_TIME, .val = 1000 },
-
-            { .op = OP_PUMP_TIME, .val = 1000 },
-            { .op = OP_WAIT_TIME, .val = 1000 },
-
-            { .op = OP_PUMP_TIME, .val = 1000 },
-            { .op = OP_WAIT_TIME, .val = 1000 },
-
-            { .op = OP_PUMP_TIME, .val = 1000 },
-            { .op = OP_WAIT_TIME, .val = 1000 },
+            NOTIFY, NOTIFY, NOTIFY, NOTIFY,
 
             { .op = OP_SET_TEMPERATURE, .val = 1900 },
         },
         .count = 18,
     }, {
-        .name = "Hardcore",
+        .name = "Hotty",
         .author = "xythobuz",
         .steps = {
             { .op = OP_WAIT_TEMPERATURE, .val = 1900 },
@@ -143,17 +127,7 @@ static const struct workflow wf[WF_MAX_FLOWS] = {
             { .op = OP_WAIT_TIME, .val = 5000 },
             { .op = OP_PUMP_TIME, .val = 20000 },
 
-            { .op = OP_PUMP_TIME, .val = 1000 },
-            { .op = OP_WAIT_TIME, .val = 1000 },
-
-            { .op = OP_PUMP_TIME, .val = 1000 },
-            { .op = OP_WAIT_TIME, .val = 1000 },
-
-            { .op = OP_PUMP_TIME, .val = 1000 },
-            { .op = OP_WAIT_TIME, .val = 1000 },
-
-            { .op = OP_PUMP_TIME, .val = 1000 },
-            { .op = OP_WAIT_TIME, .val = 1000 },
+            NOTIFY, NOTIFY, NOTIFY, NOTIFY,
 
             { .op = OP_SET_TEMPERATURE, .val = 1900 },
         },
@@ -178,7 +152,9 @@ static void do_step(void) {
 
     case OP_PUMP_TIME:
         volcano_set_pump_state(true);
-        __attribute__((fallthrough));
+        start_t = to_ms_since_boot(get_absolute_time());
+        debug("workflow pump %.3f s", wf[wf_i].steps[step].val / 1000.0);
+        break;
 
     case OP_WAIT_TIME:
         start_t = to_ms_since_boot(get_absolute_time());
