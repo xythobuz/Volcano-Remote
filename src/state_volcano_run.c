@@ -20,7 +20,9 @@
 #include <string.h>
 
 #include "config.h"
+#include "buttons.h"
 #include "log.h"
+#include "volcano.h"
 #include "workflow.h"
 #include "state.h"
 #include "state_volcano_run.h"
@@ -42,19 +44,62 @@ void state_volcano_run_target(bd_addr_t addr, bd_addr_type_t type) {
     ble_type = type;
 }
 
+static void volcano_buttons(enum buttons btn, bool state) {
+    if (state && (btn == BTN_Y)) {
+        if ((!wait_for_connect) && (!wait_for_disconnect)) {
+            debug("workflow abort");
+            wf_reset();
+            volcano_set_pump_state(false);
+            volcano_set_heater_state(false);
+            ble_disconnect();
+            wait_for_disconnect = true;
+        }
+    }
+}
+
 void state_volcano_run_enter(void) {
+    menu_init(NULL, NULL);
+    buttons_callback(volcano_buttons);
+
     debug("workflow connect");
     ble_connect(ble_addr, ble_type);
     wait_for_connect = true;
 }
 
 void state_volcano_run_exit(void) {
+    menu_deinit();
     wf_reset();
 }
 
 static void draw(struct menu_state *menu) {
     struct wf_state state = wf_status();
-    snprintf(menu->buff, MENU_MAX_LEN, "%d / %d", state.step, state.count);
+
+    int pos = 0;
+    pos += snprintf(menu->buff + pos, MENU_MAX_LEN - pos,
+                    "step %d / %d\n\n", state.index, state.count);
+
+    switch (state.step.op) {
+    case OP_SET_TEMPERATURE:
+        pos += snprintf(menu->buff + pos, MENU_MAX_LEN - pos,
+                        "set temp %.1f C", state.step.val / 10.0f);
+        break;
+
+    case OP_WAIT_TEMPERATURE:
+        pos += snprintf(menu->buff + pos, MENU_MAX_LEN - pos,
+                        "wait temp %.1f C", state.step.val / 10.0f);
+        break;
+
+    case OP_WAIT_TIME:
+        pos += snprintf(menu->buff + pos, MENU_MAX_LEN - pos,
+                        "wait time %.1f s", state.step.val / 1000.0f);
+        break;
+
+    case OP_PUMP_TIME:
+        pos += snprintf(menu->buff + pos, MENU_MAX_LEN - pos,
+                        "pump time %.1f s", state.step.val / 1000.0f);
+        break;
+    }
+
     // TODO visualize
 }
 

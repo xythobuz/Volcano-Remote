@@ -24,18 +24,6 @@
 #define WF_MAX_STEPS 42
 #define WF_MAX_FLOWS 6
 
-enum wf_op {
-    OP_SET_TEMPERATURE = 0,
-    OP_WAIT_TEMPERATURE,
-    OP_WAIT_TIME,
-    OP_PUMP_TIME,
-};
-
-struct wf_step {
-    enum wf_op op;
-    uint16_t val;
-};
-
 struct workflow {
     const char *name;
     const char *author;
@@ -186,8 +174,9 @@ const char *wf_author(uint16_t index) {
 struct wf_state wf_status(void) {
     struct wf_state s = {
         .status = status,
-        .step = step,
+        .index = step,
         .count = wf[wf_i].count,
+        .step = wf[wf_i].steps[step],
     };
     return s;
 }

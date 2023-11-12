@@ -21,6 +21,18 @@
 
 #include <stdint.h>
 
+enum wf_op {
+    OP_SET_TEMPERATURE = 0,
+    OP_WAIT_TEMPERATURE,
+    OP_WAIT_TIME,
+    OP_PUMP_TIME,
+};
+
+struct wf_step {
+    enum wf_op op;
+    uint16_t val;
+};
+
 enum wf_status {
     WF_IDLE = 0,
     WF_RUNNING,
@@ -29,8 +41,9 @@ enum wf_status {
 struct wf_state {
     enum wf_status status;
 
-    uint16_t step;
+    uint16_t index;
     uint16_t count;
+    struct wf_step step;
 };
 
 uint16_t wf_count(void);
