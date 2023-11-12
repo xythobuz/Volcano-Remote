@@ -81,27 +81,35 @@ static void draw(struct menu_state *menu) {
 
     int pos = 0;
     pos += snprintf(menu->buff + pos, MENU_MAX_LEN - pos,
-                    "step %d / %d\n\n", state.index, state.count);
+                    "step %d / %d\n", state.index, state.count);
 
     switch (state.step.op) {
     case OP_SET_TEMPERATURE:
         pos += snprintf(menu->buff + pos, MENU_MAX_LEN - pos,
-                        "set temp %.1f C", state.step.val / 10.0f);
+                        "\nset temp %.1f C", state.step.val / 10.0f);
         break;
 
     case OP_WAIT_TEMPERATURE:
         pos += snprintf(menu->buff + pos, MENU_MAX_LEN - pos,
-                        "wait temp %.1f C", state.step.val / 10.0f);
+                        "wait temp %.1f C\n", state.step.val / 10.0f);
+        pos += snprintf(menu->buff + pos, MENU_MAX_LEN - pos,
+                        "%.1f -> %.1f -> %.1f",
+                        state.start_val / 10.0f,
+                        state.curr_val / 10.0f,
+                        state.step.val / 10.0f);
         break;
 
     case OP_WAIT_TIME:
-        pos += snprintf(menu->buff + pos, MENU_MAX_LEN - pos,
-                        "wait time %.1f s", state.step.val / 1000.0f);
-        break;
-
     case OP_PUMP_TIME:
         pos += snprintf(menu->buff + pos, MENU_MAX_LEN - pos,
-                        "pump time %.1f s", state.step.val / 1000.0f);
+                        "%s time %.1f s\n",
+                        (state.step.op == OP_WAIT_TIME) ? "wait" : "pump",
+                        state.step.val / 1000.0f);
+        pos += snprintf(menu->buff + pos, MENU_MAX_LEN - pos,
+                        "%.1f -> %.1f -> %.1f",
+                        state.start_val / 1000.0f,
+                        state.curr_val / 1000.0f,
+                        state.step.val / 1000.0f);
         break;
     }
 

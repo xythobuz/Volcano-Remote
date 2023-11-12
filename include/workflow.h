@@ -44,6 +44,7 @@ struct wf_state {
     uint16_t index;
     uint16_t count;
     struct wf_step step;
+    uint16_t start_val, curr_val;
 };
 
 uint16_t wf_count(void);

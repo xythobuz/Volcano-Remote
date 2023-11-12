@@ -129,26 +129,33 @@ static enum wf_status status = WF_IDLE;
 static uint16_t wf_i = 0;
 static uint16_t step = 0;
 static uint32_t start_t = 0;
+static uint16_t start_val = 0;
+static uint16_t curr_val = 0;
 
 static void do_step(void) {
     switch (wf[wf_i].steps[step].op) {
     case OP_SET_TEMPERATURE:
     case OP_WAIT_TEMPERATURE:
         debug("workflow temp %.1f C", wf[wf_i].steps[step].val / 10.0);
+        start_val = volcano_get_current_temp();
         volcano_set_target_temp(wf[wf_i].steps[step].val);
         break;
 
     case OP_PUMP_TIME:
         volcano_set_pump_state(true);
         start_t = to_ms_since_boot(get_absolute_time());
+        start_val = 0;
         debug("workflow pump %.3f s", wf[wf_i].steps[step].val / 1000.0);
         break;
 
     case OP_WAIT_TIME:
         start_t = to_ms_since_boot(get_absolute_time());
+        start_val = 0;
         debug("workflow time %.3f s", wf[wf_i].steps[step].val / 1000.0);
         break;
     }
+
+    curr_val = start_val;
 }
 
 uint16_t wf_count(void) {
@@ -177,6 +184,8 @@ struct wf_state wf_status(void) {
         .index = step,
         .count = wf[wf_i].count,
         .step = wf[wf_i].steps[step],
+        .start_val = start_val,
+        .curr_val = curr_val,
     };
     return s;
 }
@@ -221,14 +230,21 @@ void wf_run(void) {
         done = true;
         break;
 
-    case OP_WAIT_TEMPERATURE:
-        done = (volcano_get_current_temp() >= (wf[wf_i].steps[step].val - 5));
+    case OP_WAIT_TEMPERATURE: {
+        uint16_t temp = volcano_get_current_temp();
+        curr_val = temp;
+        done = (temp >= (wf[wf_i].steps[step].val - 5));
         break;
+    }
 
     case OP_PUMP_TIME:
-    case OP_WAIT_TIME:
-        done = ((to_ms_since_boot(get_absolute_time()) - start_t) >= wf[wf_i].steps[step].val);
+    case OP_WAIT_TIME: {
+        uint32_t now = to_ms_since_boot(get_absolute_time());
+        uint32_t diff = now - start_t;
+        curr_val = diff;
+        done = (diff >= wf[wf_i].steps[step].val);
         break;
+    }
     }
 
     if (done) {
