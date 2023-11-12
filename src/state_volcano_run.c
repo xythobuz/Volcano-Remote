@@ -106,7 +106,7 @@ static void draw(struct menu_state *menu) {
                         (state.step.op == OP_WAIT_TIME) ? "wait" : "pump",
                         state.step.val / 1000.0f);
         pos += snprintf(menu->buff + pos, MENU_MAX_LEN - pos,
-                        "%.1f -> %.1f -> %.1f",
+                        "%.0f -> %.0f -> %.0f",
                         state.start_val / 1000.0f,
                         state.curr_val / 1000.0f,
                         state.step.val / 1000.0f);
