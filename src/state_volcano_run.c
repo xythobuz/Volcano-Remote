@@ -27,6 +27,7 @@
 #include "state.h"
 #include "state_volcano_run.h"
 
+// only used to draw textbox, not for buttons
 #include "menu.h"
 
 static uint16_t wf_index = 0;
@@ -34,6 +35,7 @@ static bd_addr_t ble_addr = {0};
 static bd_addr_type_t ble_type = 0;
 static bool wait_for_connect = false;
 static bool wait_for_disconnect = false;
+static bool aborted = false;
 
 void state_volcano_run_index(uint16_t index) {
     wf_index = index;
@@ -48,6 +50,7 @@ static void volcano_buttons(enum buttons btn, bool state) {
     if (state && (btn == BTN_Y)) {
         if ((!wait_for_connect) && (!wait_for_disconnect)) {
             debug("workflow abort");
+            aborted = true;
             wf_reset();
             volcano_set_pump_state(false);
             volcano_set_heater_state(false);
@@ -64,6 +67,8 @@ void state_volcano_run_enter(void) {
     debug("workflow connect");
     ble_connect(ble_addr, ble_type);
     wait_for_connect = true;
+
+    aborted = false;
 }
 
 void state_volcano_run_exit(void) {
@@ -104,15 +109,18 @@ static void draw(struct menu_state *menu) {
 }
 
 void state_volcano_run_run(void) {
+    // start workflow when connected
     if (wait_for_connect && ble_is_connected()) {
         wait_for_connect = false;
         debug("workflow start");
         wf_start(wf_index);
     }
 
+    // visualize workflow status
     menu_run(draw);
 
-    if (!wait_for_connect) {
+    // auto disconnect when end of workflow is reached
+    if ((!wait_for_connect) && (!aborted)) {
         struct wf_state state = wf_status();
         if (state.status == WF_IDLE) {
             debug("workflow disconnect");
@@ -121,6 +129,7 @@ void state_volcano_run_run(void) {
         }
     }
 
+    // back to main menu when disconnected
     if (wait_for_disconnect && !ble_is_connected()) {
         wait_for_disconnect = false;
         debug("workflow done");
