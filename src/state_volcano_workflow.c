@@ -33,8 +33,12 @@ static void enter_cb(int selection) {
     }
 }
 
+static void exit_cb(void) {
+    state_switch(STATE_SCAN);
+}
+
 void state_volcano_wf_enter(void) {
-    menu_init(enter_cb);
+    menu_init(enter_cb, exit_cb);
 }
 
 void state_volcano_wf_exit(void) {

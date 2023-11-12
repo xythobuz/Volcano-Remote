@@ -53,7 +53,7 @@ static void enter_cb(int selection) {
 }
 
 void state_scan_enter(void) {
-    menu_init(enter_cb);
+    menu_init(enter_cb, NULL);
     ble_scan(BLE_SCAN_ON);
 }
 
