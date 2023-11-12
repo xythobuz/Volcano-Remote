@@ -27,9 +27,9 @@
 
 #include "menu.h"
 
-static uint16_t wf_index;
-static bd_addr_t ble_addr;
-static bd_addr_type_t ble_type;
+static uint16_t wf_index = 0;
+static bd_addr_t ble_addr = {0};
+static bd_addr_type_t ble_type = 0;
 static bool wait_for_connect = false;
 static bool wait_for_disconnect = false;
 
@@ -55,6 +55,7 @@ void state_volcano_run_exit(void) {
 static void draw(struct menu_state *menu) {
     struct wf_state state = wf_status();
     snprintf(menu->buff, MENU_MAX_LEN, "%d / %d", state.step, state.count);
+    // TODO visualize
 }
 
 void state_volcano_run_run(void) {

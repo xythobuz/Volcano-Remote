@@ -1,5 +1,5 @@
 /*
- * state.h
+ * state_crafty.h
  *
  * Copyright (c) 2023 Thomas Buck (thomas@xythobuz.de)
  *
@@ -16,18 +16,15 @@
  * See <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __STATE_H__
-#define __STATE_H__
+#ifndef __STATE_CRAFTY_H__
+#define __STATE_CRAFTY_H__
 
-enum system_state {
-    STATE_INIT = 0,
-    STATE_SCAN,
-    STATE_VOLCANO_WORKFLOW,
-    STATE_VOLCANO_RUN,
-    STATE_CRAFTY,
-};
+#include <ble.h>
 
-void state_switch(enum system_state next);
-void state_run(void);
+void state_crafty_target(bd_addr_t addr, bd_addr_type_t type);
 
-#endif // __STATE_H__
+void state_crafty_enter(void);
+void state_crafty_exit(void);
+void state_crafty_run(void);
+
+#endif // __STATE_CRAFTY_H__

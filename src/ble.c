@@ -28,10 +28,10 @@
 #include "util.h"
 #include "ble.h"
 
-#define BLE_READ_TIMEOUT_MS 500
-#define BLE_SRVC_TIMEOUT_MS 500
-#define BLE_CHAR_TIMEOUT_MS 2000
-#define BLE_WRTE_TIMEOUT_MS 500
+#define BLE_READ_TIMEOUT_MS (2 * 500)
+#define BLE_SRVC_TIMEOUT_MS (2 * 500)
+#define BLE_CHAR_TIMEOUT_MS (2 * 2000)
+#define BLE_WRTE_TIMEOUT_MS (2 * 500)
 #define BLE_MAX_SCAN_AGE_MS (10 * 1000)
 #define BLE_MAX_SERVICES 8
 #define BLE_MAX_CHARACTERISTICS 8
@@ -545,6 +545,9 @@ int32_t ble_read(const uint8_t *characteristic, uint8_t *buff, uint16_t buff_len
         uint32_t now = to_ms_since_boot(get_absolute_time());
         if ((now - start_time) >= BLE_READ_TIMEOUT_MS) {
             debug("timeout waiting for read");
+            cyw43_thread_enter();
+            state = TC_READY;
+            cyw43_thread_exit();
             return -3;
         }
 
@@ -631,6 +634,9 @@ int8_t ble_write(const uint8_t *service, const uint8_t *characteristic,
             uint32_t now = to_ms_since_boot(get_absolute_time());
             if ((now - start_time) >= BLE_SRVC_TIMEOUT_MS) {
                 debug("timeout waiting for service");
+                cyw43_thread_enter();
+                state = TC_READY;
+                cyw43_thread_exit();
                 return -3;
             }
 
@@ -695,6 +701,9 @@ int8_t ble_write(const uint8_t *service, const uint8_t *characteristic,
             uint32_t now = to_ms_since_boot(get_absolute_time());
             if ((now - start_time) >= BLE_CHAR_TIMEOUT_MS) {
                 debug("timeout waiting for characteristic");
+                cyw43_thread_enter();
+                state = TC_READY;
+                cyw43_thread_exit();
                 return -5;
             }
 
@@ -736,6 +745,9 @@ int8_t ble_write(const uint8_t *service, const uint8_t *characteristic,
         uint32_t now = to_ms_since_boot(get_absolute_time());
         if ((now - start_time) >= BLE_WRTE_TIMEOUT_MS) {
             debug("timeout waiting for write");
+            cyw43_thread_enter();
+            state = TC_READY;
+            cyw43_thread_exit();
             return -7;
         }
 

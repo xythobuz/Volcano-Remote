@@ -1,5 +1,5 @@
 /*
- * volcano.c
+ * crafty.c
  *
  * Copyright (c) 2023 Thomas Buck (thomas@xythobuz.de)
  *
@@ -19,61 +19,67 @@
 #include "config.h"
 #include "log.h"
 #include "ble.h"
-#include "volcano.h"
+#include "crafty.h"
 
-// Volcano UUIDs are always the same, except for the 4th byte
-#define UUID_WRITE_SRVC   0x00
-#define UUID_CURRENT_TEMP 0x01
-#define UUID_TARGET_TEMP  0x03
-#define UUID_HEATER_ON    0x0F
-#define UUID_HEATER_OFF   0x10
-#define UUID_PUMP_ON      0x13
-#define UUID_PUMP_OFF     0x14
+// serviceUuidCrafty1      "00000001-4c45-4b43-4942-265a524f5453"
+// characteristicWriteTemp "00000021-4c45-4b43-4942-265a524f5453"
+// charactersiticCurrTemp  "00000011-4c45-4b43-4942-265a524f5453"
+// characteristicPower     "00000041-4c45-4b43-4942-265a524f5453"
+// characteristicHeaterOn  "00000081-4c45-4b43-4942-265a524f5453"
+// characteristicHeaterOff "00000091-4c45-4b43-4942-265a524f5453"
 
-// "101100xx-5354-4f52-5a26-4249434b454c"
+// "000000xx-4c45-4b43-4942-265a524f5453"
 static uint8_t uuid_base[16] = {
-    0x10, 0x11, 0x00, 0xFF, 0x53, 0x54, 0x4f, 0x52,
-    0x5a, 0x26, 0x42, 0x49, 0x43, 0x4b, 0x45, 0x4c,
+    0x00, 0x00, 0x00, 0xFF, 0x4c, 0x45, 0x4b, 0x43,
+    0x49, 0x42, 0x26, 0x5a, 0x52, 0x4f, 0x54, 0x53,
 };
 static uint8_t uuid_base2[16] = {
-    0x10, 0x11, 0x00, 0xFF, 0x53, 0x54, 0x4f, 0x52,
-    0x5a, 0x26, 0x42, 0x49, 0x43, 0x4b, 0x45, 0x4c,
+    0x00, 0x00, 0x00, 0xFF, 0x4c, 0x45, 0x4b, 0x43,
+    0x49, 0x42, 0x26, 0x5a, 0x52, 0x4f, 0x54, 0x53,
 };
 
-int16_t volcano_get_current_temp(void) {
+// Crafty UUIDs are always the same, except for the 4th byte
+#define UUID_WRITE_SRVC   0x01
+#define UUID_CURRENT_TEMP 0x11
+#define UUID_TARGET_TEMP  0x21
+#define UUID_BATTERY      0x41
+#define UUID_HEATER_ON    0x81
+#define UUID_HEATER_OFF   0x91
+
+int16_t crafty_get_current_temp(void) {
     uuid_base[3] = UUID_CURRENT_TEMP;
 
-    uint8_t buff[4];
+    uint8_t buff[2];
     int32_t r = ble_read(uuid_base, buff, sizeof(buff));
     if (r != sizeof(buff)) {
         debug("ble_read unexpected value %ld", r);
         return -1;
     }
 
-    uint32_t *v = (uint32_t *)buff;
+    uint16_t *v = (uint16_t *)buff;
     return *v;
 }
 
-int16_t volcano_get_target_temp(void) {
+int16_t crafty_get_target_temp(void) {
     uuid_base[3] = UUID_TARGET_TEMP;
 
-    uint8_t buff[4];
+    uint8_t buff[2];
     int32_t r = ble_read(uuid_base, buff, sizeof(buff));
     if (r != sizeof(buff)) {
         debug("ble_read unexpected value %ld", r);
         return -1;
     }
 
-    uint32_t *v = (uint32_t *)buff;
+    uint16_t *v = (uint16_t *)buff;
     return *v;
 }
 
-int8_t volcano_set_target_temp(uint16_t value) {
+int8_t crafty_set_target_temp(uint16_t value) {
     uuid_base[3] = UUID_WRITE_SRVC;
     uuid_base2[3] = UUID_TARGET_TEMP;
 
-    uint8_t buff[4];
-    uint32_t *v = (uint32_t *)buff;
+    uint8_t buff[2];
+    uint16_t *v = (uint16_t *)buff;
     *v = value;
 
     int8_t r = ble_write(uuid_base, uuid_base2, buff, sizeof(buff));
@@ -83,7 +89,7 @@ int8_t volcano_set_target_temp(uint16_t value) {
     return r;
 }
 
-int8_t volcano_set_heater_state(bool value) {
+int8_t crafty_set_heater_state(bool value) {
     uuid_base[3] = UUID_WRITE_SRVC;
 
     if (value) {
@@ -92,27 +98,24 @@ int8_t volcano_set_heater_state(bool value) {
         uuid_base2[3] = UUID_HEATER_OFF;
     }
 
-    uint8_t d = 0;
-    int8_t r = ble_write(uuid_base, uuid_base2, &d, sizeof(d));
+    uint16_t d = 0;
+    int8_t r = ble_write(uuid_base, uuid_base2, (uint8_t *)&d, sizeof(d));
     if (r != 0) {
         debug("ble_write unexpected value %d", r);
     }
     return r;
 }
 
-int8_t volcano_set_pump_state(bool value) {
-    uuid_base[3] = UUID_WRITE_SRVC;
+int8_t crafty_get_battery_state(void) {
+    uuid_base[3] = UUID_BATTERY;
 
-    if (value) {
-        uuid_base2[3] = UUID_PUMP_ON;
-    } else {
-        uuid_base2[3] = UUID_PUMP_OFF;
+    uint8_t buff[2];
+    int32_t r = ble_read(uuid_base, buff, sizeof(buff));
+    if (r != sizeof(buff)) {
+        debug("ble_read unexpected value %ld", r);
+        return -1;
     }
 
-    uint8_t d = 0;
-    int8_t r = ble_write(uuid_base, uuid_base2, &d, sizeof(d));
-    if (r != 0) {
-        debug("ble_write unexpected value %d", r);
-    }
-    return r;
+    uint16_t *v = (uint16_t *)buff;
+    return *v;
 }

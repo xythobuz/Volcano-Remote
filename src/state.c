@@ -21,6 +21,7 @@
 #include "state_scan.h"
 #include "state_volcano_workflow.h"
 #include "state_volcano_run.h"
+#include "state_crafty.h"
 #include "state.h"
 
 static enum system_state state = STATE_INIT;
@@ -47,6 +48,11 @@ void state_switch(enum system_state next) {
         state_volcano_run_exit();
         break;
 
+    case STATE_CRAFTY:
+        debug("leaving STATE_CRAFTY");
+        state_crafty_exit();
+        break;
+
     default:
         break;
     }
@@ -66,6 +72,11 @@ void state_switch(enum system_state next) {
     case STATE_VOLCANO_RUN:
         debug("entering STATE_VOLCANO_RUN");
         state_volcano_run_enter();
+        break;
+
+    case STATE_CRAFTY:
+        debug("entering STATE_CRAFTY");
+        state_crafty_enter();
         break;
 
     default:
@@ -90,6 +101,10 @@ void state_run(void) {
 
     case STATE_VOLCANO_RUN:
         state_volcano_run_run();
+        break;
+
+    case STATE_CRAFTY:
+        state_crafty_run();
         break;
 
     default:

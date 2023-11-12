@@ -25,6 +25,7 @@
 #include "menu.h"
 #include "state.h"
 #include "state_volcano_run.h"
+#include "state_crafty.h"
 #include "state_scan.h"
 
 static struct ble_scan_result results[BLE_MAX_SCAN_RESULTS] = {0};
@@ -42,6 +43,9 @@ static void enter_cb(int selection) {
             if (dev == DEV_VOLCANO) {
                 state_volcano_run_target(results[i].addr, results[i].type);
                 state_switch(STATE_VOLCANO_WORKFLOW);
+            } else if (dev == DEV_CRAFTY) {
+                state_crafty_target(results[i].addr, results[i].type);
+                state_switch(STATE_CRAFTY);
             }
             return;
         }

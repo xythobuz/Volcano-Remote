@@ -1,5 +1,5 @@
 /*
- * state.h
+ * crafty.h
  *
  * Copyright (c) 2023 Thomas Buck (thomas@xythobuz.de)
  *
@@ -16,18 +16,23 @@
  * See <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __STATE_H__
-#define __STATE_H__
+#ifndef __CRAFTY_H__
+#define __CRAFTY_H__
 
-enum system_state {
-    STATE_INIT = 0,
-    STATE_SCAN,
-    STATE_VOLCANO_WORKFLOW,
-    STATE_VOLCANO_RUN,
-    STATE_CRAFTY,
-};
+#include <stdint.h>
+#include <stdbool.h>
 
-void state_switch(enum system_state next);
-void state_run(void);
+// in 1/10th degrees C, or < 0 on error
+int16_t crafty_get_current_temp(void);
+int16_t crafty_get_target_temp(void);
 
-#endif // __STATE_H__
+// v in 1/10th degrees C, returns < 0 on error
+int8_t crafty_set_target_temp(uint16_t v);
+
+// returns < 0 on error
+int8_t crafty_set_heater_state(bool value);
+
+// in percent, or < 0 on error
+int8_t crafty_get_battery_state(void);
+
+#endif // __CRAFTY_H__

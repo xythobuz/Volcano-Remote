@@ -43,5 +43,6 @@
 #endif // DEBUG_DISK_WRITE_SOURCES
 
 //#define TEST_VOLCANO_AUTO_CONNECT "xx:xx:xx:xx:xx:xx 1"
+//#define TEST_CRAFTY_AUTO_CONNECT "xx:xx:xx:xx:xx:xx 0"
 
 #endif // __CONFIG_H__

@@ -41,15 +41,16 @@
 #include "models.h"
 #include "workflow.h"
 #include "console.h"
+#include "crafty.h"
 
 #define CNSL_BUFF_SIZE 64
 #define CNSL_REPEAT_MS 500
 
-#define VOLCANO_AUTO_CONNECT {                                    \
+#define DEV_AUTO_CONNECT(s) {                                     \
     ble_scan(BLE_SCAN_OFF);                                       \
     bd_addr_t addr;                                               \
     bd_addr_type_t type;                                          \
-    const char *foo = TEST_VOLCANO_AUTO_CONNECT;                  \
+    const char *foo = s;                                          \
     sscanf(foo, "%02hhX:%02hhX:%02hhX:%02hhX:%02hhX:%02hhX %hhu", \
             &addr[0], &addr[1], &addr[2], &addr[3],               \
             &addr[4], &addr[5], &type);                           \
@@ -114,10 +115,16 @@ static void cnsl_interpret(const char *line) {
         println("   vrtt - Volcano read target temperature");
         println(" vwtt X - Volcano write target temperature");
         println("  vwh X - Set heater to 1 or 0");
-        println("  vwp X - Set heater to 1 or 0");
+        println("  vwp X - Set pump to 1 or 0");
         println("");
         println("    wfl - List available workflows");
         println("   wf X - Run workflow");
+        println("");
+        println("   crct - Crafty read current temperature");
+        println("   crtt - Crafty read target temperature");
+        println(" cwtt X - Crafty write target temperature");
+        println("  cwh X - Set heater to 1 or 0");
+        println("    crb - Crafty read battery state");
         println("");
         println("Press Enter with no input to repeat last command.");
         println("Use repeat to continuously execute last command.");
@@ -230,7 +237,7 @@ static void cnsl_interpret(const char *line) {
         draw_battery_indicator();
     } else if (strcmp(line, "vrct") == 0) {
 #ifdef TEST_VOLCANO_AUTO_CONNECT
-        VOLCANO_AUTO_CONNECT
+        DEV_AUTO_CONNECT(TEST_VOLCANO_AUTO_CONNECT);
 #endif // TEST_VOLCANO_AUTO_CONNECT
 
         int16_t r = volcano_get_current_temp();
@@ -241,7 +248,7 @@ static void cnsl_interpret(const char *line) {
 #endif // TEST_VOLCANO_AUTO_CONNECT
     } else if (strcmp(line, "vrtt") == 0) {
 #ifdef TEST_VOLCANO_AUTO_CONNECT
-        VOLCANO_AUTO_CONNECT
+        DEV_AUTO_CONNECT(TEST_VOLCANO_AUTO_CONNECT);
 #endif // TEST_VOLCANO_AUTO_CONNECT
 
         int16_t r = volcano_get_target_temp();
@@ -259,7 +266,7 @@ static void cnsl_interpret(const char *line) {
             uint16_t v = val * 10.0;
 
 #ifdef TEST_VOLCANO_AUTO_CONNECT
-            VOLCANO_AUTO_CONNECT
+            DEV_AUTO_CONNECT(TEST_VOLCANO_AUTO_CONNECT);
 #endif // TEST_VOLCANO_AUTO_CONNECT
 
             int8_t r = volcano_set_target_temp(v);
@@ -281,7 +288,7 @@ static void cnsl_interpret(const char *line) {
             println("invalid input (%d %d)", r, val);
         } else {
 #ifdef TEST_VOLCANO_AUTO_CONNECT
-            VOLCANO_AUTO_CONNECT
+            DEV_AUTO_CONNECT(TEST_VOLCANO_AUTO_CONNECT);
 #endif // TEST_VOLCANO_AUTO_CONNECT
 
             int8_t r = volcano_set_heater_state(val == 1);
@@ -303,7 +310,7 @@ static void cnsl_interpret(const char *line) {
             println("invalid input (%d %d)", r, val);
         } else {
 #ifdef TEST_VOLCANO_AUTO_CONNECT
-            VOLCANO_AUTO_CONNECT
+            DEV_AUTO_CONNECT(TEST_VOLCANO_AUTO_CONNECT);
 #endif // TEST_VOLCANO_AUTO_CONNECT
 
             int8_t r = volcano_set_pump_state(val == 1);
@@ -340,7 +347,7 @@ static void cnsl_interpret(const char *line) {
                 println("workflow in progress");
             } else {
 #ifdef TEST_VOLCANO_AUTO_CONNECT
-                VOLCANO_AUTO_CONNECT
+                DEV_AUTO_CONNECT(TEST_VOLCANO_AUTO_CONNECT);
 #endif // TEST_VOLCANO_AUTO_CONNECT
 
                 println("starting workflow");
@@ -360,6 +367,85 @@ static void cnsl_interpret(const char *line) {
 #endif // TEST_VOLCANO_AUTO_CONNECT
             }
         }
+    } else if (strcmp(line, "crct") == 0) {
+#ifdef TEST_CRAFTY_AUTO_CONNECT
+        DEV_AUTO_CONNECT(TEST_CRAFTY_AUTO_CONNECT);
+#endif // TEST_CRAFTY_AUTO_CONNECT
+
+        int16_t r = crafty_get_current_temp();
+        println("crafty current temp: %.1f", r / 10.0);
+
+#ifdef TEST_CRAFTY_AUTO_CONNECT
+        ble_disconnect();
+#endif // TEST_CRAFTY_AUTO_CONNECT
+    } else if (strcmp(line, "crtt") == 0) {
+#ifdef TEST_CRAFTY_AUTO_CONNECT
+        DEV_AUTO_CONNECT(TEST_CRAFTY_AUTO_CONNECT);
+#endif // TEST_CRAFTY_AUTO_CONNECT
+
+        int16_t r = crafty_get_target_temp();
+        println("crafty target temp: %.1f", r / 10.0);
+
+#ifdef TEST_CRAFTY_AUTO_CONNECT
+        ble_disconnect();
+#endif // TEST_CRAFTY_AUTO_CONNECT
+    } else if (str_startswith(line, "cwtt ")) {
+        float val;
+        int r = sscanf(line, "cwtt %f", &val);
+        if (r != 1) {
+            println("invalid input (%d)", r);
+        } else {
+            uint16_t v = val * 10.0;
+
+#ifdef TEST_CRAFTY_AUTO_CONNECT
+            DEV_AUTO_CONNECT(TEST_CRAFTY_AUTO_CONNECT);
+#endif // TEST_CRAFTY_AUTO_CONNECT
+
+            int8_t r = crafty_set_target_temp(v);
+
+#ifdef TEST_CRAFTY_AUTO_CONNECT
+            ble_disconnect();
+#endif // TEST_CRAFTY_AUTO_CONNECT
+
+            if (r < 0) {
+                println("error writing target temp %d", r);
+            } else {
+                println("success");
+            }
+        }
+    } else if (str_startswith(line, "cwh ")) {
+        int val;
+        int r = sscanf(line, "cwh %d", &val);
+        if ((r != 1) || ((val != 0) && (val != 1))) {
+            println("invalid input (%d %d)", r, val);
+        } else {
+#ifdef TEST_CRAFTY_AUTO_CONNECT
+            DEV_AUTO_CONNECT(TEST_CRAFTY_AUTO_CONNECT);
+#endif // TEST_CRAFTY_AUTO_CONNECT
+
+            int8_t r = crafty_set_heater_state(val == 1);
+
+#ifdef TEST_CRAFTY_AUTO_CONNECT
+            ble_disconnect();
+#endif // TEST_CRAFTY_AUTO_CONNECT
+
+            if (r < 0) {
+                println("error writing heater state %d", r);
+            } else {
+                println("success");
+            }
+        }
+    } else if (strcmp(line, "crb") == 0) {
+#ifdef TEST_CRAFTY_AUTO_CONNECT
+        DEV_AUTO_CONNECT(TEST_CRAFTY_AUTO_CONNECT);
+#endif // TEST_CRAFTY_AUTO_CONNECT
+
+        int16_t r = crafty_get_battery_state();
+        println("crafty battery: %d %%", r);
+
+#ifdef TEST_CRAFTY_AUTO_CONNECT
+        ble_disconnect();
+#endif // TEST_CRAFTY_AUTO_CONNECT
     } else {
         println("unknown command \"%s\"", line);
     }
