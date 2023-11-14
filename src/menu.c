@@ -21,6 +21,7 @@
 #include "config.h"
 #include "buttons.h"
 #include "text.h"
+#include "lcd.h"
 #include "menu.h"
 
 static char prev_buff[MENU_MAX_LEN] = {0};
@@ -31,10 +32,18 @@ static void (*exit_callback)(void) = NULL;
 
 static void menu_buttons(enum buttons btn, bool state) {
     if (state && (btn == BTN_LEFT)) {
-        // TODO brightness down
+        uint16_t backlight_value = lcd_get_backlight();
+        if (backlight_value > 0x00FF) {
+            backlight_value = backlight_value >> 1;
+        }
+        lcd_set_backlight(backlight_value);
         return;
     } else if (state && (btn == BTN_RIGHT)) {
-        // TODO brightness up
+        uint16_t backlight_value = lcd_get_backlight();
+        if (backlight_value < 0xFF00) {
+            backlight_value = backlight_value << 1;
+        }
+        lcd_set_backlight(backlight_value);
         return;
     } else if (state && ((btn == BTN_ENTER) || (btn == BTN_A))) {
         if (enter_callback) {

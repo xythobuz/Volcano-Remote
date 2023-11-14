@@ -53,7 +53,7 @@ int main(void) {
     debug("lcd_init");
     lcd_init();
     draw_splash();
-    lcd_set_backlight(0x8000);
+    lcd_set_backlight(0xFF00);
 
     if (watchdog_caused_reboot()) {
         debug("reset by watchdog");
@@ -88,7 +88,6 @@ int main(void) {
 
     debug("init done");
     battery_run();
-    lcd_set_backlight(0x8000); // TODO dynamic
 
     // wait for BLE stack to be ready before using it
     debug("wait for bt stack");
