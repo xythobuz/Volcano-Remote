@@ -24,6 +24,49 @@
 #include "state_crafty.h"
 #include "state.h"
 
+#define stringify(name) # name
+
+struct state {
+    const char * const name;
+    void (*enter)(void);
+    void (*exit)(void);
+    void (*run)(void);
+};
+
+static const struct state states[STATE_INVALID + 1] = {
+    {
+        .name = stringify(STATE_INIT),
+        .enter = NULL,
+        .exit = NULL,
+        .run = NULL,
+    }, {
+        .name = stringify(STATE_SCAN),
+        .enter = state_scan_enter,
+        .exit = state_scan_exit,
+        .run = state_scan_run,
+    }, {
+        .name = stringify(STATE_VOLCANO_WORKFLOW),
+        .enter = state_volcano_wf_enter,
+        .exit = state_volcano_wf_exit,
+        .run = state_volcano_wf_run,
+    }, {
+        .name = stringify(STATE_VOLCANO_RUN),
+        .enter = state_volcano_run_enter,
+        .exit = state_volcano_run_exit,
+        .run = state_volcano_run_run,
+    }, {
+        .name = stringify(STATE_CRAFTY),
+        .enter = state_crafty_enter,
+        .exit = state_crafty_exit,
+        .run = state_crafty_run,
+    }, {
+        .name = stringify(STATE_INVALID),
+        .enter = NULL,
+        .exit = NULL,
+        .run = NULL,
+    }
+};
+
 static enum system_state state = STATE_INIT;
 
 void state_switch(enum system_state next) {
@@ -31,85 +74,31 @@ void state_switch(enum system_state next) {
         return;
     }
 
-    // clean up old state when leaving it
-    switch (state) {
-    case STATE_SCAN:
-        debug("leaving STATE_SCAN");
-        state_scan_exit();
-        break;
-
-    case STATE_VOLCANO_WORKFLOW:
-        debug("leaving STATE_VOLCANO_WORKFLOW");
-        state_volcano_wf_exit();
-        break;
-
-    case STATE_VOLCANO_RUN:
-        debug("leaving STATE_VOLCANO_RUN");
-        state_volcano_run_exit();
-        break;
-
-    case STATE_CRAFTY:
-        debug("leaving STATE_CRAFTY");
-        state_crafty_exit();
-        break;
-
-    default:
-        break;
+    if (next > STATE_INVALID) {
+        debug("invalid new state %d", next);
+        next = STATE_INVALID;
     }
 
-    // prepare new state on entering
-    switch (next) {
-    case STATE_SCAN:
-        debug("entering STATE_SCAN");
-        state_scan_enter();
-        break;
+    debug("leaving %s", states[state].name);
+    if (states[state].exit) {
+        states[state].exit();
+    }
 
-    case STATE_VOLCANO_WORKFLOW:
-        debug("entering STATE_VOLCANO_WORKFLOW");
-        state_volcano_wf_enter();
-        break;
-
-    case STATE_VOLCANO_RUN:
-        debug("entering STATE_VOLCANO_RUN");
-        state_volcano_run_enter();
-        break;
-
-    case STATE_CRAFTY:
-        debug("entering STATE_CRAFTY");
-        state_crafty_enter();
-        break;
-
-    default:
-        break;
+    debug("entering %s", states[next].name);
+    if (states[next].enter) {
+        states[next].enter();
     }
 
     state = next;
 }
 
 void state_run(void) {
-    switch (state) {
-    case STATE_INIT:
-        break;
-
-    case STATE_SCAN:
-        state_scan_run();
-        break;
-
-    case STATE_VOLCANO_WORKFLOW:
-        state_volcano_wf_run();
-        break;
-
-    case STATE_VOLCANO_RUN:
-        state_volcano_run_run();
-        break;
-
-    case STATE_CRAFTY:
-        state_crafty_run();
-        break;
-
-    default:
+    if (state >= STATE_INVALID) {
         debug("invalid main state %d", state);
         state_switch(STATE_SCAN);
-        break;
+    }
+
+    if (states[state].run) {
+        states[state].run();
     }
 }

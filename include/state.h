@@ -25,6 +25,8 @@ enum system_state {
     STATE_VOLCANO_WORKFLOW,
     STATE_VOLCANO_RUN,
     STATE_CRAFTY,
+
+    STATE_INVALID,
 };
 
 void state_switch(enum system_state next);
