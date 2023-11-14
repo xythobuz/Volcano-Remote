@@ -48,6 +48,6 @@ struct text_conf {
 void text_prepare_font(struct text_font *tf);
 void text_draw(struct text_conf *tc);
 
-void text_box(const char *s);
+void text_box(const char *s, bool centered);
 
 #endif // __TEXT_H__

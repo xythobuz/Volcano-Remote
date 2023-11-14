@@ -152,7 +152,7 @@ void text_draw(struct text_conf *tc) {
                 tc->text, line_callback, &state);
 }
 
-void text_box(const char *s) {
+void text_box(const char *s, bool centered) {
     static struct text_font font = {
         .fontname = "fixed_10x20",
         .font = NULL,
@@ -172,9 +172,9 @@ void text_box(const char *s) {
         .x = x,
         .y = y,
         .justify = false,
-        .alignment = MF_ALIGN_CENTER,
-        .width = width,
-        .height = height,
+        .alignment = centered ? MF_ALIGN_CENTER : MF_ALIGN_LEFT,
+        .width = width - 4,
+        .height = height - 4,
         .margin = 2,
         .fg = RGB_565(0xFF, 0xFF, 0xFF),
         .bg = RGB_565(0x00, 0x00, 0x00),

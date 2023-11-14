@@ -74,5 +74,5 @@ static void draw(struct menu_state *menu) {
 }
 
 void state_volcano_wf_run(void) {
-    menu_run(draw);
+    menu_run(draw, false);
 }

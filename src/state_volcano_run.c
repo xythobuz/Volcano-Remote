@@ -136,7 +136,7 @@ void state_volcano_run_run(void) {
     }
 
     // visualize workflow status
-    menu_run(draw);
+    menu_run(draw, true);
 
     // auto disconnect when end of workflow is reached
     if ((!wait_for_connect) && (!aborted)) {

@@ -128,5 +128,5 @@ static void draw(struct menu_state *menu) {
 }
 
 void state_scan_run(void) {
-    menu_run(draw);
+    menu_run(draw, false);
 }

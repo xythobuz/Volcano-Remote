@@ -19,6 +19,8 @@
 #ifndef __MENU_H__
 #define __MENU_H__
 
+#include <stdbool.h>
+
 #define MENU_MAX_LINES 5
 #define MENU_MAX_LEN (MENU_MAX_LINES * 32)
 
@@ -32,6 +34,6 @@ struct menu_state {
 void menu_init(void (*enter)(int), void (*exit)(void));
 void menu_deinit(void);
 
-void menu_run(void (*cb)(struct menu_state *));
+void menu_run(void (*cb)(struct menu_state *), bool centered);
 
 #endif // __MENU_H__

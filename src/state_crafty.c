@@ -116,7 +116,7 @@ void state_crafty_run(void) {
     uint32_t now = to_ms_since_boot(get_absolute_time());
     if (((now - last) >= CRAFTY_UPDATE_TIME_MS) || (last == 0)) {
         last = now;
-        menu_run(draw);
+        menu_run(draw, true);
     }
 
     if (wait_for_disconnect && !ble_is_connected()) {

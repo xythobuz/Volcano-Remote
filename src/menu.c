@@ -102,13 +102,13 @@ void menu_deinit(void) {
     buttons_callback(NULL);
 }
 
-void menu_run(void (*draw)(struct menu_state *)) {
+void menu_run(void (*draw)(struct menu_state *), bool centered) {
     if (draw) {
         draw(&menu);
     }
 
     if (strncmp(buff, prev_buff, MENU_MAX_LEN) != 0) {
         strncpy(prev_buff, buff, MENU_MAX_LEN);
-        text_box(buff);
+        text_box(buff, centered);
     }
 }
