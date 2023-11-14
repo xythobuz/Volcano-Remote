@@ -37,6 +37,27 @@ struct workflow {
 
 static const struct workflow wf[WF_MAX_FLOWS] = {
     {
+        .name = "XXL",
+        .author = "xythobuz",
+        .steps = {
+            { .op = OP_WAIT_TEMPERATURE, .val = 1850 },
+            { .op = OP_WAIT_TIME, .val = 10000 },
+            { .op = OP_PUMP_TIME, .val = 8000 },
+
+            { .op = OP_WAIT_TEMPERATURE, .val = 1950 },
+            { .op = OP_WAIT_TIME, .val = 5000 },
+            { .op = OP_PUMP_TIME, .val = 25000 },
+
+            { .op = OP_WAIT_TEMPERATURE, .val = 2050 },
+            { .op = OP_WAIT_TIME, .val = 5000 },
+            { .op = OP_PUMP_TIME, .val = 25000 },
+
+            NOTIFY, NOTIFY, NOTIFY, NOTIFY,
+
+            { .op = OP_SET_TEMPERATURE, .val = 1900 },
+        },
+        .count = 18,
+    }, {
         .name = "Default",
         .author = "xythobuz",
         .steps = {
@@ -123,7 +144,7 @@ static const struct workflow wf[WF_MAX_FLOWS] = {
     },
 };
 
-static const uint16_t count = 4;
+static const uint16_t count = 5;
 
 static enum wf_status status = WF_IDLE;
 static uint16_t wf_i = 0;
