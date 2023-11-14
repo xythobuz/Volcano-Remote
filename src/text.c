@@ -54,7 +54,7 @@ static void pixel_callback(int16_t x, int16_t y, uint8_t count, uint8_t alpha,
     if (x < 0 || x + count >= s->options->width) return;
 
     while (count--) {
-        lcd_write_point(240 - y - 1, x,
+        lcd_write_point(x, y,
                         blend(s->options->fg, s->options->bg, alpha));
         x++;
     }
@@ -75,22 +75,22 @@ static bool line_callback(const char *line, uint16_t count, void *state) {
         int16_t line_height = s->options->font->font->line_height;
 
         if (s->options->alignment == MF_ALIGN_LEFT) {
-            lcd_write_rect(240 - s->options->y - 1 - line_height,
-                           s->options->x,
-                           240 - s->options->y - 1,
+            lcd_write_rect(s->options->x,
+                           s->options->y,
                            s->options->x + width,
+                           s->options->y + line_height,
                            s->options->bg);
         } else if (s->options->alignment == MF_ALIGN_CENTER) {
-            lcd_write_rect(240 - s->options->y - 1 - line_height,
-                           s->options->x + s->options->width / 2 - width / 2,
-                           240 - s->options->y - 1,
+            lcd_write_rect(s->options->x + s->options->width / 2 - width / 2,
+                           s->options->y,
                            s->options->x + s->options->width / 2 + width / 2,
+                           s->options->y + line_height,
                            s->options->bg);
         } else if (s->options->alignment == MF_ALIGN_RIGHT) {
-            lcd_write_rect(240 - s->options->y - 1 - line_height,
-                           s->options->x + s->options->width - width,
-                           240 - s->options->y - 1,
+            lcd_write_rect(s->options->x + s->options->width - width,
+                           s->options->y,
                            s->options->x + s->options->width,
+                           s->options->y + line_height,
                            s->options->bg);
         }
     }
@@ -181,10 +181,10 @@ void text_box(const char *s) {
         .font = &font,
     };
 
-    lcd_write_rect(240 - y - 1 - height,
-                   x,
-                   240 - y - 1,
+    lcd_write_rect(x,
+                   y,
                    x + width - 1,
+                   y + height - 1,
                    text.bg);
 
     text.text = s;

@@ -34,13 +34,13 @@
 #define BATT_INTERVAL_MS 777
 
 void image_draw(const char *data, uint width, uint height) {
-    for (uint x = 0; x < width; x++) {
-        for (uint y = 0; y < height; y++) {
+    for (uint y = 0; y < height; y++) {
+        for (uint x = 0; x < width; x++) {
             uint32_t pixel[3];
             HEADER_PIXEL(data, pixel);
 
             uint32_t color = RGB_565(pixel[0], pixel[1], pixel[2]);
-            lcd_write_point(240 - x - 1, y, color);
+            lcd_write_point(x, y, color);
         }
     }
 }
