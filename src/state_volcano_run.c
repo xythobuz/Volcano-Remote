@@ -79,6 +79,17 @@ void state_volcano_run_exit(void) {
 static void draw(struct menu_state *menu) {
     struct wf_state state = wf_status();
 
+    if (state.status == WF_IDLE) {
+        if (wait_for_connect) {
+            snprintf(menu->buff, MENU_MAX_LEN,
+                     "Connecting\nand\nDiscovering");
+        } else if (wait_for_disconnect) {
+            snprintf(menu->buff, MENU_MAX_LEN,
+                     "Disconnecting");
+        }
+        return;
+    }
+
     int pos = 0;
     pos += snprintf(menu->buff + pos, MENU_MAX_LEN - pos,
                     "step %d / %d\n", state.index, state.count);
