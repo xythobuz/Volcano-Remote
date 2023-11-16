@@ -99,7 +99,7 @@ void draw_battery_indicator(void) {
     uint32_t c = RGB_565(0xFF, 0x00, 0x00);
     if (lipo_charging()) {
         //                     "Batt:   99.9%   (4.20V)"
-        snprintf(s, sizeof(s), "Batt: Charging! (%.2fV)", v);
+        snprintf(s, sizeof(s), "Batt:     Charging     ");
         c = RGB_565(0xFF, 0xFF, 0x00);
     } else {
         float percentage = lipo_percentage(v);

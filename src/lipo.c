@@ -18,6 +18,8 @@
  * See <http://www.gnu.org/licenses/>.
  */
 
+#define LIPO_USE_PERCENTAGE_CURVE
+
 #include <math.h>
 
 #include "stdbool.h"
@@ -37,8 +39,11 @@
 // Pin used for ADC 0
 #define PICO_FIRST_ADC_PIN 26
 
+#ifndef LIPO_USE_PERCENTAGE_CURVE
 static const float full_battery = 4.1f;
 static const float empty_battery = 3.2f;
+#endif // ! LIPO_USE_PERCENTAGE_CURVE
+
 static const float low_pass_factor = 0.9f;
 
 bool lipo_charging(void) {
@@ -110,7 +115,21 @@ float lipo_voltage(void) {
 }
 
 float lipo_percentage(float voltage) {
-    float percentage = 100.0f * ((voltage - empty_battery) / (full_battery - empty_battery));
+    float percentage;
+
+#ifdef LIPO_USE_PERCENTAGE_CURVE
+    /*
+     * Try to linearize the LiPo discharge curve.
+     * https://electronics.stackexchange.com/a/551667
+     *
+     * Seems to work relatively well, although
+     * "stopping" at 3.5V feels a bit high to me.
+     */
+    percentage = 123.0f - (123.0f / powf(1.0f + powf(voltage / 3.7f, 80.0f), 0.165f));
+#else // LIPO_USE_PERCENTAGE_CURVE
+    percentage = 100.0f * ((voltage - empty_battery) / (full_battery - empty_battery));
+#endif // LIPO_USE_PERCENTAGE_CURVE
+
     if (percentage >= 99.9f) {
         percentage = 99.9f;
     } else if (percentage < 0.0f) {
