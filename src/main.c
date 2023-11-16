@@ -53,7 +53,7 @@ int main(void) {
     debug("lcd_init");
     lcd_init();
     draw_splash();
-    lcd_set_backlight(0xFF00);
+    lcd_set_backlight(0xFF00 >> 1);
 
     if (watchdog_caused_reboot()) {
         debug("reset by watchdog");
