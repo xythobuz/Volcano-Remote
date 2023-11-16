@@ -159,7 +159,9 @@ static void do_step(void) {
     case OP_WAIT_TEMPERATURE:
         debug("workflow temp %.1f C", wf[wf_i].steps[step].val / 10.0);
         start_val = volcano_get_current_temp();
-        volcano_set_target_temp(wf[wf_i].steps[step].val);
+        do {
+            volcano_set_target_temp(wf[wf_i].steps[step].val);
+        } while (volcano_get_target_temp() != wf[wf_i].steps[step].val);
         break;
 
     case OP_PUMP_TIME:
@@ -253,6 +255,12 @@ void wf_run(void) {
 
     case OP_WAIT_TEMPERATURE: {
         uint16_t temp = volcano_get_current_temp();
+
+        // volcano does not provide a temperature when cold
+        if (start_val == 0) {
+            start_val = temp;
+        }
+
         curr_val = temp;
         done = (temp >= (wf[wf_i].steps[step].val - 5));
         break;
