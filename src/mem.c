@@ -55,7 +55,7 @@ static_assert(sizeof(struct mem_contents) < FLASH_SECTOR_SIZE,
               "Config needs to fit inside a flash sector");
 
 static uint32_t calc_checksum(const struct mem_contents *data) {
-    uint32_t c = 0x4223DEAD;
+    uint32_t c = 0xFFFFFFFF;
     const uint8_t *d = (const uint8_t *)data;
 
     const size_t offset_checksum = offsetof(struct mem_contents, checksum);
@@ -66,10 +66,15 @@ static uint32_t calc_checksum(const struct mem_contents *data) {
             continue;
         }
 
+        // adapted from "Hacker's Delight"
         c ^= d[i];
+        for (size_t j = 0; j < 8; j++) {
+            uint32_t mask = -(c & 1);
+            c = (c >> 1) ^ (0xEDB88320 & mask);
+        }
     }
 
-    return c;
+    return ~c;
 }
 
 void mem_init(void) {
