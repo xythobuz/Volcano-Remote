@@ -31,6 +31,7 @@
 
 #include "config.h"
 #include "fat_disk.h"
+#include "debug_disk.h"
 #include "log.h"
 
 static bool medium_available = false;
@@ -179,6 +180,12 @@ int32_t tud_msc_scsi_cb (uint8_t lun, uint8_t const scsi_cmd[16],
             } else {
                 debug("Host wants to lock medium.");
                 medium_locked = true;
+
+#ifdef AUTO_LOG_ON_MASS_STORAGE
+                debug_disk_mount();
+                log_dump_to_disk();
+                debug_disk_unmount();
+#endif // AUTO_LOG_ON_MASS_STORAGE
             }
         } else {
             // Allow medium removal
