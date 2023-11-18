@@ -19,7 +19,15 @@
 #ifndef __USB_MSC_H__
 #define __USB_MSC_H__
 
+/*
+ * Available: a disk is present in the drive
+ * Locked: the host wants to prevent disk removal
+ */
+
+bool msc_is_medium_locked(void);
 bool msc_is_medium_available(void);
+
+// should only be set to false when unlocked
 void msc_set_medium_available(bool state);
 
 #endif // __USB_MSC_H__

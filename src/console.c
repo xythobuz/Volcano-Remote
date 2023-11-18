@@ -136,6 +136,9 @@ static void cnsl_interpret(const char *line) {
         println("Currently %s. %s now.",
                 state ? "mounted" : "unmounted",
                 state ? "Unplugging" : "Plugging in");
+        if (state && msc_is_medium_locked()) {
+            println("Warning: host has locked medium. Unmounting anyway.");
+        }
         msc_set_medium_available(!state);
     } else if (strcmp(line, "power") == 0) {
         float volt = lipo_voltage();

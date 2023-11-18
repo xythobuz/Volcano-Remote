@@ -33,18 +33,19 @@
 #include "fat_disk.h"
 #include "log.h"
 
-static bool ejected = false;
 static bool medium_available = false;
+static bool medium_locked = false;
 
 bool msc_is_medium_available(void) {
     return medium_available;
 }
 
+bool msc_is_medium_locked(void) {
+    return medium_locked;
+}
+
 void msc_set_medium_available(bool state) {
     medium_available = state;
-    if (state) {
-        ejected = false;
-    }
 }
 
 // Invoked when received SCSI_CMD_INQUIRY
@@ -104,6 +105,7 @@ bool tud_msc_start_stop_cb(uint8_t lun, uint8_t power_condition,
         // unload disk storage
         debug("unload disk storage %d", load_eject);
         if (load_eject) {
+            debug("Host ejected medium. Unplugging disk.");
             medium_available = false;
         }
     }
@@ -176,14 +178,15 @@ int32_t tud_msc_scsi_cb (uint8_t lun, uint8_t const scsi_cmd[16],
                 resplen = -1;
             } else {
                 debug("Host wants to lock medium.");
+                medium_locked = true;
             }
         } else {
             // Allow medium removal
             if (medium_available) {
-                debug("Host ejected medium. Unplugging disk.");
-                medium_available = false;
+                debug("Host unlocked medium.");
+                medium_locked = false;
             } else {
-                debug("host ejected non-existing medium. Not supported.");
+                debug("host unlocked non-existing medium. Not supported.");
                 resplen = -1;
             }
         }

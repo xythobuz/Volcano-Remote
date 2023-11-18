@@ -100,7 +100,7 @@ void debug_disk_init(void) {
     }
 
     // maximum length: 11 bytes
-    f_setlabel("DEBUG DISK");
+    f_setlabel("Volcano RC");
 
     write_readme();
 

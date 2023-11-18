@@ -26,6 +26,7 @@
 #include "console.h"
 #include "log.h"
 #include "usb.h"
+#include "usb_msc.h"
 #include "fat_disk.h"
 #include "debug_disk.h"
 #include "buttons.h"
@@ -87,6 +88,10 @@ int main(void) {
 
     debug("debug_disk_init");
     debug_disk_init();
+
+#ifdef AUTO_MOUNT_MASS_STORAGE
+    msc_set_medium_available(true);
+#endif // AUTO_MOUNT_MASS_STORAGE
 
     watchdog_enable(WATCHDOG_PERIOD_MS, 1);
 
