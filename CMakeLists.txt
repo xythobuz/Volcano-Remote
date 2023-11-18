@@ -87,6 +87,7 @@ target_sources(gadget PUBLIC
     src/state_volcano_run.c
     src/crafty.c
     src/state_crafty.c
+    src/mem.c
 
     ${CMAKE_CURRENT_BINARY_DIR}/fatfs/ff.c
     ${CMAKE_CURRENT_BINARY_DIR}/fatfs/ffunicode.c
@@ -147,6 +148,8 @@ target_link_libraries(gadget
     pico_btstack_ble
     pico_btstack_cyw43
     pico_cyw43_arch_threadsafe_background
+    hardware_flash
+    pico_flash
 )
 
 target_compile_definitions(gadget PUBLIC

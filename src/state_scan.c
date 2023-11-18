@@ -58,8 +58,8 @@ void state_scan_enter(void) {
 }
 
 void state_scan_exit(void) {
-    menu_deinit();
     ble_scan(BLE_SCAN_OFF);
+    menu_deinit();
 }
 
 static void draw(struct menu_state *menu) {

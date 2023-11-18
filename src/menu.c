@@ -22,6 +22,7 @@
 #include "buttons.h"
 #include "text.h"
 #include "lcd.h"
+#include "mem.h"
 #include "menu.h"
 
 static char prev_buff[MENU_MAX_LEN] = {0};
@@ -37,6 +38,7 @@ static void menu_buttons(enum buttons btn, bool state) {
             backlight_value = backlight_value >> 1;
         }
         lcd_set_backlight(backlight_value);
+        mem_data()->backlight = backlight_value;
         return;
     } else if (state && (btn == BTN_RIGHT)) {
         uint16_t backlight_value = lcd_get_backlight();
@@ -44,6 +46,7 @@ static void menu_buttons(enum buttons btn, bool state) {
             backlight_value = backlight_value << 1;
         }
         lcd_set_backlight(backlight_value);
+        mem_data()->backlight = backlight_value;
         return;
     } else if (state && ((btn == BTN_ENTER) || (btn == BTN_A))) {
         if (enter_callback) {
@@ -100,6 +103,7 @@ void menu_init(void (*enter)(int), void (*exit)(void)) {
 
 void menu_deinit(void) {
     buttons_callback(NULL);
+    mem_write();
 }
 
 void menu_run(void (*draw)(struct menu_state *), bool centered) {

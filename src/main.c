@@ -33,6 +33,7 @@
 #include "lcd.h"
 #include "text.h"
 #include "image.h"
+#include "mem.h"
 #include "state.h"
 #include "serial.h"
 #include "workflow.h"
@@ -50,10 +51,13 @@ int main(void) {
     serial_init();
     usb_init();
 
+    debug("mem_init");
+    mem_init();
+
     debug("lcd_init");
     lcd_init();
     draw_splash();
-    lcd_set_backlight(0xFF00 >> 1);
+    lcd_set_backlight(mem_data()->backlight);
 
     if (watchdog_caused_reboot()) {
         debug("reset by watchdog");
