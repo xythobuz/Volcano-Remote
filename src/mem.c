@@ -20,13 +20,22 @@
 
 #include "hardware/flash.h"
 #include "pico/flash.h"
+#include "pico/btstack_flash_bank.h"
 
 #include "config.h"
 #include "log.h"
 #include "mem.h"
 
 #define FLASH_LOCK_TIMEOUT_MS 500
-#define FLASH_OFFSET (PICO_FLASH_SIZE_BYTES - FLASH_SECTOR_SIZE)
+
+/*
+ * Last two flash pages are used by BTstack.
+ * So we use the third-last page for our persistent storage.
+ */
+#define FLASH_OFFSET (PICO_FLASH_BANK_STORAGE_OFFSET - FLASH_SECTOR_SIZE)
+
+// TODO make sure last flash page is not filled by compiler
+// TODO add checksum
 
 static struct mem_data data_ram = MEM_DATA_INIT;
 static const uint8_t *data_flash = (const uint8_t *)(XIP_BASE + FLASH_OFFSET);
