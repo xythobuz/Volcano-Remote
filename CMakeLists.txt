@@ -157,6 +157,8 @@ target_compile_definitions(gadget PUBLIC
     CYW43_LWIP=0
 )
 
+pico_set_linker_script(gadget ${CMAKE_CURRENT_SOURCE_DIR}/src/memmap_custom.ld)
+
 # fix for Errata RP2040-E5 (the fix requires use of GPIO 15)
 target_compile_definitions(gadget PUBLIC PICO_RP2040_USB_DEVICE_ENUMERATION_FIX=1)
 

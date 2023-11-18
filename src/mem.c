@@ -31,10 +31,10 @@
 /*
  * Last two flash pages are used by BTstack.
  * So we use the third-last page for our persistent storage.
+ * This is kept clear by our custom linker script.
  */
 #define FLASH_OFFSET (PICO_FLASH_BANK_STORAGE_OFFSET - FLASH_SECTOR_SIZE)
 
-// TODO make sure last flash page is not filled by compiler
 // TODO add checksum
 
 static struct mem_data data_ram = MEM_DATA_INIT;
