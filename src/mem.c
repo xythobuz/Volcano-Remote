@@ -35,24 +35,59 @@
  */
 #define FLASH_OFFSET (PICO_FLASH_BANK_STORAGE_OFFSET - FLASH_SECTOR_SIZE)
 
-// TODO add checksum
+struct mem_contents {
+    uint8_t version;
+    uint32_t checksum;
 
-static struct mem_data data_ram = MEM_DATA_INIT;
+    struct mem_data data;
+} __attribute__((packed));
+
+#define MEM_CONTENTS_INIT { \
+    .version = MEM_VERSION, \
+    .checksum = 0,          \
+    .data = MEM_DATA_INIT,  \
+}
+
+static struct mem_contents data_ram = MEM_CONTENTS_INIT;
 static const uint8_t *data_flash = (const uint8_t *)(XIP_BASE + FLASH_OFFSET);
 
-static_assert(sizeof(struct mem_data) < FLASH_SECTOR_SIZE,
+static_assert(sizeof(struct mem_contents) < FLASH_SECTOR_SIZE,
               "Config needs to fit inside a flash sector");
+
+static uint32_t calc_checksum(const struct mem_contents *data) {
+    uint32_t c = 0x4223DEAD;
+    const uint8_t *d = (const uint8_t *)data;
+
+    const size_t offset_checksum = offsetof(struct mem_contents, checksum);
+    const size_t size_checksum = sizeof(data->checksum);
+
+    for (size_t i = 0; i < sizeof(struct mem_contents); i++) {
+        if ((i >= offset_checksum) && (i < (offset_checksum + size_checksum))) {
+            continue;
+        }
+
+        c ^= d[i];
+    }
+
+    return c;
+}
 
 void mem_init(void) {
     if (!flash_safe_execute_core_init()) {
         debug("error calling flash_safe_execute_core_init");
     }
 
-    const struct mem_data *flash_ptr = (const struct mem_data *)data_flash;
+    const struct mem_contents *flash_ptr = (const struct mem_contents *)data_flash;
 
     if (flash_ptr->version == MEM_VERSION) {
         debug("found matching config (0x%02X)", flash_ptr->version);
-        data_ram = *flash_ptr;
+
+        uint32_t checksum = calc_checksum(flash_ptr);
+        if (checksum != flash_ptr->checksum) {
+            debug("invalid checksum (0x%08lX != 0x%08lX)", flash_ptr->checksum, checksum);
+        } else {
+            data_ram = *flash_ptr;
+        }
     } else {
         debug("invalid config (0x%02X != 0x%02X)", flash_ptr->version, MEM_VERSION);
     }
@@ -66,11 +101,14 @@ static void mem_write_flash(void *param) {
 }
 
 void mem_write(void) {
-    if (memcmp(&data_ram, data_flash, sizeof(struct mem_data)) == 0) {
+    if (memcmp(&data_ram, data_flash, sizeof(struct mem_contents)) == 0) {
         debug("no change, skip write");
         return;
     }
 
+    data_ram.checksum = calc_checksum(&data_ram);
+
+    debug("writing new data");
     int r = flash_safe_execute(mem_write_flash, &data_ram, FLASH_LOCK_TIMEOUT_MS);
     if (r != PICO_OK) {
         debug("error calling mem_write_flash: %d", r);
@@ -78,5 +116,5 @@ void mem_write(void) {
 }
 
 struct mem_data *mem_data(void) {
-    return &data_ram;
+    return &data_ram.data;
 }

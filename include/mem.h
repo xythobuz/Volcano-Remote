@@ -24,12 +24,10 @@
 #define MEM_VERSION 0x01
 
 struct mem_data {
-    uint8_t version;
     uint16_t backlight;
 } __attribute__((packed));
 
 #define MEM_DATA_INIT {         \
-    .version = MEM_VERSION,     \
     .backlight = (0xFF00 >> 1), \
 }
 
