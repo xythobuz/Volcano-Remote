@@ -35,7 +35,6 @@ static bd_addr_t ble_addr = {0};
 static bd_addr_type_t ble_type = 0;
 static bool wait_for_connect = false;
 static bool wait_for_disconnect = false;
-static bool aborted = false;
 
 void state_volcano_run_index(uint16_t index) {
     wf_index = index;
@@ -50,7 +49,6 @@ static void volcano_buttons(enum buttons btn, bool state) {
     if (state && (btn == BTN_Y)) {
         if ((!wait_for_connect) && (!wait_for_disconnect)) {
             debug("workflow abort");
-            aborted = true;
             wf_reset();
             volcano_set_pump_state(false);
             volcano_set_heater_state(false);
@@ -67,8 +65,6 @@ void state_volcano_run_enter(void) {
     debug("workflow connect");
     ble_connect(ble_addr, ble_type);
     wait_for_connect = true;
-
-    aborted = false;
 }
 
 void state_volcano_run_exit(void) {
@@ -139,7 +135,7 @@ void state_volcano_run_run(void) {
     menu_run(draw, true);
 
     // auto disconnect when end of workflow is reached
-    if ((!wait_for_connect) && (!aborted)) {
+    if ((!wait_for_connect) && (!wait_for_disconnect)) {
         struct wf_state state = wf_status();
         if (state.status == WF_IDLE) {
             debug("workflow disconnect");
