@@ -90,7 +90,7 @@ void draw_splash(void) {
 }
 
 void draw_battery_indicator(void) {
-    static const float batt_warn_limit = 15.0f;
+    static const float batt_warn_limit = 0.0f;
     static char prev_s[30] = {0};
     static uint32_t prev_c = 0;
 
