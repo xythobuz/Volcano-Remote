@@ -47,6 +47,8 @@ void main_loop_hw(void) {
 }
 
 int main(void) {
+    watchdog_enable(WATCHDOG_PERIOD_MS, 1);
+
     // required for debug console
     cnsl_init();
     serial_init();
@@ -57,6 +59,10 @@ int main(void) {
 
     debug("lcd_init");
     lcd_init();
+
+    watchdog_update();
+
+    debug("draw_splash");
     draw_splash();
     lcd_set_backlight(mem_data()->backlight);
 
@@ -75,7 +81,11 @@ int main(void) {
     debug("cyw43_arch_init");
     if (cyw43_arch_init()) {
         debug("cyw43_arch_init failed");
+        lcd_set_backlight(0x00FF);
+        while (1) {}
     }
+
+    watchdog_update();
 
     debug("heartbeat_init");
     heartbeat_init();
@@ -93,7 +103,7 @@ int main(void) {
     msc_set_medium_available(true);
 #endif // AUTO_MOUNT_MASS_STORAGE
 
-    watchdog_enable(WATCHDOG_PERIOD_MS, 1);
+    watchdog_update();
 
     debug("init done");
     battery_run();
