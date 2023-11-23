@@ -22,6 +22,7 @@
 #include "state_volcano_workflow.h"
 #include "state_volcano_run.h"
 #include "state_crafty.h"
+#include "state_edit_workflow.h"
 #include "state.h"
 
 #define stringify(name) # name
@@ -59,6 +60,11 @@ static const struct state states[STATE_INVALID + 1] = {
         .enter = state_crafty_enter,
         .exit = state_crafty_exit,
         .run = state_crafty_run,
+    }, {
+        .name = stringify(STATE_EDIT_WORKFLOW),
+        .enter = state_edit_wf_enter,
+        .exit = state_edit_wf_exit,
+        .run = state_edit_wf_run,
     }, {
         .name = stringify(STATE_INVALID),
         .enter = NULL,

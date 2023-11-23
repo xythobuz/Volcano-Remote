@@ -25,6 +25,7 @@ enum system_state {
     STATE_VOLCANO_WORKFLOW,
     STATE_VOLCANO_RUN,
     STATE_CRAFTY,
+    STATE_EDIT_WORKFLOW,
 
     STATE_INVALID,
 };

@@ -59,7 +59,7 @@ static void volcano_buttons(enum buttons btn, bool state) {
 }
 
 void state_volcano_run_enter(void) {
-    menu_init(NULL, NULL);
+    menu_init(NULL, NULL, NULL, NULL);
     buttons_callback(volcano_buttons);
 
     debug("workflow connect");
@@ -93,12 +93,12 @@ static void draw(struct menu_state *menu) {
     switch (state.step.op) {
     case OP_SET_TEMPERATURE:
         pos += snprintf(menu->buff + pos, MENU_MAX_LEN - pos,
-                        "\nset temp %.1f C", state.step.val / 10.0f);
+                        "\n%s", wf_step_str(state.step));
         break;
 
     case OP_WAIT_TEMPERATURE:
         pos += snprintf(menu->buff + pos, MENU_MAX_LEN - pos,
-                        "wait temp %.1f C\n", state.step.val / 10.0f);
+                        "%s\n", wf_step_str(state.step));
         pos += snprintf(menu->buff + pos, MENU_MAX_LEN - pos,
                         "%.1f -> %.1f -> %.1f",
                         state.start_val / 10.0f,
@@ -109,9 +109,7 @@ static void draw(struct menu_state *menu) {
     case OP_WAIT_TIME:
     case OP_PUMP_TIME:
         pos += snprintf(menu->buff + pos, MENU_MAX_LEN - pos,
-                        "%s time %.1f s\n",
-                        (state.step.op == OP_WAIT_TIME) ? "wait" : "pump",
-                        state.step.val / 1000.0f);
+                        "%s\n", wf_step_str(state.step));
         pos += snprintf(menu->buff + pos, MENU_MAX_LEN - pos,
                         "%.0f -> %.0f -> %.0f",
                         state.start_val / 1000.0f,

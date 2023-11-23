@@ -21,6 +21,9 @@
 
 #include <stdint.h>
 
+#define WF_MAX_STEPS 42
+#define WF_MAX_FLOWS 6
+
 enum wf_op {
     OP_SET_TEMPERATURE = 0,
     OP_WAIT_TEMPERATURE,
@@ -31,6 +34,13 @@ enum wf_op {
 struct wf_step {
     enum wf_op op;
     uint16_t val;
+};
+
+struct workflow {
+    const char *name;
+    const char *author;
+    struct wf_step steps[WF_MAX_STEPS];
+    uint16_t count;
 };
 
 enum wf_status {
@@ -48,13 +58,28 @@ struct wf_state {
 };
 
 uint16_t wf_count(void);
+
+void wf_move_down(uint16_t index);
+void wf_move_up(uint16_t index);
+
 const char *wf_name(uint16_t index);
 const char *wf_author(uint16_t index);
+
+uint16_t wf_steps(uint16_t index);
+
+void wf_move_step_down(uint16_t index, uint16_t step);
+void wf_move_step_up(uint16_t index, uint16_t step);
+
+struct wf_step wf_get_step(uint16_t index, uint16_t step);
+const char *wf_step_str(struct wf_step step);
 
 struct wf_state wf_status(void);
 void wf_start(uint16_t index);
 
 void wf_reset(void);
 void wf_run(void);
+
+extern const uint16_t wf_default_count;
+extern const struct workflow wf_default_data[];
 
 #endif // __WORKFLOW_H__

@@ -29,6 +29,8 @@ static char prev_buff[MENU_MAX_LEN] = {0};
 static char buff[MENU_MAX_LEN] = {0};
 static struct menu_state menu = { .off = 0, .selection = -1, .length = 0, .buff = buff };
 static void (*enter_callback)(int) = NULL;
+static void (*up_callback)(int) = NULL;
+static void (*down_callback)(int) = NULL;
 static void (*exit_callback)(void) = NULL;
 
 static void menu_buttons(enum buttons btn, bool state) {
@@ -51,6 +53,16 @@ static void menu_buttons(enum buttons btn, bool state) {
     } else if (state && ((btn == BTN_ENTER) || (btn == BTN_A))) {
         if (enter_callback) {
             enter_callback(menu.selection);
+        }
+        return;
+    } else if (state && (btn == BTN_B)) {
+        if (up_callback) {
+            up_callback(menu.selection);
+        }
+        return;
+    } else if (state && (btn == BTN_X)) {
+        if (down_callback) {
+            down_callback(menu.selection);
         }
         return;
     } else if (state && (btn == BTN_Y)) {
@@ -91,12 +103,17 @@ static void menu_buttons(enum buttons btn, bool state) {
     }
 }
 
-void menu_init(void (*enter)(int), void (*exit)(void)) {
+void menu_init(void (*enter)(int),
+               void (*up)(int),
+               void (*down)(int),
+               void (*exit)(void)) {
     menu.off = 0;
     menu.selection = -1;
     menu.length = 0;
 
     enter_callback = enter;
+    up_callback = up;
+    down_callback = down;
     exit_callback = exit;
     buttons_callback(menu_buttons);
 }

@@ -16,135 +16,13 @@
  * See <http://www.gnu.org/licenses/>.
  */
 
+#include <stdio.h>
+
 #include "config.h"
 #include "log.h"
+#include "mem.h"
 #include "volcano.h"
 #include "workflow.h"
-
-#define WF_MAX_STEPS 42
-#define WF_MAX_FLOWS 6
-
-struct workflow {
-    const char *name;
-    const char *author;
-    struct wf_step steps[WF_MAX_STEPS];
-    uint16_t count;
-};
-
-#define NOTIFY \
-    { .op = OP_WAIT_TIME, .val = 1000 }, \
-    { .op = OP_PUMP_TIME, .val = 1000 }
-
-static const struct workflow wf[WF_MAX_FLOWS] = {
-    {
-        .name = "XXL",
-        .author = "xythobuz",
-        .steps = {
-            { .op = OP_WAIT_TEMPERATURE, .val = 1850 },
-            { .op = OP_WAIT_TIME, .val = 10000 },
-            { .op = OP_PUMP_TIME, .val = 8000 },
-
-            { .op = OP_WAIT_TEMPERATURE, .val = 1950 },
-            { .op = OP_WAIT_TIME, .val = 5000 },
-            { .op = OP_PUMP_TIME, .val = 25000 },
-
-            { .op = OP_WAIT_TEMPERATURE, .val = 2050 },
-            { .op = OP_WAIT_TIME, .val = 5000 },
-            { .op = OP_PUMP_TIME, .val = 25000 },
-
-            NOTIFY, NOTIFY, NOTIFY, NOTIFY,
-
-            { .op = OP_SET_TEMPERATURE, .val = 1900 },
-        },
-        .count = 18,
-    }, {
-        .name = "Default",
-        .author = "xythobuz",
-        .steps = {
-            { .op = OP_WAIT_TEMPERATURE, .val = 1850 },
-            { .op = OP_WAIT_TIME, .val = 10000 },
-            { .op = OP_PUMP_TIME, .val = 5000 },
-
-            { .op = OP_WAIT_TEMPERATURE, .val = 1950 },
-            { .op = OP_WAIT_TIME, .val = 5000 },
-            { .op = OP_PUMP_TIME, .val = 20000 },
-
-            { .op = OP_WAIT_TEMPERATURE, .val = 2050 },
-            { .op = OP_WAIT_TIME, .val = 5000 },
-            { .op = OP_PUMP_TIME, .val = 20000 },
-
-            NOTIFY, NOTIFY, NOTIFY, NOTIFY,
-
-            { .op = OP_SET_TEMPERATURE, .val = 1900 },
-        },
-        .count = 18,
-    }, {
-        .name = "Vorbi",
-        .author = "Rinor",
-        .steps = {
-            { .op = OP_WAIT_TEMPERATURE, .val = 1760 },
-            { .op = OP_WAIT_TIME, .val = 10000 },
-            { .op = OP_PUMP_TIME, .val = 6000 },
-
-            { .op = OP_WAIT_TEMPERATURE, .val = 1870 },
-            { .op = OP_WAIT_TIME, .val = 5000 },
-            { .op = OP_PUMP_TIME, .val = 10000 },
-
-            { .op = OP_WAIT_TEMPERATURE, .val = 2040 },
-            { .op = OP_WAIT_TIME, .val = 3000 },
-            { .op = OP_PUMP_TIME, .val = 10000 },
-
-            { .op = OP_WAIT_TEMPERATURE, .val = 2170 },
-            { .op = OP_WAIT_TIME, .val = 5000 },
-            { .op = OP_PUMP_TIME, .val = 10000 },
-        },
-        .count = 12,
-    }, {
-        .name = "Relaxo",
-        .author = "xythobuz",
-        .steps = {
-            { .op = OP_WAIT_TEMPERATURE, .val = 1750 },
-            { .op = OP_WAIT_TIME, .val = 10000 },
-            { .op = OP_PUMP_TIME, .val = 5000 },
-
-            { .op = OP_WAIT_TEMPERATURE, .val = 1850 },
-            { .op = OP_WAIT_TIME, .val = 5000 },
-            { .op = OP_PUMP_TIME, .val = 20000 },
-
-            { .op = OP_WAIT_TEMPERATURE, .val = 1950 },
-            { .op = OP_WAIT_TIME, .val = 5000 },
-            { .op = OP_PUMP_TIME, .val = 20000 },
-
-            NOTIFY, NOTIFY, NOTIFY, NOTIFY,
-
-            { .op = OP_SET_TEMPERATURE, .val = 1900 },
-        },
-        .count = 18,
-    }, {
-        .name = "Hotty",
-        .author = "xythobuz",
-        .steps = {
-            { .op = OP_WAIT_TEMPERATURE, .val = 1900 },
-            { .op = OP_WAIT_TIME, .val = 10000 },
-            { .op = OP_PUMP_TIME, .val = 5000 },
-
-            { .op = OP_WAIT_TEMPERATURE, .val = 2050 },
-            { .op = OP_WAIT_TIME, .val = 5000 },
-            { .op = OP_PUMP_TIME, .val = 20000 },
-
-            { .op = OP_WAIT_TEMPERATURE, .val = 2200 },
-            { .op = OP_WAIT_TIME, .val = 5000 },
-            { .op = OP_PUMP_TIME, .val = 20000 },
-
-            NOTIFY, NOTIFY, NOTIFY, NOTIFY,
-
-            { .op = OP_SET_TEMPERATURE, .val = 1900 },
-        },
-        .count = 18,
-    },
-};
-
-static const uint16_t count = 5;
 
 static enum wf_status status = WF_IDLE;
 static uint16_t wf_i = 0;
@@ -154,27 +32,27 @@ static uint16_t start_val = 0;
 static uint16_t curr_val = 0;
 
 static void do_step(void) {
-    switch (wf[wf_i].steps[step].op) {
+    switch (mem_data()->wf[wf_i].steps[step].op) {
     case OP_SET_TEMPERATURE:
     case OP_WAIT_TEMPERATURE:
-        debug("workflow temp %.1f C", wf[wf_i].steps[step].val / 10.0);
+        debug("workflow temp %.1f C", mem_data()->wf[wf_i].steps[step].val / 10.0);
         start_val = volcano_get_current_temp();
         do {
-            volcano_set_target_temp(wf[wf_i].steps[step].val);
-        } while (volcano_get_target_temp() != wf[wf_i].steps[step].val);
+            volcano_set_target_temp(mem_data()->wf[wf_i].steps[step].val);
+        } while (volcano_get_target_temp() != mem_data()->wf[wf_i].steps[step].val);
         break;
 
     case OP_PUMP_TIME:
         volcano_set_pump_state(true);
         start_t = to_ms_since_boot(get_absolute_time());
         start_val = 0;
-        debug("workflow pump %.3f s", wf[wf_i].steps[step].val / 1000.0);
+        debug("workflow pump %.3f s", mem_data()->wf[wf_i].steps[step].val / 1000.0);
         break;
 
     case OP_WAIT_TIME:
         start_t = to_ms_since_boot(get_absolute_time());
         start_val = 0;
-        debug("workflow time %.3f s", wf[wf_i].steps[step].val / 1000.0);
+        debug("workflow time %.3f s", mem_data()->wf[wf_i].steps[step].val / 1000.0);
         break;
     }
 
@@ -182,31 +60,125 @@ static void do_step(void) {
 }
 
 uint16_t wf_count(void) {
-    return count;
+    return mem_data()->wf_count;
+}
+
+void wf_move_down(uint16_t index) {
+    if ((index < 1) || (index >= mem_data()->wf_count)) {
+        debug("invalid index %d", index);
+        return;
+    }
+
+    struct workflow tmp = mem_data()->wf[index - 1];
+    mem_data()->wf[index - 1] = mem_data()->wf[index];
+    mem_data()->wf[index] = tmp;
+}
+
+void wf_move_up(uint16_t index) {
+    if (index >= (mem_data()->wf_count - 1)) {
+        debug("invalid index %d", index);
+        return;
+    }
+
+    struct workflow tmp = mem_data()->wf[index + 1];
+    mem_data()->wf[index + 1] = mem_data()->wf[index];
+    mem_data()->wf[index] = tmp;
+}
+
+uint16_t wf_steps(uint16_t index) {
+    if (index >= mem_data()->wf_count) {
+        debug("invalid index %d", index);
+        return 0;
+    }
+    return mem_data()->wf[index].count;
+}
+
+void wf_move_step_down(uint16_t index, uint16_t step) {
+    if (index >= mem_data()->wf_count) {
+        debug("invalid index %d", index);
+        return;
+    }
+    if ((step < 1) || (step >= mem_data()->wf[index].count)) {
+        debug("invalid step %d", step);
+        return;
+    }
+
+    struct wf_step tmp = mem_data()->wf[index].steps[step - 1];
+    mem_data()->wf[index].steps[step - 1] = mem_data()->wf[index].steps[step];
+    mem_data()->wf[index].steps[step] = tmp;
+}
+
+void wf_move_step_up(uint16_t index, uint16_t step) {
+    if (index >= mem_data()->wf_count) {
+        debug("invalid index %d", index);
+        return;
+    }
+    if (step >= (mem_data()->wf[index].count - 1)) {
+        debug("invalid step %d", step);
+        return;
+    }
+
+    struct wf_step tmp = mem_data()->wf[index].steps[step + 1];
+    mem_data()->wf[index].steps[step + 1] = mem_data()->wf[index].steps[step];
+    mem_data()->wf[index].steps[step] = tmp;
+}
+
+struct wf_step wf_get_step(uint16_t index, uint16_t step) {
+    if (index >= mem_data()->wf_count) {
+        debug("invalid index %d", index);
+        return mem_data()->wf[0].steps[0];
+    }
+    return mem_data()->wf[index].steps[step];
+}
+
+const char *wf_step_str(struct wf_step step) {
+    static char buff[20];
+
+    switch (step.op) {
+    case OP_SET_TEMPERATURE:
+        snprintf(buff, sizeof(buff),
+                 "set temp %.1f C", step.val / 10.0f);
+        break;
+
+    case OP_WAIT_TEMPERATURE:
+        snprintf(buff, sizeof(buff),
+                 "wait temp %.1f C", step.val / 10.0f);
+        break;
+
+    case OP_WAIT_TIME:
+    case OP_PUMP_TIME:
+        snprintf(buff, sizeof(buff),
+                 "%s time %.1f s",
+                 (step.op == OP_WAIT_TIME) ? "wait" : "pump",
+                 step.val / 1000.0f);
+        break;
+    }
+
+    return buff;
 }
 
 const char *wf_name(uint16_t index) {
-    if (index >= count) {
+    if (index >= mem_data()->wf_count) {
         debug("invalid index %d", index);
         return NULL;
     }
-    return wf[index].name;
+    return mem_data()->wf[index].name;
 }
 
 const char *wf_author(uint16_t index) {
-    if (index >= count) {
+    if (index >= mem_data()->wf_count) {
         debug("invalid index %d", index);
         return NULL;
     }
-    return wf[index].author;
+    return mem_data()->wf[index].author;
 }
 
 struct wf_state wf_status(void) {
     struct wf_state s = {
         .status = status,
         .index = step,
-        .count = wf[wf_i].count,
-        .step = wf[wf_i].steps[step],
+        .count = mem_data()->wf[wf_i].count,
+        .step = mem_data()->wf[wf_i].steps[step],
         .start_val = start_val,
         .curr_val = curr_val,
     };
@@ -218,7 +190,7 @@ void wf_start(uint16_t index) {
         debug("workflow already running");
         return;
     }
-    if (index >= count) {
+    if (index >= mem_data()->wf_count) {
         debug("invalid index %d", index);
         return;
     }
@@ -248,7 +220,7 @@ void wf_run(void) {
 
     bool done = false;
 
-    switch (wf[wf_i].steps[step].op) {
+    switch (mem_data()->wf[wf_i].steps[step].op) {
     case OP_SET_TEMPERATURE:
         done = true;
         break;
@@ -262,7 +234,7 @@ void wf_run(void) {
         }
 
         curr_val = temp;
-        done = (temp >= (wf[wf_i].steps[step].val - 5));
+        done = (temp >= (mem_data()->wf[wf_i].steps[step].val - 5));
         break;
     }
 
@@ -271,18 +243,18 @@ void wf_run(void) {
         uint32_t now = to_ms_since_boot(get_absolute_time());
         uint32_t diff = now - start_t;
         curr_val = diff;
-        done = (diff >= wf[wf_i].steps[step].val);
+        done = (diff >= mem_data()->wf[wf_i].steps[step].val);
         break;
     }
     }
 
     if (done) {
-        if (wf[wf_i].steps[step].op == OP_PUMP_TIME) {
+        if (mem_data()->wf[wf_i].steps[step].op == OP_PUMP_TIME) {
             volcano_set_pump_state(false);
         }
 
         step++;
-        if (step >= wf[wf_i].count) {
+        if (step >= mem_data()->wf[wf_i].count) {
             status = WF_IDLE;
             volcano_set_heater_state(false);
             debug("workflow finished");

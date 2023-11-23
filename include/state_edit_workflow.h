@@ -1,5 +1,5 @@
 /*
- * mem.h
+ * state_edit_workflow.h
  *
  * Copyright (c) 2023 Thomas Buck (thomas@xythobuz.de)
  *
@@ -16,28 +16,15 @@
  * See <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __MEM_H__
-#define __MEM_H__
+#ifndef __STATE_EDIT_WORKFLOW_H__
+#define __STATE_EDIT_WORKFLOW_H__
 
 #include <stdint.h>
-#include "workflow.h"
 
-#define MEM_VERSION 0x02
+void state_edit_wf_index(uint16_t index);
 
-struct mem_data {
-    uint16_t backlight;
-    uint16_t wf_count;
-    struct workflow wf[WF_MAX_FLOWS];
-} __attribute__((packed));
+void state_edit_wf_enter(void);
+void state_edit_wf_exit(void);
+void state_edit_wf_run(void);
 
-
-// wf and wf_count are assigned in mem_init()
-#define MEM_DATA_INIT {           \
-    .backlight = (0xFF00 >> 1),   \
-}
-
-void mem_init(void);
-void mem_write(void);
-struct mem_data *mem_data(void);
-
-#endif // __MEM_H__
+#endif // __STATE_EDIT_WORKFLOW_H__

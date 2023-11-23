@@ -31,7 +31,10 @@ struct menu_state {
     char *buff;
 };
 
-void menu_init(void (*enter)(int), void (*exit)(void));
+void menu_init(void (*enter)(int),
+               void (*up)(int),
+               void (*down)(int),
+               void (*exit)(void));
 void menu_deinit(void);
 
 void menu_run(void (*cb)(struct menu_state *), bool centered);

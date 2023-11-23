@@ -88,6 +88,8 @@ target_sources(gadget PUBLIC
     src/crafty.c
     src/state_crafty.c
     src/mem.c
+    src/state_edit_workflow.c
+    src/workflow_default.c
 
     ${CMAKE_CURRENT_BINARY_DIR}/fatfs/ff.c
     ${CMAKE_CURRENT_BINARY_DIR}/fatfs/ffunicode.c

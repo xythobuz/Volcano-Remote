@@ -19,6 +19,10 @@
 #ifndef __STATE_VOLCANO_WORKFLOW_H__
 #define __STATE_VOLCANO_WORKFLOW_H__
 
+#include <stdbool.h>
+
+void state_volcano_wf_edit(bool edit);
+
 void state_volcano_wf_enter(void);
 void state_volcano_wf_exit(void);
 void state_volcano_wf_run(void);

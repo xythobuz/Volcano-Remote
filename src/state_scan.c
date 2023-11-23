@@ -24,6 +24,7 @@
 #include "models.h"
 #include "menu.h"
 #include "state.h"
+#include "state_volcano_workflow.h"
 #include "state_volcano_run.h"
 #include "state_crafty.h"
 #include "state_scan.h"
@@ -42,6 +43,7 @@ static void enter_cb(int selection) {
         if (devs++ == selection) {
             if (dev == DEV_VOLCANO) {
                 state_volcano_run_target(results[i].addr, results[i].type);
+                state_volcano_wf_edit(false);
                 state_switch(STATE_VOLCANO_WORKFLOW);
             } else if (dev == DEV_CRAFTY) {
                 state_crafty_target(results[i].addr, results[i].type);
@@ -52,8 +54,15 @@ static void enter_cb(int selection) {
     }
 }
 
+static void edit_cb(int selection) {
+    UNUSED(selection);
+
+    state_volcano_wf_edit(true);
+    state_switch(STATE_VOLCANO_WORKFLOW);
+}
+
 void state_scan_enter(void) {
-    menu_init(enter_cb, NULL);
+    menu_init(enter_cb, edit_cb, NULL, NULL);
     ble_scan(BLE_SCAN_ON);
 }
 

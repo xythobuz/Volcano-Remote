@@ -78,6 +78,11 @@ static uint32_t calc_checksum(const struct mem_contents *data) {
 }
 
 void mem_init(void) {
+    data_ram.data.wf_count = wf_default_count;
+    for (uint16_t i = 0; i < wf_default_count; i++) {
+        data_ram.data.wf[i] = wf_default_data[i];
+    }
+
     if (!flash_safe_execute_core_init()) {
         debug("error calling flash_safe_execute_core_init");
     }

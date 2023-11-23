@@ -1,5 +1,5 @@
 /*
- * state_volcano_workflow.c
+ * state_edit_workflow.c
  *
  * Copyright (c) 2023 Thomas Buck (thomas@xythobuz.de)
  *
@@ -23,41 +23,25 @@
 #include "menu.h"
 #include "workflow.h"
 #include "state.h"
-#include "state_volcano_run.h"
 #include "state_edit_workflow.h"
-#include "state_volcano_workflow.h"
 
-static bool edit_mode = false;
+static uint16_t wf_index = 0;
 
 static void enter_cb(int selection) {
-    if ((selection >= 0) && (selection < wf_count())) {
-        if (edit_mode) {
-            state_edit_wf_index(selection);
-            state_switch(STATE_EDIT_WORKFLOW);
-        } else {
-            state_volcano_run_index(selection);
-            state_switch(STATE_VOLCANO_RUN);
-        }
+    if ((selection >= 0) && (selection < wf_steps(wf_index))) {
+        // TODO edit value
     }
 }
 
 static void lower_cb(int selection) {
-    if (!edit_mode) {
-        return;
-    }
-
-    if ((selection > 0) && (selection < wf_count())) {
-        wf_move_down(selection);
+    if ((selection > 0) && (selection < wf_steps(wf_index))) {
+        wf_move_step_down(wf_index, selection);
     }
 }
 
 static void upper_cb(int selection) {
-    if (!edit_mode) {
-        return;
-    }
-
-    if ((selection >= 0) && (selection < (wf_count() - 1))) {
-        wf_move_up(selection);
+    if ((selection >= 0) && (selection < (wf_steps(wf_index) - 1))) {
+        wf_move_step_up(wf_index, selection);
     }
 }
 
@@ -65,24 +49,20 @@ static void exit_cb(void) {
     state_switch(STATE_SCAN);
 }
 
-void state_volcano_wf_edit(bool edit) {
-    edit_mode = edit;
+void state_edit_wf_index(uint16_t index) {
+    wf_index = index;
 }
 
-void state_volcano_wf_enter(void) {
-    if (edit_mode) {
-        menu_init(enter_cb, lower_cb, upper_cb, exit_cb);
-    } else {
-        menu_init(enter_cb, NULL, NULL, exit_cb);
-    }
+void state_edit_wf_enter(void) {
+    menu_init(enter_cb, lower_cb, upper_cb, exit_cb);
 }
 
-void state_volcano_wf_exit(void) {
+void state_edit_wf_exit(void) {
     menu_deinit();
 }
 
 static void draw(struct menu_state *menu) {
-    menu->length = wf_count();
+    menu->length = wf_steps(wf_index);
 
     int pos = 0;
     for (uint16_t i = 0; i < menu->length; i++) {
@@ -97,19 +77,16 @@ static void draw(struct menu_state *menu) {
             pos += snprintf(menu->buff + pos, MENU_MAX_LEN - pos, "  ");
         }
 
+        struct wf_step step = wf_get_step(wf_index, i);
         pos += snprintf(menu->buff + pos, MENU_MAX_LEN - pos,
-                        "'%s' by %s\n", wf_name(i), wf_author(i));
+                        "% 2d: %s\n", i, wf_step_str(step));
     }
 
-    if ((menu->selection < 0) && (menu->length > 0)) {
+    if (menu->selection < 0) {
         menu->selection = 0;
-    }
-
-    if (menu->length == 0) {
-        strncpy(menu->buff, "NONE", MENU_MAX_LEN);
     }
 }
 
-void state_volcano_wf_run(void) {
+void state_edit_wf_run(void) {
     menu_run(draw, false);
 }
