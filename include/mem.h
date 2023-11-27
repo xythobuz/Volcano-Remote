@@ -26,10 +26,10 @@
 
 struct mem_data {
     uint16_t backlight;
+
     uint16_t wf_count;
     struct workflow wf[WF_MAX_FLOWS];
 } __attribute__((packed));
-
 
 // wf and wf_count are assigned in mem_init()
 #define MEM_DATA_INIT {           \
@@ -39,5 +39,6 @@ struct mem_data {
 void mem_init(void);
 void mem_write(void);
 struct mem_data *mem_data(void);
+void mem_load_defaults(void);
 
 #endif // __MEM_H__

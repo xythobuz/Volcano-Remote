@@ -31,7 +31,7 @@
 static uint8_t log_buff[4096] = {0};
 static struct ring_buffer log = RB_INIT(log_buff, sizeof(log_buff));
 
-static uint8_t line_buff[128] = {0};
+static uint8_t line_buff[256] = {0};
 static volatile bool got_input = false;
 static FIL log_file_fat;
 

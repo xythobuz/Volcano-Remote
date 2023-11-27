@@ -41,6 +41,7 @@ void state_volcano_run_index(uint16_t index) {
 }
 
 void state_volcano_run_target(bd_addr_t addr, bd_addr_type_t type) {
+    debug("%s %d", bd_addr_to_str(addr), type);
     memcpy(ble_addr, addr, sizeof(bd_addr_t));
     ble_type = type;
 }

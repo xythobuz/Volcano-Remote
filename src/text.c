@@ -115,6 +115,8 @@ void text_prepare_font(struct text_font *tf) {
         return;
     }
 
+    debug("searching for \"%s\"", tf->fontname);
+
     const struct mf_font_s *font = mf_find_font(tf->fontname);
     if (!font) {
         debug("No such font: %s", tf->fontname);

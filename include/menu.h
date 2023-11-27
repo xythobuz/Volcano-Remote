@@ -28,7 +28,7 @@ struct menu_state {
     int off;
     int selection;
     int length;
-    char *buff;
+    char buff[MENU_MAX_LEN];
 };
 
 void menu_init(void (*enter)(int),
@@ -38,5 +38,9 @@ void menu_init(void (*enter)(int),
 void menu_deinit(void);
 
 void menu_run(void (*cb)(struct menu_state *), bool centered);
+
+#ifdef VOLCANO_AUTO_CONNECT_TIMEOUT_MS
+extern bool menu_got_input;
+#endif // VOLCANO_AUTO_CONNECT_TIMEOUT_MS
 
 #endif // __MENU_H__

@@ -40,8 +40,9 @@
 #include "main.h"
 #include "models.h"
 #include "workflow.h"
-#include "console.h"
 #include "crafty.h"
+#include "mem.h"
+#include "console.h"
 
 #define CNSL_BUFF_SIZE 64
 #define CNSL_REPEAT_MS 500
@@ -99,6 +100,7 @@ static void cnsl_interpret(const char *line) {
         println("   help - print this message");
         println("  mount - make mass storage medium (un)available");
         println("  power - show Lipo battery status");
+        println("   memr - reset flash memory config");
         println("");
         println("   scan - start or stop BLE scan");
         println("scanres - print list of found BLE devices");
@@ -145,6 +147,9 @@ static void cnsl_interpret(const char *line) {
         println("Battery: %.2fV = %.1f%% @ %s",
                 volt, lipo_percentage(volt),
                 lipo_charging() ? "charging" : "draining");
+    } else if (strcmp(line, "memr") == 0) {
+        mem_load_defaults();
+        mem_write();
     } else if (strcmp(line, "scan") == 0) {
         ble_scan(BLE_SCAN_TOGGLE);
     } else if (strcmp(line, "scanres") == 0) {

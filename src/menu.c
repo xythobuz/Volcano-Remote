@@ -26,14 +26,21 @@
 #include "menu.h"
 
 static char prev_buff[MENU_MAX_LEN] = {0};
-static char buff[MENU_MAX_LEN] = {0};
-static struct menu_state menu = { .off = 0, .selection = -1, .length = 0, .buff = buff };
+static struct menu_state menu = { .off = 0, .selection = -1, .length = 0, .buff = {0} };
 static void (*enter_callback)(int) = NULL;
 static void (*up_callback)(int) = NULL;
 static void (*down_callback)(int) = NULL;
 static void (*exit_callback)(void) = NULL;
 
+#ifdef VOLCANO_AUTO_CONNECT_TIMEOUT_MS
+bool menu_got_input = false;
+#endif // VOLCANO_AUTO_CONNECT_TIMEOUT_MS
+
 static void menu_buttons(enum buttons btn, bool state) {
+#ifdef VOLCANO_AUTO_CONNECT_TIMEOUT_MS
+    menu_got_input = true;
+#endif // VOLCANO_AUTO_CONNECT_TIMEOUT_MS
+
     if (state && (btn == BTN_LEFT)) {
         uint16_t backlight_value = lcd_get_backlight();
         if (backlight_value > 0x00FF) {
@@ -128,8 +135,8 @@ void menu_run(void (*draw)(struct menu_state *), bool centered) {
         draw(&menu);
     }
 
-    if (strncmp(buff, prev_buff, MENU_MAX_LEN) != 0) {
-        strncpy(prev_buff, buff, MENU_MAX_LEN);
-        text_box(buff, centered);
+    if (strncmp(menu.buff, prev_buff, MENU_MAX_LEN) != 0) {
+        strncpy(prev_buff, menu.buff, MENU_MAX_LEN);
+        text_box(menu.buff, centered);
     }
 }

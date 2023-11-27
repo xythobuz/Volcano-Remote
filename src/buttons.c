@@ -19,6 +19,7 @@
 #include "pico/stdlib.h"
 
 #include "config.h"
+#include "log.h"
 #include "buttons.h"
 
 static const uint gpio_num[NUM_BTNS] = {
@@ -69,6 +70,7 @@ void buttons_run(void) {
         if ((now - buttons[i].last_time) > DEBOUNCE_DELAY_MS) {
             if (state != buttons[i].current_state) {
                 buttons[i].current_state = state;
+                debug("btn %d now %s", i, state ? "pressed" : "released");
                 if (callback) {
                     callback(i, state);
                 }

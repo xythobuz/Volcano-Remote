@@ -77,11 +77,17 @@ static uint32_t calc_checksum(const struct mem_contents *data) {
     return ~c;
 }
 
-void mem_init(void) {
+void mem_load_defaults(void) {
     data_ram.data.wf_count = wf_default_count;
+    debug("preparing %d default workflows", data_ram.data.wf_count);
     for (uint16_t i = 0; i < wf_default_count; i++) {
         data_ram.data.wf[i] = wf_default_data[i];
+        debug("\"%s\" by \"%s\"", data_ram.data.wf[i].name, data_ram.data.wf[i].author);
     }
+}
+
+void mem_init(void) {
+    mem_load_defaults();
 
     if (!flash_safe_execute_core_init()) {
         debug("error calling flash_safe_execute_core_init");
@@ -96,10 +102,16 @@ void mem_init(void) {
         if (checksum != flash_ptr->checksum) {
             debug("invalid checksum (0x%08lX != 0x%08lX)", flash_ptr->checksum, checksum);
         } else {
+            debug("loading from flash (0x%08lX)", checksum);
             data_ram = *flash_ptr;
         }
     } else {
         debug("invalid config (0x%02X != 0x%02X)", flash_ptr->version, MEM_VERSION);
+    }
+
+    debug("found %d workflows", data_ram.data.wf_count);
+    for (uint16_t i = 0; i < data_ram.data.wf_count; i++) {
+        debug("\"%s\" by \"%s\"", data_ram.data.wf[i].name, data_ram.data.wf[i].author);
     }
 }
 
@@ -118,7 +130,7 @@ void mem_write(void) {
 
     data_ram.checksum = calc_checksum(&data_ram);
 
-    debug("writing new data");
+    debug("writing new data (0x%08lX)", data_ram.checksum);
     int r = flash_safe_execute(mem_write_flash, &data_ram, FLASH_LOCK_TIMEOUT_MS);
     if (r != PICO_OK) {
         debug("error calling mem_write_flash: %d", r);
