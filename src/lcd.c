@@ -273,6 +273,13 @@ void lcd_write_point(uint16_t x, uint16_t y, uint32_t color) {
 }
 
 void lcd_write_rect(uint16_t left, uint16_t top, uint16_t right, uint16_t bottom, uint32_t color) {
+    if (right >= ST7789_PICO_ROW) {
+        right = ST7789_PICO_ROW - 1;
+    }
+    if (bottom >= ST7789_PICO_COLUMN) {
+        bottom = ST7789_PICO_COLUMN - 1;
+    }
+    //                 handle,       left,         top,      right,    bottom, color);
     st7789_fill_rect(&gs_handle, 240 - bottom - 1, left, 240 - top - 1, right, color);
 }
 

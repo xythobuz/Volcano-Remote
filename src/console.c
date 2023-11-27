@@ -233,6 +233,7 @@ static void cnsl_interpret(const char *line) {
                 .width = 240,
                 .height = 240 - y_off,
                 .margin = 5,
+                .fg = RGB_565(0xFF, 0xFF, 0xFF),
                 .bg = TEXT_BG_NONE,
                 .font = &font,
             };

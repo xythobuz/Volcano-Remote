@@ -19,6 +19,7 @@
 #include "config.h"
 #include "log.h"
 #include "lcd.h"
+#include "menu.h"
 #include "text.h"
 
 typedef struct {
@@ -50,8 +51,10 @@ static void pixel_callback(int16_t x, int16_t y, uint8_t count, uint8_t alpha,
                            void *state) {
     state_t *s = (state_t*)state;
 
-    if (y < 0 || y >= s->options->height) return;
-    if (x < 0 || x + count >= s->options->width) return;
+    if ((y < 0) || (y >= (s->options->y + s->options->height))
+        || (x < 0) || ((x + count) >= (s->options->x + s->options->width))) {
+        return;
+    }
 
     while (count--) {
         lcd_write_point(x, y,
@@ -167,7 +170,7 @@ void text_box(const char *s, bool centered) {
     int width = 240;
 
     int y = 50;
-    int height = 120;
+    int height = MENU_MAX_LINES * (20 + 2);
 
     struct text_conf text = {
         .text = "",
@@ -175,11 +178,11 @@ void text_box(const char *s, bool centered) {
         .y = y,
         .justify = false,
         .alignment = centered ? MF_ALIGN_CENTER : MF_ALIGN_LEFT,
-        .width = width - 4,
-        .height = height - 4,
+        .width = width,
+        .height = height,
         .margin = 2,
         .fg = RGB_565(0xFF, 0xFF, 0xFF),
-        .bg = RGB_565(0x00, 0x00, 0x00),
+        .bg = TEXT_BG_NONE,
         .font = &font,
     };
 
@@ -187,7 +190,7 @@ void text_box(const char *s, bool centered) {
                    y,
                    x + width - 1,
                    y + height - 1,
-                   text.bg);
+                   RGB_565(0x00, 0x00, 0x00));
 
     text.text = s;
     text_draw(&text);
