@@ -21,6 +21,7 @@
 
 #include <stdint.h>
 
+#define WF_MAX_STR_LEN 10
 #define WF_MAX_STEPS 42
 #define WF_MAX_FLOWS 6
 
@@ -37,8 +38,8 @@ struct wf_step {
 };
 
 struct workflow {
-    const char *name;
-    const char *author;
+    char name[WF_MAX_STR_LEN];
+    char author[WF_MAX_STR_LEN];
     struct wf_step steps[WF_MAX_STEPS];
     uint16_t count;
 };
