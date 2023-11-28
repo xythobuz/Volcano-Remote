@@ -32,6 +32,7 @@
 #define BLE_SRVC_TIMEOUT_MS (3 * 500)
 #define BLE_CHAR_TIMEOUT_MS (3 * 2000)
 #define BLE_WRTE_TIMEOUT_MS (3 * 500)
+#define BLE_NOTY_TIMEOUT_MS (3 * 500)
 #define BLE_MAX_SCAN_AGE_MS (10 * 1000)
 #define BLE_MAX_SERVICES 8
 #define BLE_MAX_CHARACTERISTICS 8
@@ -48,11 +49,14 @@ enum ble_state {
     TC_W4_CHARACTERISTIC,
     TC_W4_WRITE,
     TC_WRITE_COMPLETE,
+    TC_W4_NOTIFY_ENABLE,
+    TC_NOTIFY_ENABLED,
 };
 
 struct ble_characteristic {
     bool set;
     gatt_client_characteristic_t c;
+    gatt_client_notification_t n;
 };
 
 struct ble_service {
@@ -319,10 +323,31 @@ static void hci_event_handler(uint8_t packet_type, uint16_t channel, uint8_t *pa
             state = TC_WRITE_COMPLETE;
             break;
 
+        case TC_W4_NOTIFY_ENABLE:
+            //debug("notify enable complete");
+            state = TC_NOTIFY_ENABLED;
+            break;
+
         default:
             debug("gatt query complete in invalid state %d", state);
             break;
         }
+        break;
+    }
+
+    case GATT_EVENT_NOTIFICATION: {
+        if ((state != TC_READY) && (state != TC_WRITE_COMPLETE)) {
+            debug("gatt notification in invalid state %d", state);
+            return;
+        }
+
+        uint16_t value_length = gatt_event_notification_get_value_length(packet);
+        const uint8_t *value = gatt_event_notification_get_value(packet);
+        if ((read_len + value_length) <= BLE_MAX_VALUE_LEN) {
+            memcpy(data_buff + read_len, value, value_length);
+            read_len += value_length;
+        }
+
         break;
     }
 
@@ -572,8 +597,11 @@ int32_t ble_read(const uint8_t *characteristic, uint8_t *buff, uint16_t buff_len
 
     memcpy(buff, data_buff, read_len);
 
+    uint16_t tmp = read_len;
+    read_len = 0;
+
     cyw43_thread_exit();
-    return read_len;
+    return tmp;
 }
 
 static int discover_service(const uint8_t *service) {
@@ -812,4 +840,137 @@ int8_t ble_discover(const uint8_t *service, const uint8_t *characteristic) {
 
     cyw43_thread_exit();
     return 0;
+}
+
+int8_t ble_notification_disable(const uint8_t *service, const uint8_t *characteristic) {
+    cyw43_thread_enter();
+
+    if (state != TC_READY) {
+        cyw43_thread_exit();
+        debug("invalid state for notify (%d)", state);
+        return -1;
+    }
+
+    int srvc = discover_service(service);
+    if (srvc < 0) {
+        debug("error discovering service (%d)", srvc);
+        return srvc;
+    }
+
+    int ch = discover_characteristic(srvc, characteristic);
+    if (ch < 0) {
+        debug("error discovering characteristic (%d)", ch);
+        return ch;
+    }
+
+    gatt_client_stop_listening_for_characteristic_value_updates(&services[srvc].chars[ch].n);
+
+    cyw43_thread_exit();
+    return 0;
+}
+
+int8_t ble_notification_enable(const uint8_t *service, const uint8_t *characteristic) {
+    cyw43_thread_enter();
+
+    if (state != TC_READY) {
+        cyw43_thread_exit();
+        debug("invalid state for notify (%d)", state);
+        return -1;
+    }
+
+    int srvc = discover_service(service);
+    if (srvc < 0) {
+        debug("error discovering service (%d)", srvc);
+        return srvc;
+    }
+
+    int ch = discover_characteristic(srvc, characteristic);
+    if (ch < 0) {
+        debug("error discovering characteristic (%d)", ch);
+        return ch;
+    }
+
+    gatt_client_listen_for_characteristic_value_updates(&services[srvc].chars[ch].n,
+                                                        hci_event_handler,
+                                                        connection_handle,
+                                                        &services[srvc].chars[ch].c);
+
+    gatt_client_write_client_characteristic_configuration(hci_event_handler,
+                                                          connection_handle,
+                                                          &services[srvc].chars[ch].c,
+                                                          GATT_CLIENT_CHARACTERISTICS_CONFIGURATION_NOTIFICATION);
+
+    state = TC_W4_NOTIFY_ENABLE;
+    cyw43_thread_exit();
+
+    uint32_t start_time = to_ms_since_boot(get_absolute_time());
+    while (1) {
+        sleep_ms(1);
+        main_loop_hw();
+
+        uint32_t now = to_ms_since_boot(get_absolute_time());
+        if ((now - start_time) >= BLE_NOTY_TIMEOUT_MS) {
+            debug("timeout waiting for notify enable");
+            cyw43_thread_enter();
+            state = TC_READY;
+            cyw43_thread_exit();
+            return -6;
+        }
+
+        cyw43_thread_enter();
+        enum ble_state state_cached = state;
+        cyw43_thread_exit();
+
+        if ((state_cached == TC_NOTIFY_ENABLED) || (state_cached == TC_READY)) {
+            break;
+        }
+    }
+
+    cyw43_thread_enter();
+
+    int8_t ret = (state == TC_NOTIFY_ENABLED) ? 0 : -7;
+    state = TC_READY;
+
+    cyw43_thread_exit();
+    return ret;
+}
+
+bool ble_notification_ready(void) {
+    cyw43_thread_enter();
+
+    if (state != TC_READY) {
+        cyw43_thread_exit();
+        debug("invalid state for notify (%d)", state);
+        return -1;
+    }
+
+    uint16_t tmp = read_len;
+
+    cyw43_thread_exit();
+    return (tmp > 0);
+
+}
+
+uint16_t ble_notification_get(uint8_t *buff, uint16_t buff_len) {
+    cyw43_thread_enter();
+
+    if (state != TC_READY) {
+        cyw43_thread_exit();
+        debug("invalid state for notify (%d)", state);
+        return -1;
+    }
+
+    if (read_len > buff_len) {
+        debug("buffer too short (%d < %d)", buff_len, read_len);
+        cyw43_thread_exit();
+        return -2;
+    }
+
+    memcpy(buff, data_buff, read_len);
+
+    uint16_t tmp = read_len;
+    read_len = 0;
+
+    cyw43_thread_exit();
+    return tmp;
 }
