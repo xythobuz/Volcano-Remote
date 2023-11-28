@@ -28,7 +28,7 @@
 
 #include "menu.h"
 
-#define CRAFTY_UPDATE_TIME_MS 1000
+#define CRAFTY_UPDATE_TIME_MS 3000
 
 static bd_addr_t ble_addr = {0};
 static bd_addr_type_t ble_type = 0;
@@ -115,8 +115,8 @@ void state_crafty_run(void) {
     static uint32_t last = 0;
     uint32_t now = to_ms_since_boot(get_absolute_time());
     if (((now - last) >= CRAFTY_UPDATE_TIME_MS) || (last == 0)) {
-        last = now;
         menu_run(draw, true);
+        last = to_ms_since_boot(get_absolute_time());
     }
 
     if (wait_for_disconnect && !ble_is_connected()) {

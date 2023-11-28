@@ -199,12 +199,13 @@ void wf_start(uint16_t index) {
     wf_i = index;
     step = 0;
 
-    // discover characteristics
-    volcano_set_pump_state(false);
-    volcano_set_heater_state(false);
-    volcano_set_target_temp(1850);
-
+    /*
+     * first turn on heater, then do discovery, to save some time.
+     * this means we heat for some seconds before changing the setpoint.
+     * should not be a problem in practice.
+     */
     volcano_set_heater_state(true);
+    volcano_discover_characteristics();
 
     do_step();
 }

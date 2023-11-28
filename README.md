@@ -1,8 +1,17 @@
 # Pi Pico Volcano Remote Control Gadget
 
+Supports:
+
+ * workflows for the Volcano Hybrid
+ * basic status and settings for Crafty+
+
 For use with Raspberry Pi Pico W boards with the [Waveshare Pico LCD 1.3](https://www.waveshare.com/wiki/Pico-LCD-1.3) and the [Pimoroni Pico Lipo Shim](https://shop.pimoroni.com/products/pico-lipo-shim).
 
 Adapted from the [tinyusb-cdc-example](https://github.com/hathach/tinyusb/blob/master/examples/device/cdc_msc/src/main.c), [adc example](https://github.com/raspberrypi/pico-examples/tree/master/adc/read_vsys), [standalone client example](https://github.com/raspberrypi/pico-examples/blob/master/pico_w/bt/standalone/client.c) and my [Trackball firmware](https://git.xythobuz.de/thomas/Trackball).
+
+`python-test` contains a similar app to the C version in the top level of the repo, but instead written for MicroPython on the Pico W.
+Unfortunately I had many performance and space problems with this, so I decided to rewrite it.
+`web-app` contains a script to conveniently fetch the original web app JS sources, for "reverse engineering".
 
 ## Quick Start
 

@@ -22,6 +22,9 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+// returns < 0 on error
+int8_t volcano_discover_characteristics(void);
+
 // in 1/10th degrees C, or < 0 on error
 int16_t volcano_get_current_temp(void);
 int16_t volcano_get_target_temp(void);

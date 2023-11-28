@@ -40,6 +40,43 @@ static uint8_t uuid_base2[16] = {
     0x5a, 0x26, 0x42, 0x49, 0x43, 0x4b, 0x45, 0x4c,
 };
 
+int8_t volcano_discover_characteristics(void) {
+    uuid_base[3] = UUID_WRITE_SRVC;
+    int8_t r;
+
+    uuid_base2[3] = UUID_TARGET_TEMP;
+    r = ble_discover(uuid_base, uuid_base2);
+    if (r < 0) {
+        return r;
+    }
+
+    uuid_base2[3] = UUID_HEATER_ON;
+    r = ble_discover(uuid_base, uuid_base2);
+    if (r < 0) {
+        return r;
+    }
+
+    uuid_base2[3] = UUID_HEATER_OFF;
+    r = ble_discover(uuid_base, uuid_base2);
+    if (r < 0) {
+        return r;
+    }
+
+    uuid_base2[3] = UUID_PUMP_ON;
+    r = ble_discover(uuid_base, uuid_base2);
+    if (r < 0) {
+        return r;
+    }
+
+    uuid_base2[3] = UUID_PUMP_OFF;
+    r = ble_discover(uuid_base, uuid_base2);
+    if (r < 0) {
+        return r;
+    }
+
+    return 0;
+}
+
 int16_t volcano_get_current_temp(void) {
     uuid_base[3] = UUID_CURRENT_TEMP;
 

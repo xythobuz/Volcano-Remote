@@ -28,10 +28,10 @@
 #include "util.h"
 #include "ble.h"
 
-#define BLE_READ_TIMEOUT_MS (2 * 500)
-#define BLE_SRVC_TIMEOUT_MS (2 * 500)
-#define BLE_CHAR_TIMEOUT_MS (2 * 2000)
-#define BLE_WRTE_TIMEOUT_MS (2 * 500)
+#define BLE_READ_TIMEOUT_MS (3 * 500)
+#define BLE_SRVC_TIMEOUT_MS (3 * 500)
+#define BLE_CHAR_TIMEOUT_MS (3 * 2000)
+#define BLE_WRTE_TIMEOUT_MS (3 * 500)
 #define BLE_MAX_SCAN_AGE_MS (10 * 1000)
 #define BLE_MAX_SERVICES 8
 #define BLE_MAX_CHARACTERISTICS 8
@@ -576,16 +576,7 @@ int32_t ble_read(const uint8_t *characteristic, uint8_t *buff, uint16_t buff_len
     return read_len;
 }
 
-int8_t ble_write(const uint8_t *service, const uint8_t *characteristic,
-                  uint8_t *buff, uint16_t buff_len) {
-    cyw43_thread_enter();
-
-    if (state != TC_READY) {
-        cyw43_thread_exit();
-        debug("invalid state for write (%d)", state);
-        return -1;
-    }
-
+static int discover_service(const uint8_t *service) {
     // check if service has already been discovered
     int srvc = -1, free_srvc = -1;
     for (int i = 0; i < BLE_MAX_SERVICES; i++) {
@@ -652,6 +643,10 @@ int8_t ble_write(const uint8_t *service, const uint8_t *characteristic,
         cyw43_thread_enter();
     }
 
+    return srvc;
+}
+
+static int discover_characteristic(int srvc, const uint8_t *characteristic) {
     // check if characteristic has already been discovered
     int ch = -1, free_ch = -1;
     for (int i = 0; i < BLE_MAX_CHARACTERISTICS; i++) {
@@ -719,6 +714,31 @@ int8_t ble_write(const uint8_t *service, const uint8_t *characteristic,
         cyw43_thread_enter();
     }
 
+    return ch;
+}
+
+int8_t ble_write(const uint8_t *service, const uint8_t *characteristic,
+                 const uint8_t *buff, uint16_t buff_len) {
+    cyw43_thread_enter();
+
+    if (state != TC_READY) {
+        cyw43_thread_exit();
+        debug("invalid state for write (%d)", state);
+        return -1;
+    }
+
+    int srvc = discover_service(service);
+    if (srvc < 0) {
+        debug("error discovering service (%d)", srvc);
+        return srvc;
+    }
+
+    int ch = discover_characteristic(srvc, characteristic);
+    if (ch < 0) {
+        debug("error discovering characteristic (%d)", ch);
+        return ch;
+    }
+
     if (buff_len > BLE_MAX_VALUE_LEN) {
         buff_len = BLE_MAX_VALUE_LEN;
     }
@@ -767,4 +787,29 @@ int8_t ble_write(const uint8_t *service, const uint8_t *characteristic,
 
     cyw43_thread_exit();
     return ret;
+}
+
+int8_t ble_discover(const uint8_t *service, const uint8_t *characteristic) {
+    cyw43_thread_enter();
+
+    if (state != TC_READY) {
+        cyw43_thread_exit();
+        debug("invalid state for discovery (%d)", state);
+        return -1;
+    }
+
+    int srvc = discover_service(service);
+    if (srvc < 0) {
+        debug("error discovering service (%d)", srvc);
+        return srvc;
+    }
+
+    int ch = discover_characteristic(srvc, characteristic);
+    if (ch < 0) {
+        debug("error discovering characteristic (%d)", ch);
+        return ch;
+    }
+
+    cyw43_thread_exit();
+    return 0;
 }
