@@ -100,9 +100,16 @@ static void draw(struct menu_state *menu) {
 #ifdef MENU_PREFER_VOLCANO
             if (dev == DEV_VOLCANO) {
                 menu->selection = devs - 1;
+
 #ifdef VOLCANO_AUTO_CONNECT_TIMEOUT_MS
-                auto_connect_time = to_ms_since_boot(get_absolute_time());
-                auto_connect_idx = i;
+#ifdef VOLCANO_AUTO_CONNECT_WITHIN_MS
+                if (to_ms_since_boot(get_absolute_time()) <= VOLCANO_AUTO_CONNECT_WITHIN_MS) {
+#endif // VOLCANO_AUTO_CONNECT_WITHIN_MS
+                    auto_connect_time = to_ms_since_boot(get_absolute_time());
+                    auto_connect_idx = i;
+#ifdef VOLCANO_AUTO_CONNECT_WITHIN_MS
+                }
+#endif // VOLCANO_AUTO_CONNECT_WITHIN_MS
 #endif // VOLCANO_AUTO_CONNECT_TIMEOUT_MS
             }
 #endif // MENU_PREFER_VOLCANO

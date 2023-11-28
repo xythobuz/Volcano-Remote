@@ -79,10 +79,8 @@ static uint32_t calc_checksum(const struct mem_contents *data) {
 
 void mem_load_defaults(void) {
     data_ram.data.wf_count = wf_default_count;
-    debug("preparing %d default workflows", data_ram.data.wf_count);
     for (uint16_t i = 0; i < wf_default_count; i++) {
         data_ram.data.wf[i] = wf_default_data[i];
-        debug("\"%s\" by \"%s\"", data_ram.data.wf[i].name, data_ram.data.wf[i].author);
     }
 }
 
@@ -107,11 +105,6 @@ void mem_init(void) {
         }
     } else {
         debug("invalid config (0x%02X != 0x%02X)", flash_ptr->version, MEM_VERSION);
-    }
-
-    debug("found %d workflows", data_ram.data.wf_count);
-    for (uint16_t i = 0; i < data_ram.data.wf_count; i++) {
-        debug("\"%s\" by \"%s\"", data_ram.data.wf[i].name, data_ram.data.wf[i].author);
     }
 }
 

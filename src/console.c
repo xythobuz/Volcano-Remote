@@ -171,6 +171,14 @@ static void cnsl_interpret(const char *line) {
                         bd_addr_to_str(results[i].addr),
                         results[i].type, results[i].rssi,
                         age / 1000.0, results[i].name, info);
+
+                if (results[i].data_len > 0) {
+                    hexdump(results[i].data, results[i].data_len);
+                }
+
+                if (i < (n - 1)) {
+                    println();
+                }
             }
         }
     } else if (str_startswith(line, "con ")) {

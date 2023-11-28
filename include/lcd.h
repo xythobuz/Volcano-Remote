@@ -21,6 +21,9 @@
 
 #include <stdint.h>
 
+#define LCD_WIDTH 240
+#define LCD_HEIGHT 240
+
 #define RGB_565(r, g, b) ( \
       (((r) >> 3) << 11)   \
     | (((g) >> 2) << 5)    \

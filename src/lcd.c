@@ -34,8 +34,8 @@
 #define LCD_PIN_RST 12
 #define LCD_PIN_BL 13
 
-#define ST7789_PICO_COLUMN                             240
-#define ST7789_PICO_ROW                                ST7789_PICO_COLUMN
+#define ST7789_PICO_COLUMN                             LCD_HEIGHT
+#define ST7789_PICO_ROW                                LCD_WIDTH
 
 #define ST7789_PICO_ACCESS                            (ST7789_ORDER_PAGE_TOP_TO_BOTTOM | \
                                                        ST7789_ORDER_COLUMN_LEFT_TO_RIGHT | \

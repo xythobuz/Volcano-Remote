@@ -69,8 +69,9 @@ void buttons_run(void) {
 
         if ((now - buttons[i].last_time) > DEBOUNCE_DELAY_MS) {
             if (state != buttons[i].current_state) {
+                //debug("btn %d now %s", i, state ? "pressed" : "released");
+
                 buttons[i].current_state = state;
-                debug("btn %d now %s", i, state ? "pressed" : "released");
                 if (callback) {
                     callback(i, state);
                 }

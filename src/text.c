@@ -166,16 +166,16 @@ void text_box(const char *s, bool centered) {
         text_prepare_font(&font);
     }
 
-    int x = 0;
-    int width = 240;
+    int x_off = 0;
+    int width = LCD_WIDTH;
 
-    int y = 50;
-    int height = MENU_MAX_LINES * (20 + 2);
+    int y_off = 50;
+    int height = (MENU_MAX_LINES * 20) + ((MENU_MAX_LINES - 1) * 2);
 
     struct text_conf text = {
         .text = "",
-        .x = x,
-        .y = y,
+        .x = x_off,
+        .y = y_off,
         .justify = false,
         .alignment = centered ? MF_ALIGN_CENTER : MF_ALIGN_LEFT,
         .width = width,
@@ -186,10 +186,9 @@ void text_box(const char *s, bool centered) {
         .font = &font,
     };
 
-    lcd_write_rect(x,
-                   y,
-                   x + width - 1,
-                   y + height - 1,
+    lcd_write_rect(x_off, y_off,
+                   x_off + width - 1,
+                   y_off + height - 1,
                    RGB_565(0x00, 0x00, 0x00));
 
     text.text = s;
