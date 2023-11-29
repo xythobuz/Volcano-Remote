@@ -73,6 +73,7 @@ static struct ble_scan_result scans[BLE_MAX_SCAN_RESULTS] = {0};
 
 static uint16_t read_len = 0;
 static uint8_t data_buff[BLE_MAX_VALUE_LEN] = {0};
+static uint16_t value_handle = 0;
 
 static struct ble_service services[BLE_MAX_SERVICES] = {0};
 static uint8_t service_idx = 0;
@@ -219,14 +220,7 @@ static void hci_event_handler(uint8_t packet_type, uint16_t channel, uint8_t *pa
 
             case BLUETOOTH_DATA_TYPE_SERVICE_DATA:
             case BLUETOOTH_DATA_TYPE_MANUFACTURER_SPECIFIC_DATA:
-                // TODO ugly
-                if (data_size == 12) {
-                    // Crafty+
-                    hci_scan_result_add_data(addr, data, data_size);
-                } else if (data_size == 26) {
-                    // Volcano
-                    hci_scan_result_add_data(addr, data, data_size);
-                }
+                hci_scan_result_add_data(addr, data, data_size);
                 break;
 
             default:
@@ -343,6 +337,7 @@ static void hci_event_handler(uint8_t packet_type, uint16_t channel, uint8_t *pa
 
         uint16_t value_length = gatt_event_notification_get_value_length(packet);
         const uint8_t *value = gatt_event_notification_get_value(packet);
+        value_handle = gatt_event_notification_get_value_handle(packet);
         if ((read_len + value_length) <= BLE_MAX_VALUE_LEN) {
             memcpy(data_buff + read_len, value, value_length);
             read_len += value_length;
@@ -951,22 +946,57 @@ bool ble_notification_ready(void) {
 
 }
 
-uint16_t ble_notification_get(uint8_t *buff, uint16_t buff_len) {
+uint16_t ble_notification_get(uint8_t *buff, uint16_t buff_len, uint8_t *characteristic) {
+    if ((buff == NULL) || (characteristic == NULL) || (buff_len <= 0)) {
+        debug("invalid params");
+        return -1;
+    }
+
     cyw43_thread_enter();
 
     if (state != TC_READY) {
         cyw43_thread_exit();
         debug("invalid state for notify (%d)", state);
-        return -1;
+        return -2;
+    }
+
+    if (read_len <= 0) {
+        debug("no data available");
+        cyw43_thread_exit();
+        return -3;
     }
 
     if (read_len > buff_len) {
         debug("buffer too short (%d < %d)", buff_len, read_len);
         cyw43_thread_exit();
-        return -2;
+        return -4;
     }
 
     memcpy(buff, data_buff, read_len);
+
+    bool found = false;
+    for (int i = 0; i < BLE_MAX_SERVICES; i++) {
+        if (!services[i].set) {
+            continue;
+        }
+
+        for (int j = 0; j < BLE_MAX_CHARACTERISTICS; j++) {
+            if (!services[i].chars[j].set) {
+                continue;
+            }
+
+            if (services[i].chars[j].c.value_handle == value_handle) {
+                memcpy(characteristic, services[i].chars[j].c.uuid128, 16);
+                found = true;
+                break;
+            }
+        }
+    }
+
+    if (!found) {
+        debug("can not find characteristic for value handle 0x%04X", value_handle);
+        memset(characteristic, 0, 16);
+    }
 
     uint16_t tmp = read_len;
     read_len = 0;

@@ -63,6 +63,6 @@ int8_t ble_write(const uint8_t *service, const uint8_t *characteristic,
 int8_t ble_notification_disable(const uint8_t *service, const uint8_t *characteristic);
 int8_t ble_notification_enable(const uint8_t *service, const uint8_t *characteristic);
 bool ble_notification_ready(void);
-uint16_t ble_notification_get(uint8_t *buff, uint16_t buff_len);
+uint16_t ble_notification_get(uint8_t *buff, uint16_t buff_len, uint8_t *characteristic);
 
 #endif // __BLE_H__
