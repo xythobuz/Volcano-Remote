@@ -1,5 +1,5 @@
 /*
- * mem.h
+ * state_about.h
  *
  * Copyright (c) 2023 Thomas Buck (thomas@xythobuz.de)
  *
@@ -16,34 +16,11 @@
  * See <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __MEM_H__
-#define __MEM_H__
+#ifndef __STATE_ABOUT_H__
+#define __STATE_ABOUT_H__
 
-#include <stdint.h>
-#include <stdbool.h>
+void state_about_enter(void);
+void state_about_exit(void);
+void state_about_run(void);
 
-#include "workflow.h"
-
-// to migrate settings when struct changes between releases
-#define MEM_VERSION 0
-
-struct mem_data {
-    uint16_t backlight;
-    bool wf_auto_connect;
-
-    uint16_t wf_count;
-    struct workflow wf[WF_MAX_FLOWS];
-};
-
-// wf and wf_count are assigned in mem_init()
-#define MEM_DATA_INIT {           \
-    .backlight = (0xFF00 >> 1),   \
-    .wf_auto_connect = false,     \
-}
-
-void mem_init(void);
-void mem_write(void);
-struct mem_data *mem_data(void);
-void mem_load_defaults(void);
-
-#endif // __MEM_H__
+#endif // __STATE_ABOUT_H__

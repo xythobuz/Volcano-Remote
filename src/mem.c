@@ -40,7 +40,7 @@ struct mem_contents {
     uint32_t checksum;
 
     struct mem_data data;
-} __attribute__((packed));
+};
 
 #define MEM_CONTENTS_INIT { \
     .version = MEM_VERSION, \

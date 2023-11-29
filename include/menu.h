@@ -43,4 +43,17 @@ void menu_run(void (*cb)(struct menu_state *), bool centered);
 extern bool menu_got_input;
 #endif // VOLCANO_AUTO_CONNECT_TIMEOUT_MS
 
+#define ADD_STATIC_ELEMENT(name) {\
+    menu->length += 1; \
+    if (((menu->length - 1) >= menu->off) \
+        && ((menu->length - 1 - menu->off) < MENU_MAX_LINES)) { \
+        if ((menu->length - 1) == menu->selection) { \
+            pos += snprintf(menu->buff + pos, MENU_MAX_LEN - pos, "> "); \
+        } else { \
+            pos += snprintf(menu->buff + pos, MENU_MAX_LEN - pos, "  "); \
+        } \
+        pos += snprintf(menu->buff + pos, MENU_MAX_LEN - pos, name "\n"); \
+    } \
+}
+
 #endif // __MENU_H__

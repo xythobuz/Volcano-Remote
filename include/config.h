@@ -19,6 +19,9 @@
 #ifndef __CONFIG_H__
 #define __CONFIG_H__
 
+#define APP_VERSION_MAJOR 0
+#define APP_VERSION_MINOR 1
+
 #define MENU_PREFER_VOLCANO
 //#define MENU_PREFER_CRAFTY
 

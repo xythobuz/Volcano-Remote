@@ -59,6 +59,12 @@ static void enter_cb(int selection) {
             return;
         }
     }
+
+    if (selection == devs) {
+        state_switch(STATE_SETTINGS);
+    } else if (selection == (devs + 1)) {
+        state_switch(STATE_ABOUT);
+    }
 }
 
 static void edit_cb(int selection) {
@@ -161,9 +167,8 @@ static void draw(struct menu_state *menu) {
     }
 #endif // !defined(MENU_PREFER_VOLCANO) && !defined(MENU_PREFER_CRAFTY)
 
-    if (menu->length == 0) {
-        strncpy(menu->buff, "NONE", MENU_MAX_LEN);
-    }
+    ADD_STATIC_ELEMENT("Settings");
+    ADD_STATIC_ELEMENT("About");
 }
 
 void state_scan_run(void) {

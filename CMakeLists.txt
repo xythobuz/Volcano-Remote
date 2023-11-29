@@ -90,6 +90,8 @@ target_sources(gadget PUBLIC
     src/mem.c
     src/state_edit_workflow.c
     src/workflow_default.c
+    src/state_settings.c
+    src/state_about.c
 
     ${CMAKE_CURRENT_BINARY_DIR}/fatfs/ff.c
     ${CMAKE_CURRENT_BINARY_DIR}/fatfs/ffunicode.c
