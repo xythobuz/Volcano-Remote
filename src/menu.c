@@ -137,6 +137,10 @@ void menu_run(void (*draw)(struct menu_state *), bool centered) {
 
     if (strncmp(menu.buff, prev_buff, MENU_MAX_LEN) != 0) {
         strncpy(prev_buff, menu.buff, MENU_MAX_LEN);
-        text_box(menu.buff, centered);
+        text_box(menu.buff, centered,
+                 "fixed_10x20",
+                 0, LCD_WIDTH,
+                 50, (MENU_MAX_LINES * 20) + ((MENU_MAX_LINES - 1) * 2),
+                 0);
     }
 }

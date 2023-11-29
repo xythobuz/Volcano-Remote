@@ -34,6 +34,7 @@ struct text_conf {
     const char *text;
     int x;
     int y;
+    int y_text_off;
     bool justify;
     enum mf_align_t alignment;
     int width;
@@ -46,8 +47,12 @@ struct text_conf {
 };
 
 void text_prepare_font(struct text_font *tf);
-void text_draw(struct text_conf *tc);
+int16_t text_draw(struct text_conf *tc);
 
-void text_box(const char *s, bool centered);
+int16_t text_box(const char *s, bool centered,
+                 const char *fontname,
+                 uint16_t x_off, uint16_t width,
+                 uint16_t y_off, uint16_t height,
+                 int16_t y_text_off);
 
 #endif // __TEXT_H__

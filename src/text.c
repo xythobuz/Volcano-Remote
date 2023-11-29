@@ -16,6 +16,8 @@
  * See <http://www.gnu.org/licenses/>.
  */
 
+#include <string.h>
+
 #include "config.h"
 #include "log.h"
 #include "lcd.h"
@@ -25,6 +27,7 @@
 typedef struct {
     struct text_conf *options;
     uint16_t anchor;
+    int y;
 } state_t;
 
 static uint32_t blend(uint32_t fg_c, uint32_t bg_c, uint8_t alpha) {
@@ -51,7 +54,9 @@ static void pixel_callback(int16_t x, int16_t y, uint8_t count, uint8_t alpha,
                            void *state) {
     state_t *s = (state_t*)state;
 
-    if ((y < 0) || (y >= (s->options->y + s->options->height))
+    if ((y < 0) || (y >= (s->options->y + s->options->height)
+        || (y < s->options->y)
+        || (y >= LCD_HEIGHT)) || (x >= LCD_WIDTH)
         || (x < 0) || ((x + count) >= (s->options->x + s->options->width))) {
         return;
     }
@@ -73,43 +78,49 @@ static uint8_t character_callback(int16_t x, int16_t y, mf_char character,
 static bool line_callback(const char *line, uint16_t count, void *state) {
     state_t *s = (state_t*)state;
 
+    if (s->y < (s->options->y - s->options->font->font->line_height)) {
+        s->y += s->options->font->font->line_height;
+        return true;
+    }
+
     if (s->options->bg != TEXT_BG_NONE) {
         int16_t width = mf_get_string_width(s->options->font->font, line, count, false) + 2 * s->options->margin;
         int16_t line_height = s->options->font->font->line_height;
 
         if (s->options->alignment == MF_ALIGN_LEFT) {
             lcd_write_rect(s->options->x,
-                           s->options->y,
+                           MAX(s->y, s->options->y),
                            s->options->x + width,
-                           s->options->y + line_height,
+                           MIN(s->y + line_height, s->options->y + s->options->height),
                            s->options->bg);
         } else if (s->options->alignment == MF_ALIGN_CENTER) {
             lcd_write_rect(s->options->x + s->options->width / 2 - width / 2,
-                           s->options->y,
+                           MAX(s->y, s->options->y),
                            s->options->x + s->options->width / 2 + width / 2,
-                           s->options->y + line_height,
+                           MIN(s->y + line_height, s->options->y + s->options->height),
                            s->options->bg);
         } else if (s->options->alignment == MF_ALIGN_RIGHT) {
             lcd_write_rect(s->options->x + s->options->width - width,
-                           s->options->y,
+                           MAX(s->y, s->options->y),
                            s->options->x + s->options->width,
-                           s->options->y + line_height,
+                           MIN(s->y + line_height, s->options->y + s->options->height),
                            s->options->bg);
         }
     }
 
     if (s->options->justify) {
-        mf_render_justified(s->options->font->font, s->anchor + s->options->x, s->options->y,
+        mf_render_justified(s->options->font->font, s->anchor + s->options->x, s->y,
                             s->options->width - s->options->margin * 2,
                             line, count, character_callback, state);
     } else {
-        mf_render_aligned(s->options->font->font, s->anchor + s->options->x, s->options->y,
+        mf_render_aligned(s->options->font->font, s->anchor + s->options->x, s->y,
                           s->options->alignment, line, count,
                           character_callback, state);
     }
 
-    s->options->y += s->options->font->font->line_height;
-    return true;
+    s->y += s->options->font->font->line_height;
+    return (s->y < (s->options->y + s->options->height))
+            && (s->y < LCD_HEIGHT);
 }
 
 void text_prepare_font(struct text_font *tf) {
@@ -136,14 +147,15 @@ void text_prepare_font(struct text_font *tf) {
     //}
 }
 
-void text_draw(struct text_conf *tc) {
+int16_t text_draw(struct text_conf *tc) {
     if ((!tc) || (!tc->font) || (!tc->font->font)) {
         debug("invalid param");
-        return;
+        return 0;
     }
 
     state_t state;
     state.options = tc;
+    state.y = tc->y + tc->y_text_off;
 
     if (tc->alignment == MF_ALIGN_LEFT) {
         state.anchor = tc->margin;
@@ -155,27 +167,30 @@ void text_draw(struct text_conf *tc) {
 
     mf_wordwrap(tc->font->font, tc->width - 2 * tc->margin,
                 tc->text, line_callback, &state);
+
+    return state.y;
 }
 
-void text_box(const char *s, bool centered) {
+int16_t text_box(const char *s, bool centered,
+                 const char *fontname,
+                 uint16_t x_off, uint16_t width,
+                 uint16_t y_off, uint16_t height,
+                 int16_t y_text_off) {
     static struct text_font font = {
-        .fontname = "fixed_10x20",
+        .fontname = "",
         .font = NULL,
     };
-    if (font.font == NULL) {
+
+    if ((font.font == NULL) || (strcmp(font.fontname, fontname) != 0)) {
+        font.fontname = fontname;
         text_prepare_font(&font);
     }
 
-    int x_off = 0;
-    int width = LCD_WIDTH;
-
-    int y_off = 50;
-    int height = (MENU_MAX_LINES * 20) + ((MENU_MAX_LINES - 1) * 2);
-
     struct text_conf text = {
-        .text = "",
+        .text = s,
         .x = x_off,
         .y = y_off,
+        .y_text_off = y_text_off,
         .justify = false,
         .alignment = centered ? MF_ALIGN_CENTER : MF_ALIGN_LEFT,
         .width = width,
@@ -191,6 +206,5 @@ void text_box(const char *s, bool centered) {
                    y_off + height - 1,
                    RGB_565(0x00, 0x00, 0x00));
 
-    text.text = s;
-    text_draw(&text);
+    return text_draw(&text);
 }
