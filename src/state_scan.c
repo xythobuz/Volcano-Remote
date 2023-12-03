@@ -29,6 +29,7 @@
 #include "state.h"
 #include "state_workflow.h"
 #include "state_volcano_run.h"
+#include "state_volcano_conf.h"
 #include "state_crafty.h"
 #include "state_scan.h"
 
@@ -65,8 +66,35 @@ static void enter_cb(int selection) {
     }
 }
 
+static void edit_cb(int selection) {
+    int devs = 0;
+    for (int i = 0; i < result_count; i++) {
+        enum known_devices dev = models_filter_name(results[i].name);
+        if (dev == DEV_UNKNOWN) {
+            continue;
+        }
+
+        if (devs++ == selection) {
+            if (dev == DEV_VOLCANO) {
+                state_volcano_conf_target(results[i].addr, results[i].type);
+                state_switch(STATE_VOLCANO_CONF);
+            } else if (dev == DEV_CRAFTY) {
+                state_crafty_target(results[i].addr, results[i].type);
+                state_switch(STATE_CRAFTY);
+            }
+            return;
+        }
+    }
+
+    if (selection == devs) {
+        state_switch(STATE_SETTINGS);
+    } else if (selection == (devs + 1)) {
+        state_switch(STATE_ABOUT);
+    }
+}
+
 void state_scan_enter(void) {
-    menu_init(enter_cb, NULL, NULL, NULL);
+    menu_init(enter_cb, edit_cb, NULL, NULL);
     ble_scan(BLE_SCAN_ON);
 }
 

@@ -1,5 +1,5 @@
 /*
- * state.h
+ * state_volcano_conf.h
  *
  * Copyright (c) 2023 Thomas Buck (thomas@xythobuz.de)
  *
@@ -16,25 +16,15 @@
  * See <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __STATE_H__
-#define __STATE_H__
+#ifndef __STATE_VOLCANO_CONF_H__
+#define __STATE_VOLCANO_CONF_H__
 
-enum system_state {
-    STATE_INIT = 0,
-    STATE_SCAN,
-    STATE_WORKFLOW,
-    STATE_VOLCANO_RUN,
-    STATE_CRAFTY,
-    STATE_EDIT_WORKFLOW,
-    STATE_SETTINGS,
-    STATE_ABOUT,
-    STATE_VALUE,
-    STATE_VOLCANO_CONF,
+#include <ble.h>
 
-    STATE_INVALID,
-};
+void state_volcano_conf_target(bd_addr_t addr, bd_addr_type_t type);
 
-void state_switch(enum system_state next);
-void state_run(void);
+void state_volcano_conf_enter(void);
+void state_volcano_conf_exit(void);
+void state_volcano_conf_run(void);
 
-#endif // __STATE_H__
+#endif // __STATE_VOLCANO_CONF_H__

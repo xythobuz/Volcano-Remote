@@ -26,6 +26,7 @@
 #include "state_settings.h"
 #include "state_about.h"
 #include "state_value.h"
+#include "state_volcano_conf.h"
 #include "state.h"
 
 #define stringify(name) # name
@@ -83,6 +84,11 @@ static const struct state states[STATE_INVALID + 1] = {
         .enter = state_value_enter,
         .exit = state_value_exit,
         .run = state_value_run,
+    }, {
+        .name = stringify(STATE_VOLCANO_CONF),
+        .enter = state_volcano_conf_enter,
+        .exit = state_volcano_conf_exit,
+        .run = state_volcano_conf_run,
     }, {
         .name = stringify(STATE_INVALID),
         .enter = NULL,

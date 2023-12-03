@@ -113,11 +113,13 @@ static void cnsl_interpret(const char *line) {
         println("   text - draw text on screen");
         println("    bat - draw battery indicator");
         println("");
-        println("   vrct - Volcano read current temperature");
-        println("   vrtt - Volcano read target temperature");
+        println("     vr - Volcano read values");
         println(" vwtt X - Volcano write target temperature");
         println("  vwh X - Set heater to 1 or 0");
         println("  vwp X - Set pump to 1 or 0");
+        println("  vwu X - Set unit to C or F");
+        println("  vwv X - Set vibration to 1 or 0");
+        println(" vwdc X - Set display cooling to 1 or 0");
         println("");
         println("    wfl - List available workflows");
         println("   wf X - Run workflow");
@@ -252,24 +254,28 @@ static void cnsl_interpret(const char *line) {
         }
     } else if (strcmp(line, "bat") == 0) {
         draw_battery_indicator();
-    } else if (strcmp(line, "vrct") == 0) {
+    } else if (strcmp(line, "vr") == 0) {
 #ifdef TEST_VOLCANO_AUTO_CONNECT
         DEV_AUTO_CONNECT(TEST_VOLCANO_AUTO_CONNECT);
 #endif // TEST_VOLCANO_AUTO_CONNECT
 
-        int16_t r = volcano_get_current_temp();
-        println("volcano current temp: %.1f", r / 10.0);
+        int16_t temp = volcano_get_current_temp();
+        println("volcano current temp: %.1f", temp / 10.0);
 
-#ifdef TEST_VOLCANO_AUTO_CONNECT
-        ble_disconnect();
-#endif // TEST_VOLCANO_AUTO_CONNECT
-    } else if (strcmp(line, "vrtt") == 0) {
-#ifdef TEST_VOLCANO_AUTO_CONNECT
-        DEV_AUTO_CONNECT(TEST_VOLCANO_AUTO_CONNECT);
-#endif // TEST_VOLCANO_AUTO_CONNECT
+        temp = volcano_get_target_temp();
+        println("volcano target temp: %.1f", temp / 10.0);
 
-        int16_t r = volcano_get_target_temp();
-        println("volcano target temp: %.1f", r / 10.0);
+        enum unit unit = volcano_get_unit();
+        println("volcano unit: %s", (unit == UNIT_C) ? "C" : "F");
+
+        enum volcano_state state = volcano_get_state();
+        println("volcano state: 0x%02X", state);
+
+        int8_t r = volcano_get_vibration();
+        println("volcano vibration: %d", r);
+
+        r = volcano_get_display_cooling();
+        println("volcano display cooling: %d", r);
 
 #ifdef TEST_VOLCANO_AUTO_CONNECT
         ble_disconnect();
@@ -338,6 +344,72 @@ static void cnsl_interpret(const char *line) {
 
             if (r < 0) {
                 println("error writing pump state %d", r);
+            } else {
+                println("success");
+            }
+        }
+    } else if (str_startswith(line, "vwu ")) {
+        char val;
+        int r = sscanf(line, "vwu %c", &val);
+        if ((r != 1) || ((val != 'C') && (val != 'F'))) {
+            println("invalid input (%d %c)", r, val);
+        } else {
+#ifdef TEST_VOLCANO_AUTO_CONNECT
+            DEV_AUTO_CONNECT(TEST_VOLCANO_AUTO_CONNECT);
+#endif // TEST_VOLCANO_AUTO_CONNECT
+
+            int8_t r = volcano_set_unit((val == 'C') ? UNIT_C : UNIT_F);
+
+#ifdef TEST_VOLCANO_AUTO_CONNECT
+            ble_disconnect();
+#endif // TEST_VOLCANO_AUTO_CONNECT
+
+            if (r < 0) {
+                println("error writing value %d", r);
+            } else {
+                println("success");
+            }
+        }
+    } else if (str_startswith(line, "vwv ")) {
+        int val;
+        int r = sscanf(line, "vwv %d", &val);
+        if ((r != 1) || ((val != 0) && (val != 1))) {
+            println("invalid input (%d %d)", r, val);
+        } else {
+#ifdef TEST_VOLCANO_AUTO_CONNECT
+            DEV_AUTO_CONNECT(TEST_VOLCANO_AUTO_CONNECT);
+#endif // TEST_VOLCANO_AUTO_CONNECT
+
+            int8_t r = volcano_set_vibration(val == 1);
+
+#ifdef TEST_VOLCANO_AUTO_CONNECT
+            ble_disconnect();
+#endif // TEST_VOLCANO_AUTO_CONNECT
+
+            if (r < 0) {
+                println("error writing value %d", r);
+            } else {
+                println("success");
+            }
+        }
+    } else if (str_startswith(line, "vwdc ")) {
+        int val;
+        int r = sscanf(line, "vwdc %d", &val);
+        if ((r != 1) || ((val != 0) && (val != 1))) {
+            println("invalid input (%d %d)", r, val);
+        } else {
+#ifdef TEST_VOLCANO_AUTO_CONNECT
+            DEV_AUTO_CONNECT(TEST_VOLCANO_AUTO_CONNECT);
+#endif // TEST_VOLCANO_AUTO_CONNECT
+
+            int8_t r = volcano_set_display_cooling(val == 1);
+
+#ifdef TEST_VOLCANO_AUTO_CONNECT
+            ble_disconnect();
+#endif // TEST_VOLCANO_AUTO_CONNECT
+
+            if (r < 0) {
+                println("error writing value %d", r);
             } else {
                 println("success");
             }
