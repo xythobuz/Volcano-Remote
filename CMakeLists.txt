@@ -93,6 +93,7 @@ target_sources(gadget PUBLIC
     src/state_settings.c
     src/state_about.c
     src/state_value.c
+    src/textbox.c
 
     ${CMAKE_CURRENT_BINARY_DIR}/fatfs/ff.c
     ${CMAKE_CURRENT_BINARY_DIR}/fatfs/ffunicode.c

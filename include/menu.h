@@ -24,11 +24,15 @@
 #define MENU_MAX_LINES 5
 #define MENU_MAX_LEN (MENU_MAX_LINES * 32)
 
+#define MENU_BOX_HEIGHT(lines, font, space) ((lines * font) + ((lines - 1) * space))
+
 struct menu_state {
     int off;
     int selection;
     int length;
     char buff[MENU_MAX_LEN];
+    int lines;
+    int y_off;
 };
 
 void menu_init(void (*enter)(int),
@@ -44,7 +48,7 @@ extern bool menu_got_input;
 #define ADD_STATIC_ELEMENT(name) {\
     menu->length += 1; \
     if (((menu->length - 1) >= menu->off) \
-        && ((menu->length - 1 - menu->off) < MENU_MAX_LINES)) { \
+        && ((menu->length - 1 - menu->off) < menu->lines)) { \
         if ((menu->length - 1) == menu->selection) { \
             pos += snprintf(menu->buff + pos, MENU_MAX_LEN - pos, "> "); \
         } else { \

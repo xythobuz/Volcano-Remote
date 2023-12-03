@@ -22,7 +22,9 @@
 #include "buttons.h"
 #include "log.h"
 #include "lcd.h"
+#include "menu.h"
 #include "text.h"
+#include "textbox.h"
 #include "state_value.h"
 
 static void *val_p = NULL;
@@ -64,19 +66,22 @@ static void draw(void) {
     } else {
         if (val_mode == VAL_STEP_INCREMENT) {
             pos += snprintf(buff, sizeof(buff),
-                            "%s:\n%d -> %d -> %d",
+                            "%s:\n\n%d -> %d -> %d",
                             val_name, val_min / val_step, val / val_step, val_max / val_step);
         } else {
             pos += snprintf(buff, sizeof(buff),
-                            "%s:\n%04X -> %04X -> %04X",
-                            val_name, val_min, val, val_max);
+                            "%s:\n\n%d -> %d -> %d",
+                            val_name,
+                            __builtin_ffs(val_min),
+                            __builtin_ffs(val),
+                            __builtin_ffs(val_max));
         }
     }
 
     text_box(buff, true,
              "fixed_10x20",
              0, LCD_WIDTH,
-             50, TEXT_BOX_HEIGHT(20, 2),
+             50, MENU_BOX_HEIGHT(MENU_MAX_LINES, 20, 2),
              0);
 }
 

@@ -22,8 +22,10 @@
 #include "config.h"
 #include "buttons.h"
 #include "log.h"
+#include "lcd.h"
 #include "volcano.h"
 #include "workflow.h"
+#include "util.h"
 #include "state.h"
 #include "state_volcano_run.h"
 
@@ -73,8 +75,37 @@ void state_volcano_run_exit(void) {
     wf_reset();
 }
 
+static void bar_graph(int y_off, int h, int val_min, int val, int val_max) {
+    float v = map(val, val_min, val_max, 0.0f, 1.0f);
+    uint16_t width = v * (LCD_WIDTH - 1);
+    uint32_t c = from_hsv(v * 0.333, 1.0, 1.0);
+    lcd_write_rect(0, y_off, width, y_off + h - 1, c);
+}
+
 static void draw(struct menu_state *menu) {
+    static struct wf_state prev_state = {0};
     struct wf_state state = wf_status();
+
+    if ((state.step == prev_state.step)
+        && ((((state.step->op == OP_SET_TEMPERATURE) || (state.step->op == OP_WAIT_TEMPERATURE))
+               && ((state.curr_val / 10) == (prev_state.curr_val / 10)))
+            || (((state.step->op == OP_PUMP_TIME) || (state.step->op == OP_WAIT_TIME))
+               && ((state.curr_val / 500) == (prev_state.curr_val / 500))))) {
+        return;
+    }
+    prev_state = state;
+
+    menu->lines = 3;
+    menu->y_off = 20 + 2;
+
+    lcd_write_rect(0, 50,
+                   LCD_WIDTH - 1,
+                   50 + menu->y_off - 1,
+                   LCD_BLACK);
+    lcd_write_rect(0, 50 + MENU_BOX_HEIGHT(3, 20, 2) + menu->y_off,
+                   LCD_WIDTH - 1,
+                   50 + MENU_BOX_HEIGHT(3, 20, 2) + (menu->y_off * 2) - 1,
+                   LCD_BLACK);
 
     if (state.status == WF_IDLE) {
         if (wait_for_connect) {
@@ -82,10 +113,17 @@ static void draw(struct menu_state *menu) {
                      "Connecting\nand\nDiscovering");
         } else if (wait_for_disconnect) {
             snprintf(menu->buff, MENU_MAX_LEN,
-                     "Disconnecting");
+                     "\nDisconnecting");
+        } else {
+            snprintf(menu->buff, MENU_MAX_LEN,
+                     "\nDone");
         }
         return;
     }
+
+    bar_graph(50, menu->y_off, 0, state.index, state.count);
+    bar_graph(50 + MENU_BOX_HEIGHT(3, 20, 2) + menu->y_off, menu->y_off,
+              state.start_val, state.curr_val, state.step->val);
 
     int pos = 0;
     pos += snprintf(menu->buff + pos, MENU_MAX_LEN - pos,
@@ -118,8 +156,6 @@ static void draw(struct menu_state *menu) {
                         state.step->val / 1000.0f);
         break;
     }
-
-    // TODO visualize
 }
 
 void state_volcano_run_run(void) {

@@ -16,12 +16,9 @@
  * See <http://www.gnu.org/licenses/>.
  */
 
-#include <string.h>
-
 #include "config.h"
 #include "log.h"
 #include "lcd.h"
-#include "menu.h"
 #include "text.h"
 
 typedef struct {
@@ -169,42 +166,4 @@ int16_t text_draw(struct text_conf *tc) {
                 tc->text, line_callback, &state);
 
     return state.y;
-}
-
-int16_t text_box(const char *s, bool centered,
-                 const char *fontname,
-                 uint16_t x_off, uint16_t width,
-                 uint16_t y_off, uint16_t height,
-                 int16_t y_text_off) {
-    static struct text_font font = {
-        .fontname = "",
-        .font = NULL,
-    };
-
-    if ((font.font == NULL) || (strcmp(font.fontname, fontname) != 0)) {
-        font.fontname = fontname;
-        text_prepare_font(&font);
-    }
-
-    struct text_conf text = {
-        .text = s,
-        .x = x_off,
-        .y = y_off,
-        .y_text_off = y_text_off,
-        .justify = false,
-        .alignment = centered ? MF_ALIGN_CENTER : MF_ALIGN_LEFT,
-        .width = width,
-        .height = height,
-        .margin = 2,
-        .fg = RGB_565(0xFF, 0xFF, 0xFF),
-        .bg = TEXT_BG_NONE,
-        .font = &font,
-    };
-
-    lcd_write_rect(x_off, y_off,
-                   x_off + width - 1,
-                   y_off + height - 1,
-                   RGB_565(0x00, 0x00, 0x00));
-
-    return text_draw(&text);
 }

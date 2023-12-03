@@ -21,6 +21,7 @@
 #include "config.h"
 #include "buttons.h"
 #include "text.h"
+#include "textbox.h"
 #include "lcd.h"
 #include "menu.h"
 
@@ -83,7 +84,7 @@ static void menu_buttons(enum buttons btn, bool state) {
         while (menu.selection < menu.off) {
             menu.off -= 1;
         }
-        while (menu.selection >= (menu.off + MENU_MAX_LINES)) {
+        while (menu.selection >= (menu.off + menu.lines)) {
             menu.off += 1;
         }
     }
@@ -96,6 +97,8 @@ void menu_init(void (*enter)(int),
     menu.off = 0;
     menu.selection = -1;
     menu.length = 0;
+    menu.lines = MENU_MAX_LINES;
+    menu.y_off = 0;
 
     enter_callback = enter;
     up_callback = up;
@@ -118,7 +121,7 @@ void menu_run(void (*draw)(struct menu_state *), bool centered) {
         text_box(menu.buff, centered,
                  "fixed_10x20",
                  0, LCD_WIDTH,
-                 50, TEXT_BOX_HEIGHT(20, 2),
+                 50 + menu.y_off, MENU_BOX_HEIGHT(menu.lines, 20, 2),
                  0);
     }
 }

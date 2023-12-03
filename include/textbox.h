@@ -1,5 +1,5 @@
 /*
- * text.h
+ * textbox.h
  *
  * Copyright (c) 2023 Thomas Buck (thomas@xythobuz.de)
  *
@@ -16,37 +16,13 @@
  * See <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __TEXT_H__
-#define __TEXT_H__
+#ifndef __TEXTBOX_H__
+#define __TEXTBOX_H__
 
-#include "mcufont.h"
+int16_t text_box(const char *s, bool centered,
+                 const char *fontname,
+                 uint16_t x_off, uint16_t width,
+                 uint16_t y_off, uint16_t height,
+                 int16_t y_text_off);
 
-#define TEXT_BG_NONE -1
-
-struct text_font {
-    const char *fontname;
-    //int scale; // TODO not supported - requires somewhere to store scaled versions
-
-    const struct mf_font_s *font;
-};
-
-struct text_conf {
-    const char *text;
-    int x;
-    int y;
-    int y_text_off;
-    bool justify;
-    enum mf_align_t alignment;
-    int width;
-    int height;
-    int margin;
-    int fg;
-    int bg;
-
-    struct text_font *font;
-};
-
-void text_prepare_font(struct text_font *tf);
-int16_t text_draw(struct text_conf *tc);
-
-#endif // __TEXT_H__
+#endif // __TEXTBOX_H__
