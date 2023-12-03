@@ -55,7 +55,9 @@ int main(void) {
 
     // required for debug console
     cnsl_init();
+#ifndef NDEBUG
     serial_init();
+#endif
     usb_init();
 
     debug("mem_init");

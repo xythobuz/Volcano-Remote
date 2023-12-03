@@ -62,7 +62,9 @@ void log_dump_to_usb(void) {
 }
 
 void log_dump_to_uart(void) {
+#ifndef NDEBUG
     log_dump_to_x(serial_write);
+#endif
 }
 
 static void log_file_write_callback(const uint8_t *data, size_t len) {
@@ -100,7 +102,10 @@ void debug_log_va(bool log, const char *format, va_list args) {
     }
     if ((l > 0) && (l <= (int)sizeof(line_buff))) {
         usb_cdc_write(line_buff, l);
+
+#ifndef NDEBUG
         serial_write(line_buff, l);
+#endif
 
         if (log) {
             add_to_log(line_buff, l);

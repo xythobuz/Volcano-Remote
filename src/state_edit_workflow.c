@@ -16,6 +16,8 @@
  * See <http://www.gnu.org/licenses/>.
  */
 
+// TODO adding and removing whole steps
+
 #include <stdio.h>
 #include <string.h>
 

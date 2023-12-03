@@ -619,13 +619,19 @@ void cnsl_handle_input(const uint8_t *buf, size_t len) {
             }
 
             usb_cdc_write((const uint8_t *)"\b \b", 3);
+
+#ifndef NDEBUG
             serial_write((const uint8_t *)"\b \b", 3);
+#endif
 
             // check for another backspace in this space
             i--;
         } else {
             usb_cdc_write((const uint8_t *)(cnsl_line_buff + i), 1);
+
+#ifndef NDEBUG
             serial_write((const uint8_t *)(cnsl_line_buff + i), 1);
+#endif
         }
     }
 
