@@ -54,7 +54,7 @@ struct wf_state {
 
     uint16_t index;
     uint16_t count;
-    struct wf_step step;
+    struct wf_step *step;
     uint16_t start_val, curr_val;
 };
 
@@ -71,8 +71,8 @@ uint16_t wf_steps(uint16_t index);
 void wf_move_step_down(uint16_t index, uint16_t step);
 void wf_move_step_up(uint16_t index, uint16_t step);
 
-struct wf_step wf_get_step(uint16_t index, uint16_t step);
-const char *wf_step_str(struct wf_step step);
+struct wf_step *wf_get_step(uint16_t index, uint16_t step);
+const char *wf_step_str(struct wf_step *step);
 
 struct wf_state wf_status(void);
 void wf_start(uint16_t index);

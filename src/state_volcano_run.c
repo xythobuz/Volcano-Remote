@@ -91,7 +91,7 @@ static void draw(struct menu_state *menu) {
     pos += snprintf(menu->buff + pos, MENU_MAX_LEN - pos,
                     "step %d / %d\n", state.index, state.count);
 
-    switch (state.step.op) {
+    switch (state.step->op) {
     case OP_SET_TEMPERATURE:
         pos += snprintf(menu->buff + pos, MENU_MAX_LEN - pos,
                         "\n%s", wf_step_str(state.step));
@@ -104,7 +104,7 @@ static void draw(struct menu_state *menu) {
                         "%.1f -> %.1f -> %.1f",
                         state.start_val / 10.0f,
                         state.curr_val / 10.0f,
-                        state.step.val / 10.0f);
+                        state.step->val / 10.0f);
         break;
 
     case OP_WAIT_TIME:
@@ -115,7 +115,7 @@ static void draw(struct menu_state *menu) {
                         "%.0f -> %.0f -> %.0f",
                         state.start_val / 1000.0f,
                         state.curr_val / 1000.0f,
-                        state.step.val / 1000.0f);
+                        state.step->val / 1000.0f);
         break;
     }
 

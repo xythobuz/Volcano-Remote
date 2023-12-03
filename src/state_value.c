@@ -30,6 +30,7 @@ static size_t val_len = 0;
 static ssize_t val_min = 0;
 static ssize_t val_max = 0;
 static ssize_t val_step = 0;
+static const char *val_name = NULL;
 
 static enum value_step_mode val_mode = VAL_STEP_INCREMENT;
 static enum system_state val_ret_state = STATE_SCAN;
@@ -38,13 +39,15 @@ static ssize_t val = 0;
 
 void state_value_set(void *value, size_t length,
                      ssize_t min, ssize_t max,
-                     enum value_step_mode mode, ssize_t step) {
+                     enum value_step_mode mode, ssize_t step,
+                     const char *name) {
     val_p = value;
     val_len = length;
     val_min = min;
     val_max = max;
     val_mode = mode;
     val_step = step;
+    val_name = name;
 }
 
 void state_value_return(enum system_state state) {
@@ -55,15 +58,22 @@ static void draw(void) {
     static char buff[100];
     static size_t pos = 0;
 
-    if ((val_p == NULL) || (val_len <= 0)) {
+    if ((val_p == NULL) || (val_len <= 0) || (val_name == NULL)) {
         pos += snprintf(buff, sizeof(buff),
                         "error");
     } else {
-        pos += snprintf(buff, sizeof(buff),
-                        "%d", val);
+        if (val_mode == VAL_STEP_INCREMENT) {
+            pos += snprintf(buff, sizeof(buff),
+                            "%s:\n%d -> %d -> %d",
+                            val_name, val_min / val_step, val / val_step, val_max / val_step);
+        } else {
+            pos += snprintf(buff, sizeof(buff),
+                            "%s:\n%04X -> %04X -> %04X",
+                            val_name, val_min, val, val_max);
+        }
     }
 
-    text_box(buff, false,
+    text_box(buff, true,
              "fixed_10x20",
              0, LCD_WIDTH,
              50, TEXT_BOX_HEIGHT(20, 2),
@@ -103,7 +113,6 @@ static void step(ssize_t v) {
 
     if (((v > 0) && (val >= val_max))
         || ((v < 0) && (val <= val_min))) {
-        debug("val=%d v=%d", val, v);
         return;
     }
 

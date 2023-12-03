@@ -29,7 +29,8 @@ enum value_step_mode {
 
 void state_value_set(void *value, size_t length,
                      ssize_t min, ssize_t max,
-                     enum value_step_mode mode, ssize_t step);
+                     enum value_step_mode mode, ssize_t step,
+                     const char *name);
 void state_value_return(enum system_state state);
 
 void state_value_enter(void);

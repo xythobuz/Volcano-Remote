@@ -34,7 +34,8 @@ static void enter_cb(int selection) {
         // Auto Connect
         state_value_set(&mem_data()->wf_auto_connect,
                         sizeof(mem_data()->wf_auto_connect),
-                        0, 1, VAL_STEP_INCREMENT, 1);
+                        0, 1, VAL_STEP_INCREMENT, 1,
+                        "Auto Connect");
         state_value_return(STATE_SETTINGS);
         state_switch(STATE_VALUE);
         break;
@@ -43,7 +44,8 @@ static void enter_cb(int selection) {
         // Brightness
         state_value_set(&mem_data()->backlight,
                         sizeof(mem_data()->backlight),
-                        0x00FF, 0xFF00, VAL_STEP_SHIFT, 1);
+                        0x00FF, 0xFF00, VAL_STEP_SHIFT, 1,
+                        "Brightness");
         state_value_return(STATE_SETTINGS);
         state_switch(STATE_VALUE);
         break;

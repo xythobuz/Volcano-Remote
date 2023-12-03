@@ -20,16 +20,46 @@
 #include <string.h>
 
 #include "config.h"
+#include "mem.h"
 #include "menu.h"
 #include "workflow.h"
 #include "state.h"
+#include "state_value.h"
 #include "state_edit_workflow.h"
 
 static uint16_t wf_index = 0;
 
 static void enter_cb(int selection) {
+    static char buff[20];
+
     if ((selection >= 0) && (selection < wf_steps(wf_index))) {
-        // TODO edit value
+        struct wf_step *step = wf_get_step(wf_index, selection);
+        switch (step->op) {
+        case OP_SET_TEMPERATURE:
+        case OP_WAIT_TEMPERATURE:
+            snprintf(buff, sizeof(buff),
+                     "%s Temp.",
+                     step->op == OP_WAIT_TEMPERATURE ? "Wait" : "Set");
+            state_value_set(&step->val,
+                            sizeof(step->val),
+                            400, 2300, VAL_STEP_INCREMENT, 10,
+                            buff);
+            break;
+
+        case OP_WAIT_TIME:
+        case OP_PUMP_TIME:
+            snprintf(buff, sizeof(buff),
+                     "%s Time",
+                     step->op == OP_WAIT_TIME ? "Wait" : "Pump");
+            state_value_set(&step->val,
+                            sizeof(step->val),
+                            0, 60000, VAL_STEP_INCREMENT, 1000,
+                            buff);
+            break;
+        }
+
+        state_value_return(STATE_EDIT_WORKFLOW);
+        state_switch(STATE_VALUE);
     }
 }
 
@@ -77,7 +107,7 @@ static void draw(struct menu_state *menu) {
             pos += snprintf(menu->buff + pos, MENU_MAX_LEN - pos, "  ");
         }
 
-        struct wf_step step = wf_get_step(wf_index, i);
+        struct wf_step *step = wf_get_step(wf_index, i);
         pos += snprintf(menu->buff + pos, MENU_MAX_LEN - pos,
                         "% 2d: %s\n", i, wf_step_str(step));
     }

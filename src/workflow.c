@@ -134,34 +134,34 @@ void wf_move_step_up(uint16_t index, uint16_t step) {
     mem_data()->wf[index].steps[step] = tmp;
 }
 
-struct wf_step wf_get_step(uint16_t index, uint16_t step) {
+struct wf_step *wf_get_step(uint16_t index, uint16_t step) {
     if (index >= mem_data()->wf_count) {
         debug("invalid index %d", index);
-        return mem_data()->wf[0].steps[0];
+        return NULL;
     }
-    return mem_data()->wf[index].steps[step];
+    return &mem_data()->wf[index].steps[step];
 }
 
-const char *wf_step_str(struct wf_step step) {
+const char *wf_step_str(struct wf_step *step) {
     static char buff[20];
 
-    switch (step.op) {
+    switch (step->op) {
     case OP_SET_TEMPERATURE:
         snprintf(buff, sizeof(buff),
-                 "set temp %.1f C", step.val / 10.0f);
+                 "set temp %.1f C", step->val / 10.0f);
         break;
 
     case OP_WAIT_TEMPERATURE:
         snprintf(buff, sizeof(buff),
-                 "wait temp %.1f C", step.val / 10.0f);
+                 "wait temp %.1f C", step->val / 10.0f);
         break;
 
     case OP_WAIT_TIME:
     case OP_PUMP_TIME:
         snprintf(buff, sizeof(buff),
                  "%s time %.1f s",
-                 (step.op == OP_WAIT_TIME) ? "wait" : "pump",
-                 step.val / 1000.0f);
+                 (step->op == OP_WAIT_TIME) ? "wait" : "pump",
+                 step->val / 1000.0f);
         break;
     }
 
@@ -189,7 +189,7 @@ struct wf_state wf_status(void) {
         .status = status,
         .index = step,
         .count = mem_data()->wf[wf_i].count,
-        .step = mem_data()->wf[wf_i].steps[step],
+        .step = &mem_data()->wf[wf_i].steps[step],
         .start_val = start_val,
         .curr_val = curr_val,
     };
