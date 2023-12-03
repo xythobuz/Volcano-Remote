@@ -55,4 +55,16 @@ enum volcano_state volcano_get_state(void);
 int8_t volcano_get_vibration(void);
 int8_t volcano_get_display_cooling(void);
 
+// returns seconds, or < 0 on error
+int16_t volcano_get_auto_shutoff(void);
+
+// v in seconds, returns < 0 on error
+int8_t volcano_set_auto_shutoff(uint16_t v);
+
+// returns 0-10, or < 0 on error
+int8_t volcano_get_brightness(void);
+
+// v in 0-10, returns < 0 on error
+int8_t volcano_set_brightness(uint8_t v);
+
 #endif // __VOLCANO_H__

@@ -277,6 +277,12 @@ static void cnsl_interpret(const char *line) {
         r = volcano_get_display_cooling();
         println("volcano display cooling: %d", r);
 
+        int16_t time = volcano_get_auto_shutoff();
+        println("volcano auto shutoff: %d", time);
+
+        r = volcano_get_brightness();
+        println("volcano brightness: %d", r);
+
 #ifdef TEST_VOLCANO_AUTO_CONNECT
         ble_disconnect();
 #endif // TEST_VOLCANO_AUTO_CONNECT

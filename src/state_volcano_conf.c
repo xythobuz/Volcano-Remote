@@ -35,6 +35,8 @@ static bool connected = false;
 static bool val_celsius = false;
 static bool val_vibrate = false;
 static bool val_disp_cool = false;
+static uint16_t val_auto_shutoff = 0;
+static uint8_t val_brightness = 0;
 
 void state_volcano_conf_target(bd_addr_t addr, bd_addr_type_t type) {
     debug("%s %d", bd_addr_to_str(addr), type);
@@ -75,6 +77,26 @@ static void enter_cb(int selection) {
         state_value_return(STATE_VOLCANO_CONF);
         state_switch(STATE_VALUE);
         break;
+
+    case 3:
+        // Auto Shutoff
+        state_value_set(&val_auto_shutoff,
+                        sizeof(val_auto_shutoff),
+                        0, 60 * 60, VAL_STEP_INCREMENT, 60,
+                        "Auto Shutoff");
+        state_value_return(STATE_VOLCANO_CONF);
+        state_switch(STATE_VALUE);
+        break;
+
+    case 4:
+        // Brightness
+        state_value_set(&val_brightness,
+                        sizeof(val_brightness),
+                        0, 100, VAL_STEP_INCREMENT, 10,
+                        "Brightness");
+        state_value_return(STATE_VOLCANO_CONF);
+        state_switch(STATE_VALUE);
+        break;
     }
 }
 
@@ -84,6 +106,10 @@ static void send_values(void) {
     volcano_set_vibration(val_vibrate);
     sleep_ms(150);
     volcano_set_display_cooling(val_disp_cool);
+    sleep_ms(150);
+    volcano_set_auto_shutoff(val_auto_shutoff);
+    sleep_ms(150);
+    volcano_set_brightness(val_brightness);
 }
 
 static void fetch_values(void) {
@@ -97,6 +123,10 @@ static void fetch_values(void) {
 
     r = volcano_get_display_cooling();
     val_disp_cool = (r == 1);
+
+    val_auto_shutoff = volcano_get_auto_shutoff();
+
+    val_brightness = volcano_get_brightness();
 }
 
 static void exit_cb(void) {
@@ -139,6 +169,8 @@ static void draw(struct menu_state *menu) {
     ADD_STATIC_ELEMENT("Celsius");
     ADD_STATIC_ELEMENT("Vibrate");
     ADD_STATIC_ELEMENT("Disp. Cool");
+    ADD_STATIC_ELEMENT("Auto Shutoff");
+    ADD_STATIC_ELEMENT("Brightness");
 
     if (menu->selection < 0) {
         menu->selection = 0;

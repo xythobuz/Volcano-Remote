@@ -30,6 +30,8 @@
 #define UUID_WRITE_SRVC   0x00
 #define UUID_CURRENT_TEMP 0x01
 #define UUID_TARGET_TEMP  0x03
+#define UUID_BRIGHTNESS   0x05
+#define UUID_SHUTOFF_TIME 0x0D
 #define UUID_HEATER_ON    0x0F
 #define UUID_HEATER_OFF   0x10
 #define UUID_PUMP_ON      0x13
@@ -305,7 +307,6 @@ int8_t volcano_set_display_cooling(bool value) {
         debug("ble_write unexpected value %d", r);
     }
     return r;
-
 }
 
 int8_t volcano_get_display_cooling(void) {
@@ -321,4 +322,62 @@ int8_t volcano_get_display_cooling(void) {
 
     uint32_t *v = (uint32_t *)buff;
     return (*v & MASK_PRJSTAT2_DISPLAY_ON_COOLING) ? 0 : 1;
+}
+
+int16_t volcano_get_auto_shutoff(void) {
+    uuid_base[1] = UUID_SRVC_2;
+    uuid_base[3] = UUID_SHUTOFF_TIME;
+
+    uint8_t buff[2];
+    int32_t r = ble_read(uuid_base, buff, sizeof(buff));
+    if (r != sizeof(buff)) {
+        debug("ble_read unexpected value %ld", r);
+        return -1;
+    }
+
+    uint16_t *v = (uint16_t *)buff;
+    return *v;
+
+}
+
+int8_t volcano_set_auto_shutoff(uint16_t v) {
+    uuid_base[1] = UUID_SRVC_2;
+    uuid_base2[1] = UUID_SRVC_2;
+    uuid_base[3] = UUID_WRITE_SRVC;
+    uuid_base2[3] = UUID_SHUTOFF_TIME;
+
+    int8_t r = ble_write(uuid_base, uuid_base2, (uint8_t *)&v, sizeof(v));
+    if (r != 0) {
+        debug("ble_write unexpected value %d", r);
+    }
+    return r;
+}
+
+int8_t volcano_get_brightness(void) {
+    uuid_base[1] = UUID_SRVC_2;
+    uuid_base[3] = UUID_BRIGHTNESS;
+
+    uint8_t buff[2];
+    int32_t r = ble_read(uuid_base, buff, sizeof(buff));
+    if (r != sizeof(buff)) {
+        debug("ble_read unexpected value %ld", r);
+        return -1;
+    }
+
+    uint16_t *v = (uint16_t *)buff;
+    return *v;
+}
+
+int8_t volcano_set_brightness(uint8_t val) {
+    uuid_base[1] = UUID_SRVC_2;
+    uuid_base2[1] = UUID_SRVC_2;
+    uuid_base[3] = UUID_WRITE_SRVC;
+    uuid_base2[3] = UUID_BRIGHTNESS;
+
+    uint16_t v = val;
+    int8_t r = ble_write(uuid_base, uuid_base2, (uint8_t *)&v, sizeof(v));
+    if (r != 0) {
+        debug("ble_write unexpected value %d", r);
+    }
+    return r;
 }
