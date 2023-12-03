@@ -39,9 +39,7 @@ void menu_deinit(void);
 
 void menu_run(void (*cb)(struct menu_state *), bool centered);
 
-#ifdef VOLCANO_AUTO_CONNECT_TIMEOUT_MS
 extern bool menu_got_input;
-#endif // VOLCANO_AUTO_CONNECT_TIMEOUT_MS
 
 #define ADD_STATIC_ELEMENT(name) {\
     menu->length += 1; \

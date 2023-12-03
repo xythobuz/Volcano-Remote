@@ -1,5 +1,5 @@
 /*
- * state.h
+ * state_value.h
  *
  * Copyright (c) 2023 Thomas Buck (thomas@xythobuz.de)
  *
@@ -16,24 +16,24 @@
  * See <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __STATE_H__
-#define __STATE_H__
+#ifndef __STATE_VALUE_H__
+#define __STATE_VALUE_H__
 
-enum system_state {
-    STATE_INIT = 0,
-    STATE_SCAN,
-    STATE_WORKFLOW,
-    STATE_VOLCANO_RUN,
-    STATE_CRAFTY,
-    STATE_EDIT_WORKFLOW,
-    STATE_SETTINGS,
-    STATE_ABOUT,
-    STATE_VALUE,
+#include <sys/types.h>
+#include "state.h"
 
-    STATE_INVALID,
+enum value_step_mode {
+    VAL_STEP_INCREMENT = 0,
+    VAL_STEP_SHIFT,
 };
 
-void state_switch(enum system_state next);
-void state_run(void);
+void state_value_set(void *value, size_t length,
+                     ssize_t min, ssize_t max,
+                     enum value_step_mode mode, ssize_t step);
+void state_value_return(enum system_state state);
 
-#endif // __STATE_H__
+void state_value_enter(void);
+void state_value_exit(void);
+void state_value_run(void);
+
+#endif // __STATE_VALUE_H__

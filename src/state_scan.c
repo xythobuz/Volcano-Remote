@@ -24,6 +24,7 @@
 #include "config.h"
 #include "ble.h"
 #include "models.h"
+#include "mem.h"
 #include "menu.h"
 #include "state.h"
 #include "state_workflow.h"
@@ -33,11 +34,8 @@
 
 static struct ble_scan_result results[BLE_MAX_SCAN_RESULTS] = {0};
 static int result_count = 0;
-
-#ifdef VOLCANO_AUTO_CONNECT_TIMEOUT_MS
 static uint32_t auto_connect_time = 0;
 static int auto_connect_idx = 0;
-#endif // VOLCANO_AUTO_CONNECT_TIMEOUT_MS
 
 static void enter_cb(int selection) {
     int devs = 0;
@@ -67,15 +65,8 @@ static void enter_cb(int selection) {
     }
 }
 
-static void edit_cb(int selection) {
-    UNUSED(selection);
-
-    state_wf_edit(true);
-    state_switch(STATE_WORKFLOW);
-}
-
 void state_scan_enter(void) {
-    menu_init(enter_cb, edit_cb, NULL, NULL);
+    menu_init(enter_cb, NULL, NULL, NULL);
     ble_scan(BLE_SCAN_ON);
 }
 
@@ -107,16 +98,12 @@ static void draw(struct menu_state *menu) {
             if (dev == DEV_VOLCANO) {
                 menu->selection = devs - 1;
 
-#ifdef VOLCANO_AUTO_CONNECT_TIMEOUT_MS
-#ifdef VOLCANO_AUTO_CONNECT_WITHIN_MS
                 if (to_ms_since_boot(get_absolute_time()) <= VOLCANO_AUTO_CONNECT_WITHIN_MS) {
-#endif // VOLCANO_AUTO_CONNECT_WITHIN_MS
-                    auto_connect_time = to_ms_since_boot(get_absolute_time());
-                    auto_connect_idx = i;
-#ifdef VOLCANO_AUTO_CONNECT_WITHIN_MS
+                    if (mem_data()->wf_auto_connect) {
+                        auto_connect_time = to_ms_since_boot(get_absolute_time());
+                        auto_connect_idx = i;
+                    }
                 }
-#endif // VOLCANO_AUTO_CONNECT_WITHIN_MS
-#endif // VOLCANO_AUTO_CONNECT_TIMEOUT_MS
             }
 #endif // MENU_PREFER_VOLCANO
 #ifdef MENU_PREFER_CRAFTY
@@ -128,7 +115,6 @@ static void draw(struct menu_state *menu) {
 #endif // defined(MENU_PREFER_VOLCANO) || defined(MENU_PREFER_CRAFTY)
 
         if ((devs - 1) == menu->selection) {
-#ifdef VOLCANO_AUTO_CONNECT_TIMEOUT_MS
             if ((auto_connect_time != 0) && (!menu_got_input)) {
                 uint32_t now = to_ms_since_boot(get_absolute_time());
                 uint32_t diff = now - auto_connect_time;
@@ -136,11 +122,8 @@ static void draw(struct menu_state *menu) {
                                 "%ld ",
                                 (VOLCANO_AUTO_CONNECT_TIMEOUT_MS / 1000) - (diff / 1000));
             } else {
-#endif // VOLCANO_AUTO_CONNECT_TIMEOUT_MS
                 pos += snprintf(menu->buff + pos, MENU_MAX_LEN - pos, "> ");
-#ifdef VOLCANO_AUTO_CONNECT_TIMEOUT_MS
             }
-#endif // VOLCANO_AUTO_CONNECT_TIMEOUT_MS
         } else {
             pos += snprintf(menu->buff + pos, MENU_MAX_LEN - pos, "  ");
         }
@@ -174,7 +157,6 @@ static void draw(struct menu_state *menu) {
 void state_scan_run(void) {
     menu_run(draw, false);
 
-#ifdef VOLCANO_AUTO_CONNECT_TIMEOUT_MS
     if ((auto_connect_time != 0) && (!menu_got_input)) {
         uint32_t now = to_ms_since_boot(get_absolute_time());
         if ((now - auto_connect_time) >= VOLCANO_AUTO_CONNECT_TIMEOUT_MS) {
@@ -186,5 +168,4 @@ void state_scan_run(void) {
             auto_connect_time = 0;
         }
     }
-#endif // VOLCANO_AUTO_CONNECT_TIMEOUT_MS
 }

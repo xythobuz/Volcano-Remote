@@ -22,7 +22,6 @@
 #include "buttons.h"
 #include "text.h"
 #include "lcd.h"
-#include "mem.h"
 #include "menu.h"
 
 static char prev_buff[MENU_MAX_LEN] = {0};
@@ -32,32 +31,12 @@ static void (*up_callback)(int) = NULL;
 static void (*down_callback)(int) = NULL;
 static void (*exit_callback)(void) = NULL;
 
-#ifdef VOLCANO_AUTO_CONNECT_TIMEOUT_MS
 bool menu_got_input = false;
-#endif // VOLCANO_AUTO_CONNECT_TIMEOUT_MS
 
 static void menu_buttons(enum buttons btn, bool state) {
-#ifdef VOLCANO_AUTO_CONNECT_TIMEOUT_MS
     menu_got_input = true;
-#endif // VOLCANO_AUTO_CONNECT_TIMEOUT_MS
 
-    if (state && (btn == BTN_LEFT)) {
-        uint16_t backlight_value = lcd_get_backlight();
-        if (backlight_value > 0x00FF) {
-            backlight_value = backlight_value >> 1;
-        }
-        lcd_set_backlight(backlight_value);
-        mem_data()->backlight = backlight_value;
-        return;
-    } else if (state && (btn == BTN_RIGHT)) {
-        uint16_t backlight_value = lcd_get_backlight();
-        if (backlight_value < 0xFF00) {
-            backlight_value = backlight_value << 1;
-        }
-        lcd_set_backlight(backlight_value);
-        mem_data()->backlight = backlight_value;
-        return;
-    } else if (state && ((btn == BTN_ENTER) || (btn == BTN_A))) {
+    if (state && ((btn == BTN_ENTER) || (btn == BTN_A))) {
         if (enter_callback) {
             enter_callback(menu.selection);
         }
@@ -127,7 +106,6 @@ void menu_init(void (*enter)(int),
 
 void menu_deinit(void) {
     buttons_callback(NULL);
-    mem_write();
 }
 
 void menu_run(void (*draw)(struct menu_state *), bool centered) {
@@ -140,7 +118,7 @@ void menu_run(void (*draw)(struct menu_state *), bool centered) {
         text_box(menu.buff, centered,
                  "fixed_10x20",
                  0, LCD_WIDTH,
-                 50, (MENU_MAX_LINES * 20) + ((MENU_MAX_LINES - 1) * 2),
+                 50, TEXT_BOX_HEIGHT(20, 2),
                  0);
     }
 }

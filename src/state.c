@@ -25,6 +25,7 @@
 #include "state_edit_workflow.h"
 #include "state_settings.h"
 #include "state_about.h"
+#include "state_value.h"
 #include "state.h"
 
 #define stringify(name) # name
@@ -77,6 +78,11 @@ static const struct state states[STATE_INVALID + 1] = {
         .enter = state_about_enter,
         .exit = state_about_exit,
         .run = state_about_run,
+    }, {
+        .name = stringify(STATE_VALUE),
+        .enter = state_value_enter,
+        .exit = state_value_exit,
+        .run = state_value_run,
     }, {
         .name = stringify(STATE_INVALID),
         .enter = NULL,

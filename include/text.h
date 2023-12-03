@@ -20,8 +20,10 @@
 #define __TEXT_H__
 
 #include "mcufont.h"
+#include "menu.h"
 
 #define TEXT_BG_NONE -1
+#define TEXT_BOX_HEIGHT(font, space) ((MENU_MAX_LINES * font) + ((MENU_MAX_LINES - 1) * space))
 
 struct text_font {
     const char *fontname;

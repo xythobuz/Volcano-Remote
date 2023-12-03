@@ -44,6 +44,10 @@ void main_loop_hw(void) {
     usb_run();
     serial_run();
     heartbeat_run();
+
+    if (lcd_get_backlight() != mem_data()->backlight) {
+        lcd_set_backlight(mem_data()->backlight);
+    }
 }
 
 int main(void) {

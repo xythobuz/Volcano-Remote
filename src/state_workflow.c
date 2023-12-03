@@ -22,6 +22,7 @@
 #include "pico/stdlib.h"
 
 #include "config.h"
+#include "mem.h"
 #include "menu.h"
 #include "workflow.h"
 #include "state.h"
@@ -30,10 +31,7 @@
 #include "state_workflow.h"
 
 static bool edit_mode = false;
-
-#ifdef VOLCANO_AUTO_CONNECT_TIMEOUT_MS
 static uint32_t auto_connect_time = 0;
-#endif // VOLCANO_AUTO_CONNECT_TIMEOUT_MS
 
 static void enter_cb(int selection) {
     if ((selection >= 0) && (selection < wf_count())) {
@@ -68,7 +66,11 @@ static void upper_cb(int selection) {
 }
 
 static void exit_cb(void) {
-    state_switch(STATE_SCAN);
+    if (edit_mode) {
+        state_switch(STATE_SETTINGS);
+    } else {
+        state_switch(STATE_SCAN);
+    }
 }
 
 void state_wf_edit(bool edit) {
@@ -82,9 +84,9 @@ void state_wf_enter(void) {
         menu_init(enter_cb, NULL, NULL, exit_cb);
     }
 
-#ifdef VOLCANO_AUTO_CONNECT_TIMEOUT_MS
-    auto_connect_time = to_ms_since_boot(get_absolute_time());
-#endif // VOLCANO_AUTO_CONNECT_TIMEOUT_MS
+    if (mem_data()->wf_auto_connect) {
+        auto_connect_time = to_ms_since_boot(get_absolute_time());
+    }
 }
 
 void state_wf_exit(void) {
@@ -102,7 +104,6 @@ static void draw(struct menu_state *menu) {
         }
 
         if (i == menu->selection) {
-#ifdef VOLCANO_AUTO_CONNECT_TIMEOUT_MS
             if ((auto_connect_time != 0) && (!menu_got_input) && (!edit_mode)) {
                 uint32_t now = to_ms_since_boot(get_absolute_time());
                 uint32_t diff = now - auto_connect_time;
@@ -110,11 +111,8 @@ static void draw(struct menu_state *menu) {
                                 "%ld ",
                                 (VOLCANO_AUTO_CONNECT_TIMEOUT_MS / 1000) - (diff / 1000));
             } else {
-#endif // VOLCANO_AUTO_CONNECT_TIMEOUT_MS
                 pos += snprintf(menu->buff + pos, MENU_MAX_LEN - pos, "> ");
-#ifdef VOLCANO_AUTO_CONNECT_TIMEOUT_MS
             }
-#endif // VOLCANO_AUTO_CONNECT_TIMEOUT_MS
         } else {
             pos += snprintf(menu->buff + pos, MENU_MAX_LEN - pos, "  ");
         }
@@ -135,7 +133,6 @@ static void draw(struct menu_state *menu) {
 void state_wf_run(void) {
     menu_run(draw, false);
 
-#ifdef VOLCANO_AUTO_CONNECT_TIMEOUT_MS
     if ((auto_connect_time != 0) && (!menu_got_input) && (!edit_mode)) {
         uint32_t now = to_ms_since_boot(get_absolute_time());
         if ((now - auto_connect_time) >= VOLCANO_AUTO_CONNECT_TIMEOUT_MS) {
@@ -146,5 +143,4 @@ void state_wf_run(void) {
             menu_got_input = true;
         }
     }
-#endif // VOLCANO_AUTO_CONNECT_TIMEOUT_MS
 }

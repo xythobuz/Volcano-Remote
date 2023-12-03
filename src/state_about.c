@@ -68,7 +68,7 @@ static const char *about_text =
 ;
 
 static const uint16_t step_size = 10;
-static const uint16_t max_height = (MENU_MAX_LINES * 20) + ((MENU_MAX_LINES - 1) * 2);
+static const uint16_t max_height = TEXT_BOX_HEIGHT(20, 2);
 
 static uint16_t off = 0;
 static bool held_up = false;
