@@ -37,6 +37,8 @@ static bool val_vibrate = false;
 static bool val_disp_cool = false;
 static uint16_t val_auto_shutoff = 0;
 static uint8_t val_brightness = 0;
+static char val_fw[VOLCANO_FW_LEN] = {0};
+static int32_t val_rt = 0;
 
 void state_volcano_conf_target(bd_addr_t addr, bd_addr_type_t type) {
     debug("%s %d", bd_addr_to_str(addr), type);
@@ -125,8 +127,9 @@ static void fetch_values(void) {
     val_disp_cool = (r == 1);
 
     val_auto_shutoff = volcano_get_auto_shutoff();
-
     val_brightness = volcano_get_brightness();
+    volcano_get_firmware(val_fw);
+    val_rt = volcano_get_runtime();
 }
 
 static void exit_cb(void) {
@@ -171,6 +174,8 @@ static void draw(struct menu_state *menu) {
     ADD_STATIC_ELEMENT("Disp. Cool");
     ADD_STATIC_ELEMENT("Auto Shutoff");
     ADD_STATIC_ELEMENT("Brightness");
+    ADD_STATIC_ELEMENT("FW: %s", val_fw);
+    ADD_STATIC_ELEMENT("RT: %.1f h", val_rt / 60.0f);
 
     if (menu->selection < 0) {
         menu->selection = 0;

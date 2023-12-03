@@ -45,17 +45,19 @@ void menu_run(void (*cb)(struct menu_state *), bool centered);
 
 extern bool menu_got_input;
 
-#define ADD_STATIC_ELEMENT(name) {\
-    menu->length += 1; \
-    if (((menu->length - 1) >= menu->off) \
-        && ((menu->length - 1 - menu->off) < menu->lines)) { \
-        if ((menu->length - 1) == menu->selection) { \
+#define ADD_STATIC_ELEMENT(format, ...) {                                \
+    menu->length += 1;                                                   \
+    if (((menu->length - 1) >= menu->off)                                \
+        && ((menu->length - 1 - menu->off) < menu->lines)) {             \
+        if ((menu->length - 1) == menu->selection) {                     \
             pos += snprintf(menu->buff + pos, MENU_MAX_LEN - pos, "> "); \
-        } else { \
+        } else {                                                         \
             pos += snprintf(menu->buff + pos, MENU_MAX_LEN - pos, "  "); \
-        } \
-        pos += snprintf(menu->buff + pos, MENU_MAX_LEN - pos, name "\n"); \
-    } \
+        }                                                                \
+        pos += snprintf(menu->buff + pos, MENU_MAX_LEN - pos,            \
+                        format __VA_OPT__(,) __VA_ARGS__);               \
+        pos += snprintf(menu->buff + pos, MENU_MAX_LEN - pos, "\n");     \
+    }                                                                    \
 }
 
 #endif // __MENU_H__

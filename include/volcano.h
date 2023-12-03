@@ -24,6 +24,8 @@
 
 #include "models.h"
 
+#define VOLCANO_FW_LEN 12
+
 enum volcano_state {
     VOLCANO_STATE_NONE = 0,
     VOLCANO_STATE_HEATER = (1 << 0),
@@ -61,10 +63,16 @@ int16_t volcano_get_auto_shutoff(void);
 // v in seconds, returns < 0 on error
 int8_t volcano_set_auto_shutoff(uint16_t v);
 
-// returns 0-10, or < 0 on error
+// returns 0 - 100, or < 0 on error
 int8_t volcano_get_brightness(void);
 
-// v in 0-10, returns < 0 on error
+// v in 0 - 100, returns < 0 on error
 int8_t volcano_set_brightness(uint8_t v);
+
+// val is filled with VOLCANO_FW_LEN bytes, returns < 0 on error
+int8_t volcano_get_firmware(char *val);
+
+// returns minutes, or < 0 on error
+int32_t volcano_get_runtime(void);
 
 #endif // __VOLCANO_H__

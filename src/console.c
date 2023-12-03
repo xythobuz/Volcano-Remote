@@ -283,6 +283,13 @@ static void cnsl_interpret(const char *line) {
         r = volcano_get_brightness();
         println("volcano brightness: %d", r);
 
+        char fw[VOLCANO_FW_LEN + 1] = {0};
+        r = volcano_get_firmware(fw);
+        println("volcano firmware: %s", fw);
+
+        int32_t rt = volcano_get_runtime();
+        println("volcano runtime: %ld min", rt);
+
 #ifdef TEST_VOLCANO_AUTO_CONNECT
         ble_disconnect();
 #endif // TEST_VOLCANO_AUTO_CONNECT

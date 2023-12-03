@@ -22,6 +22,7 @@
 #include "volcano.h"
 
 #define UUID_SRVC_1       0x10
+#define UUID_FIRMWARE     0x03
 #define UUID_PRJSTAT1     0x0C
 #define UUID_PRJSTAT2     0x0D
 #define UUID_PRJSTAT3     0x0E
@@ -36,6 +37,8 @@
 #define UUID_HEATER_OFF   0x10
 #define UUID_PUMP_ON      0x13
 #define UUID_PUMP_OFF     0x14
+#define UUID_HEAT_HOURS   0x15
+#define UUID_HEAT_MINUTES 0x16
 
 #define MASK_PRJSTAT1_HEIZUNG_ENA        0x0020
 #define MASK_PRJSTAT1_AUTOBLESHUTDOWN    0x0200
@@ -380,4 +383,50 @@ int8_t volcano_set_brightness(uint8_t val) {
         debug("ble_write unexpected value %d", r);
     }
     return r;
+}
+
+int8_t volcano_get_firmware(char *val) {
+    if (val == NULL) {
+        return -1;
+    }
+
+    uuid_base[1] = UUID_SRVC_1;
+    uuid_base[3] = UUID_FIRMWARE;
+
+    uint8_t buff[VOLCANO_FW_LEN];
+    int32_t r = ble_read(uuid_base, buff, sizeof(buff));
+    if (r != sizeof(buff)) {
+        debug("ble_read unexpected value %ld", r);
+        return -1;
+    }
+
+    memcpy(val, buff, sizeof(buff));
+    return 0;
+}
+
+int32_t volcano_get_runtime(void) {
+    int32_t val = 0;
+
+    uuid_base[1] = UUID_SRVC_2;
+    uuid_base[3] = UUID_HEAT_HOURS;
+
+    uint32_t buff;
+    int32_t r = ble_read(uuid_base, (uint8_t *)&buff, sizeof(buff));
+    if (r != sizeof(buff)) {
+        debug("ble_read 1 unexpected value %ld", r);
+        return -1;
+    }
+
+    val = buff * 60;
+    uuid_base[3] = UUID_HEAT_MINUTES;
+
+    uint16_t buff2;
+    r = ble_read(uuid_base, (uint8_t *)&buff2, sizeof(buff2));
+    if (r != sizeof(buff2)) {
+        debug("ble_read 2 unexpected value %ld", r);
+        return -1;
+    }
+
+    val += buff2;
+    return val;
 }
