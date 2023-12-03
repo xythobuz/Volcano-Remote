@@ -80,10 +80,10 @@ static void draw(struct menu_state *menu) {
     int pos = 0;
     menu->length = 0;
 
-    ADD_STATIC_ELEMENT("Auto Connect");
-    ADD_STATIC_ELEMENT("Brightness");
-    ADD_STATIC_ELEMENT("Workflows");
-    ADD_STATIC_ELEMENT("Reset");
+    ADD_STATIC_ELEMENT("Auto Connect (%d)", mem_data()->wf_auto_connect);
+    ADD_STATIC_ELEMENT("Brightness (%d)", __builtin_ffs(mem_data()->backlight));
+    ADD_STATIC_ELEMENT("Edit Workflows");
+    ADD_STATIC_ELEMENT("Factory Reset");
 
     if (menu->selection < 0) {
         menu->selection = 0;

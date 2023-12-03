@@ -76,7 +76,7 @@ static void upper_cb(int selection) {
 }
 
 static void exit_cb(void) {
-    state_switch(STATE_SCAN);
+    state_switch(STATE_WORKFLOW);
 }
 
 void state_edit_wf_index(uint16_t index) {
