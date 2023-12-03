@@ -21,7 +21,11 @@
 #include "ble.h"
 #include "volcano.h"
 
-// Volcano UUIDs are always the same, except for the 4th byte
+#define UUID_SRVC_1       0x10
+#define UUID_GET_STATE    0x0C
+#define UUID_GET_UNIT     0x0D
+
+#define UUID_SRVC_2       0x11
 #define UUID_WRITE_SRVC   0x00
 #define UUID_CURRENT_TEMP 0x01
 #define UUID_TARGET_TEMP  0x03
@@ -30,17 +34,20 @@
 #define UUID_PUMP_ON      0x13
 #define UUID_PUMP_OFF     0x14
 
-// "101100xx-5354-4f52-5a26-4249434b454c"
+// "10xx00xx-5354-4f52-5a26-4249434b454c"
 static uint8_t uuid_base[16] = {
-    0x10, 0x11, 0x00, 0xFF, 0x53, 0x54, 0x4f, 0x52,
+    0x10, 0xFF, 0x00, 0xFF, 0x53, 0x54, 0x4f, 0x52,
     0x5a, 0x26, 0x42, 0x49, 0x43, 0x4b, 0x45, 0x4c,
 };
 static uint8_t uuid_base2[16] = {
-    0x10, 0x11, 0x00, 0xFF, 0x53, 0x54, 0x4f, 0x52,
+    0x10, 0xFF, 0x00, 0xFF, 0x53, 0x54, 0x4f, 0x52,
     0x5a, 0x26, 0x42, 0x49, 0x43, 0x4b, 0x45, 0x4c,
 };
 
 int8_t volcano_discover_characteristics(void) {
+    uuid_base[1] = UUID_SRVC_2;
+    uuid_base2[1] = UUID_SRVC_2;
+
     uuid_base[3] = UUID_WRITE_SRVC;
     int8_t r;
 
@@ -78,6 +85,7 @@ int8_t volcano_discover_characteristics(void) {
 }
 
 int16_t volcano_get_current_temp(void) {
+    uuid_base[1] = UUID_SRVC_2;
     uuid_base[3] = UUID_CURRENT_TEMP;
 
     uint8_t buff[4];
@@ -106,6 +114,8 @@ int16_t volcano_get_target_temp(void) {
 }
 
 int8_t volcano_set_target_temp(uint16_t value) {
+    uuid_base[1] = UUID_SRVC_2;
+    uuid_base2[1] = UUID_SRVC_2;
     uuid_base[3] = UUID_WRITE_SRVC;
     uuid_base2[3] = UUID_TARGET_TEMP;
 
@@ -121,6 +131,8 @@ int8_t volcano_set_target_temp(uint16_t value) {
 }
 
 int8_t volcano_set_heater_state(bool value) {
+    uuid_base[1] = UUID_SRVC_2;
+    uuid_base2[1] = UUID_SRVC_2;
     uuid_base[3] = UUID_WRITE_SRVC;
 
     if (value) {
@@ -138,6 +150,8 @@ int8_t volcano_set_heater_state(bool value) {
 }
 
 int8_t volcano_set_pump_state(bool value) {
+    uuid_base[1] = UUID_SRVC_2;
+    uuid_base2[1] = UUID_SRVC_2;
     uuid_base[3] = UUID_WRITE_SRVC;
 
     if (value) {
@@ -152,4 +166,36 @@ int8_t volcano_set_pump_state(bool value) {
         debug("ble_write unexpected value %d", r);
     }
     return r;
+}
+
+enum unit volcano_get_unit(void) {
+    uuid_base[1] = UUID_SRVC_1;
+    uuid_base[3] = UUID_GET_UNIT;
+
+    uint8_t buff[4];
+    int32_t r = ble_read(uuid_base, buff, sizeof(buff));
+    if (r != sizeof(buff)) {
+        debug("ble_read unexpected value %ld", r);
+        return UNIT_INVALID;
+    }
+
+    uint32_t *v = (uint32_t *)buff;
+    return (*v & 0x200) ? UNIT_F : UNIT_C;
+}
+
+enum volcano_state volcano_get_state(void) {
+    uuid_base[1] = UUID_SRVC_1;
+    uuid_base[3] = UUID_GET_STATE;
+
+    uint8_t buff[4];
+    int32_t r = ble_read(uuid_base, buff, sizeof(buff));
+    if (r != sizeof(buff)) {
+        debug("ble_read unexpected value %ld", r);
+        return 0xFF;
+    }
+
+    uint32_t *v = (uint32_t *)buff;
+    uint32_t heater = (*v & 0x0020);
+    uint32_t pump = (*v & 0x2000);
+    return (heater ? VOLCANO_STATE_HEATER : 0) | (pump ? VOLCANO_STATE_PUMP : 0);
 }

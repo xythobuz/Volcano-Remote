@@ -1,5 +1,5 @@
 /*
- * state_volcano_workflow.h
+ * state_workflow.h
  *
  * Copyright (c) 2023 Thomas Buck (thomas@xythobuz.de)
  *
@@ -16,15 +16,15 @@
  * See <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __STATE_VOLCANO_WORKFLOW_H__
-#define __STATE_VOLCANO_WORKFLOW_H__
+#ifndef __STATE_WORKFLOW_H__
+#define __STATE_WORKFLOW_H__
 
 #include <stdbool.h>
 
-void state_volcano_wf_edit(bool edit);
+void state_wf_edit(bool edit);
 
-void state_volcano_wf_enter(void);
-void state_volcano_wf_exit(void);
-void state_volcano_wf_run(void);
+void state_wf_enter(void);
+void state_wf_exit(void);
+void state_wf_run(void);
 
-#endif // __STATE_VOLCANO_WORKFLOW_H__
+#endif // __STATE_WORKFLOW_H__

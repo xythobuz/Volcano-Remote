@@ -83,7 +83,7 @@ target_sources(gadget PUBLIC
     src/state_scan.c
     src/workflow.c
     src/menu.c
-    src/state_volcano_workflow.c
+    src/state_workflow.c
     src/state_volcano_run.c
     src/crafty.c
     src/state_crafty.c

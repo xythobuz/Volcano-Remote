@@ -16,6 +16,8 @@
  * See <http://www.gnu.org/licenses/>.
  */
 
+#define WF_CONFIRM_WRITES
+
 #include <stdio.h>
 
 #include "config.h"
@@ -23,6 +25,15 @@
 #include "mem.h"
 #include "volcano.h"
 #include "workflow.h"
+
+#ifdef WF_CONFIRM_WRITES
+#define DO_WHILE(x, y) \
+    do {               \
+        x;             \
+    } while (y)
+#else // WF_CONFIRM_WRITES
+#define DO_WHILE(x, y) x
+#endif // WF_CONFIRM_WRITES
 
 static enum wf_status status = WF_IDLE;
 static uint16_t wf_i = 0;
@@ -37,13 +48,13 @@ static void do_step(void) {
     case OP_WAIT_TEMPERATURE:
         debug("workflow temp %.1f C", mem_data()->wf[wf_i].steps[step].val / 10.0);
         start_val = volcano_get_current_temp();
-        do {
-            volcano_set_target_temp(mem_data()->wf[wf_i].steps[step].val);
-        } while (volcano_get_target_temp() != mem_data()->wf[wf_i].steps[step].val);
+        DO_WHILE(volcano_set_target_temp(mem_data()->wf[wf_i].steps[step].val),
+                 volcano_get_target_temp() != mem_data()->wf[wf_i].steps[step].val);
         break;
 
     case OP_PUMP_TIME:
-        volcano_set_pump_state(true);
+        DO_WHILE(volcano_set_pump_state(true),
+                 !(volcano_get_state() & VOLCANO_STATE_PUMP));
         start_t = to_ms_since_boot(get_absolute_time());
         start_val = 0;
         debug("workflow pump %.3f s", mem_data()->wf[wf_i].steps[step].val / 1000.0);
@@ -204,7 +215,8 @@ void wf_start(uint16_t index) {
      * this means we heat for some seconds before changing the setpoint.
      * should not be a problem in practice.
      */
-    volcano_set_heater_state(true);
+    DO_WHILE(volcano_set_heater_state(true),
+             !(volcano_get_state() & VOLCANO_STATE_HEATER));
     volcano_discover_characteristics();
 
     do_step();
@@ -251,13 +263,15 @@ void wf_run(void) {
 
     if (done) {
         if (mem_data()->wf[wf_i].steps[step].op == OP_PUMP_TIME) {
-            volcano_set_pump_state(false);
+            DO_WHILE(volcano_set_pump_state(false),
+                     volcano_get_state() & VOLCANO_STATE_PUMP);
         }
 
         step++;
         if (step >= mem_data()->wf[wf_i].count) {
             status = WF_IDLE;
-            volcano_set_heater_state(false);
+            DO_WHILE(volcano_set_heater_state(false),
+                     volcano_get_state() & VOLCANO_STATE_HEATER);
             debug("workflow finished");
         } else {
             do_step();

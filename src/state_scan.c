@@ -26,7 +26,7 @@
 #include "models.h"
 #include "menu.h"
 #include "state.h"
-#include "state_volcano_workflow.h"
+#include "state_workflow.h"
 #include "state_volcano_run.h"
 #include "state_crafty.h"
 #include "state_scan.h"
@@ -50,8 +50,8 @@ static void enter_cb(int selection) {
         if (devs++ == selection) {
             if (dev == DEV_VOLCANO) {
                 state_volcano_run_target(results[i].addr, results[i].type);
-                state_volcano_wf_edit(false);
-                state_switch(STATE_VOLCANO_WORKFLOW);
+                state_wf_edit(false);
+                state_switch(STATE_WORKFLOW);
             } else if (dev == DEV_CRAFTY) {
                 state_crafty_target(results[i].addr, results[i].type);
                 state_switch(STATE_CRAFTY);
@@ -70,8 +70,8 @@ static void enter_cb(int selection) {
 static void edit_cb(int selection) {
     UNUSED(selection);
 
-    state_volcano_wf_edit(true);
-    state_switch(STATE_VOLCANO_WORKFLOW);
+    state_wf_edit(true);
+    state_switch(STATE_WORKFLOW);
 }
 
 void state_scan_enter(void) {
@@ -180,8 +180,8 @@ void state_scan_run(void) {
         if ((now - auto_connect_time) >= VOLCANO_AUTO_CONNECT_TIMEOUT_MS) {
             state_volcano_run_target(results[auto_connect_idx].addr,
                                      results[auto_connect_idx].type);
-            state_volcano_wf_edit(false);
-            state_switch(STATE_VOLCANO_WORKFLOW);
+            state_wf_edit(false);
+            state_switch(STATE_WORKFLOW);
 
             auto_connect_time = 0;
         }

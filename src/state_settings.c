@@ -22,6 +22,7 @@
 #include "config.h"
 #include "log.h"
 #include "menu.h"
+#include "mem.h"
 #include "state.h"
 #include "state_settings.h"
 
@@ -29,7 +30,20 @@ static void enter_cb(int selection) {
     switch (selection) {
     case 0:
         // Auto Connect
+        break;
 
+    case 1:
+        // Brightness
+        break;
+
+    case 2:
+        // Workflows
+        break;
+
+    case 3:
+        // Reset
+        mem_load_defaults();
+        break;
     }
 }
 
@@ -52,6 +66,7 @@ static void draw(struct menu_state *menu) {
     ADD_STATIC_ELEMENT("Auto Connect");
     ADD_STATIC_ELEMENT("Brightness");
     ADD_STATIC_ELEMENT("Workflows");
+    ADD_STATIC_ELEMENT("Reset");
 
     if (menu->selection < 0) {
         menu->selection = 0;

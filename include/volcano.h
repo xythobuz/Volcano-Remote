@@ -22,6 +22,13 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#include "models.h"
+
+enum volcano_state {
+    VOLCANO_STATE_HEATER = (1 << 0),
+    VOLCANO_STATE_PUMP = (1 << 1),
+};
+
 // returns < 0 on error
 int8_t volcano_discover_characteristics(void);
 
@@ -35,5 +42,8 @@ int8_t volcano_set_target_temp(uint16_t v);
 // returns < 0 on error
 int8_t volcano_set_heater_state(bool value);
 int8_t volcano_set_pump_state(bool value);
+
+enum unit volcano_get_unit(void);
+enum volcano_state volcano_get_state(void);
 
 #endif // __VOLCANO_H__

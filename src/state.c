@@ -19,7 +19,7 @@
 #include "config.h"
 #include "log.h"
 #include "state_scan.h"
-#include "state_volcano_workflow.h"
+#include "state_workflow.h"
 #include "state_volcano_run.h"
 #include "state_crafty.h"
 #include "state_edit_workflow.h"
@@ -48,10 +48,10 @@ static const struct state states[STATE_INVALID + 1] = {
         .exit = state_scan_exit,
         .run = state_scan_run,
     }, {
-        .name = stringify(STATE_VOLCANO_WORKFLOW),
-        .enter = state_volcano_wf_enter,
-        .exit = state_volcano_wf_exit,
-        .run = state_volcano_wf_run,
+        .name = stringify(STATE_WORKFLOW),
+        .enter = state_wf_enter,
+        .exit = state_wf_exit,
+        .run = state_wf_run,
     }, {
         .name = stringify(STATE_VOLCANO_RUN),
         .enter = state_volcano_run_enter,

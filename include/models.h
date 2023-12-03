@@ -27,6 +27,12 @@ enum known_devices {
     DEV_CRAFTY,
 };
 
+enum unit {
+    UNIT_C = 0,
+    UNIT_F,
+    UNIT_INVALID,
+};
+
 enum known_devices models_filter_name(const char *name);
 int8_t models_get_serial(const uint8_t *data, size_t data_len, char *buff, size_t buff_len);
 

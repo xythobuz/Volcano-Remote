@@ -1,5 +1,5 @@
 /*
- * state_volcano_workflow.c
+ * state_workflow.c
  *
  * Copyright (c) 2023 Thomas Buck (thomas@xythobuz.de)
  *
@@ -27,7 +27,7 @@
 #include "state.h"
 #include "state_volcano_run.h"
 #include "state_edit_workflow.h"
-#include "state_volcano_workflow.h"
+#include "state_workflow.h"
 
 static bool edit_mode = false;
 
@@ -71,11 +71,11 @@ static void exit_cb(void) {
     state_switch(STATE_SCAN);
 }
 
-void state_volcano_wf_edit(bool edit) {
+void state_wf_edit(bool edit) {
     edit_mode = edit;
 }
 
-void state_volcano_wf_enter(void) {
+void state_wf_enter(void) {
     if (edit_mode) {
         menu_init(enter_cb, lower_cb, upper_cb, exit_cb);
     } else {
@@ -87,7 +87,7 @@ void state_volcano_wf_enter(void) {
 #endif // VOLCANO_AUTO_CONNECT_TIMEOUT_MS
 }
 
-void state_volcano_wf_exit(void) {
+void state_wf_exit(void) {
     menu_deinit();
 }
 
@@ -103,7 +103,7 @@ static void draw(struct menu_state *menu) {
 
         if (i == menu->selection) {
 #ifdef VOLCANO_AUTO_CONNECT_TIMEOUT_MS
-            if ((auto_connect_time != 0) && (!menu_got_input)) {
+            if ((auto_connect_time != 0) && (!menu_got_input) && (!edit_mode)) {
                 uint32_t now = to_ms_since_boot(get_absolute_time());
                 uint32_t diff = now - auto_connect_time;
                 pos += snprintf(menu->buff + pos, MENU_MAX_LEN - pos,
@@ -132,11 +132,11 @@ static void draw(struct menu_state *menu) {
     }
 }
 
-void state_volcano_wf_run(void) {
+void state_wf_run(void) {
     menu_run(draw, false);
 
 #ifdef VOLCANO_AUTO_CONNECT_TIMEOUT_MS
-    if ((auto_connect_time != 0) && (!menu_got_input)) {
+    if ((auto_connect_time != 0) && (!menu_got_input) && (!edit_mode)) {
         uint32_t now = to_ms_since_boot(get_absolute_time());
         if ((now - auto_connect_time) >= VOLCANO_AUTO_CONNECT_TIMEOUT_MS) {
             state_volcano_run_index(0);

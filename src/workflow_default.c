@@ -23,31 +23,13 @@
     { .op = OP_WAIT_TIME, .val = 1000 }, \
     { .op = OP_PUMP_TIME, .val = 1000 }
 
+#define NOTIFICATIONS NOTIFY, NOTIFY
+#define NOTIFICATIONS_LENGTH (2 * 2)
+
 const uint16_t wf_default_count = 5;
 
 const struct workflow wf_default_data[] = {
     {
-        .name = "XXL",
-        .author = "xythobuz",
-        .steps = {
-            { .op = OP_WAIT_TEMPERATURE, .val = 1850 },
-            { .op = OP_WAIT_TIME, .val = 10000 },
-            { .op = OP_PUMP_TIME, .val = 8000 },
-
-            { .op = OP_WAIT_TEMPERATURE, .val = 1950 },
-            { .op = OP_WAIT_TIME, .val = 5000 },
-            { .op = OP_PUMP_TIME, .val = 25000 },
-
-            { .op = OP_WAIT_TEMPERATURE, .val = 2050 },
-            { .op = OP_WAIT_TIME, .val = 5000 },
-            { .op = OP_PUMP_TIME, .val = 25000 },
-
-            NOTIFY, NOTIFY, NOTIFY, NOTIFY,
-
-            { .op = OP_SET_TEMPERATURE, .val = 1900 },
-        },
-        .count = 18,
-    }, {
         .name = "Default",
         .author = "xythobuz",
         .steps = {
@@ -63,11 +45,32 @@ const struct workflow wf_default_data[] = {
             { .op = OP_WAIT_TIME, .val = 5000 },
             { .op = OP_PUMP_TIME, .val = 20000 },
 
-            NOTIFY, NOTIFY, NOTIFY, NOTIFY,
+            NOTIFICATIONS,
 
             { .op = OP_SET_TEMPERATURE, .val = 1900 },
         },
-        .count = 18,
+        .count = 10 + NOTIFICATIONS_LENGTH,
+    }, {
+        .name = "XXL",
+        .author = "xythobuz",
+        .steps = {
+            { .op = OP_WAIT_TEMPERATURE, .val = 1850 },
+            { .op = OP_WAIT_TIME, .val = 10000 },
+            { .op = OP_PUMP_TIME, .val = 8000 },
+
+            { .op = OP_WAIT_TEMPERATURE, .val = 1950 },
+            { .op = OP_WAIT_TIME, .val = 5000 },
+            { .op = OP_PUMP_TIME, .val = 25000 },
+
+            { .op = OP_WAIT_TEMPERATURE, .val = 2050 },
+            { .op = OP_WAIT_TIME, .val = 5000 },
+            { .op = OP_PUMP_TIME, .val = 25000 },
+
+            NOTIFICATIONS,
+
+            { .op = OP_SET_TEMPERATURE, .val = 1900 },
+        },
+        .count = 10 + NOTIFICATIONS_LENGTH,
     }, {
         .name = "Vorbi",
         .author = "Rinor",
@@ -105,11 +108,11 @@ const struct workflow wf_default_data[] = {
             { .op = OP_WAIT_TIME, .val = 5000 },
             { .op = OP_PUMP_TIME, .val = 20000 },
 
-            NOTIFY, NOTIFY, NOTIFY, NOTIFY,
+            NOTIFICATIONS,
 
             { .op = OP_SET_TEMPERATURE, .val = 1900 },
         },
-        .count = 18,
+        .count = 10 + NOTIFICATIONS_LENGTH,
     }, {
         .name = "Hotty",
         .author = "xythobuz",
@@ -126,10 +129,10 @@ const struct workflow wf_default_data[] = {
             { .op = OP_WAIT_TIME, .val = 5000 },
             { .op = OP_PUMP_TIME, .val = 20000 },
 
-            NOTIFY, NOTIFY, NOTIFY, NOTIFY,
+            NOTIFICATIONS,
 
             { .op = OP_SET_TEMPERATURE, .val = 1900 },
         },
-        .count = 18,
+        .count = 10 + NOTIFICATIONS_LENGTH,
     },
 };
