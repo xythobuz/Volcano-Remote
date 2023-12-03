@@ -80,13 +80,15 @@ static void enter_cb(int selection) {
 
 static void send_values(void) {
     volcano_set_unit(val_celsius ? UNIT_C : UNIT_F);
-    sleep_ms(100);
+    sleep_ms(150);
     volcano_set_vibration(val_vibrate);
-    sleep_ms(100);
+    sleep_ms(150);
     volcano_set_display_cooling(val_disp_cool);
 }
 
 static void fetch_values(void) {
+    volcano_discover_characteristics(false, true);
+
     enum unit unit = volcano_get_unit();
     val_celsius = (unit == UNIT_C);
 

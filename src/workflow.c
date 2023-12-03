@@ -217,7 +217,7 @@ void wf_start(uint16_t index) {
      */
     DO_WHILE(volcano_set_heater_state(true),
              !(volcano_get_state() & VOLCANO_STATE_HEATER));
-    volcano_discover_characteristics();
+    volcano_discover_characteristics(true, false);
 
     do_step();
 }

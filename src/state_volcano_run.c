@@ -121,7 +121,7 @@ static void draw(struct menu_state *menu) {
         return;
     }
 
-    bar_graph(50, menu->y_off, 0, state.index, state.count);
+    bar_graph(50, menu->y_off, 0, state.index + 1, state.count);
     bar_graph(50 + MENU_BOX_HEIGHT(3, 20, 2) + menu->y_off, menu->y_off,
               state.start_val, state.curr_val, state.step->val);
 

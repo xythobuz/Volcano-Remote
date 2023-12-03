@@ -54,41 +54,69 @@ static uint8_t uuid_base2[16] = {
     0x5a, 0x26, 0x42, 0x49, 0x43, 0x4b, 0x45, 0x4c,
 };
 
-int8_t volcano_discover_characteristics(void) {
-    uuid_base[1] = UUID_SRVC_2;
-    uuid_base2[1] = UUID_SRVC_2;
+int8_t volcano_discover_characteristics(bool wf, bool conf) {
+    if (wf) {
+        uuid_base[1] = UUID_SRVC_2;
+        uuid_base2[1] = UUID_SRVC_2;
 
-    uuid_base[3] = UUID_WRITE_SRVC;
-    int8_t r;
+        uuid_base[3] = UUID_WRITE_SRVC;
+        int8_t r;
 
-    uuid_base2[3] = UUID_TARGET_TEMP;
-    r = ble_discover(uuid_base, uuid_base2);
-    if (r < 0) {
-        return r;
+        uuid_base2[3] = UUID_TARGET_TEMP;
+        r = ble_discover(uuid_base, uuid_base2);
+        if (r < 0) {
+            return r;
+        }
+
+        uuid_base2[3] = UUID_HEATER_ON;
+        r = ble_discover(uuid_base, uuid_base2);
+        if (r < 0) {
+            return r;
+        }
+
+        uuid_base2[3] = UUID_HEATER_OFF;
+        r = ble_discover(uuid_base, uuid_base2);
+        if (r < 0) {
+            return r;
+        }
+
+        uuid_base2[3] = UUID_PUMP_ON;
+        r = ble_discover(uuid_base, uuid_base2);
+        if (r < 0) {
+            return r;
+        }
+
+        uuid_base2[3] = UUID_PUMP_OFF;
+        r = ble_discover(uuid_base, uuid_base2);
+        if (r < 0) {
+            return r;
+        }
     }
 
-    uuid_base2[3] = UUID_HEATER_ON;
-    r = ble_discover(uuid_base, uuid_base2);
-    if (r < 0) {
-        return r;
-    }
+    if (conf) {
+        uuid_base[1] = UUID_SRVC_1;
+        uuid_base2[1] = UUID_SRVC_1;
 
-    uuid_base2[3] = UUID_HEATER_OFF;
-    r = ble_discover(uuid_base, uuid_base2);
-    if (r < 0) {
-        return r;
-    }
+        uuid_base[3] = UUID_WRITE_SRVC;
+        int8_t r;
 
-    uuid_base2[3] = UUID_PUMP_ON;
-    r = ble_discover(uuid_base, uuid_base2);
-    if (r < 0) {
-        return r;
-    }
+        uuid_base2[3] = UUID_PRJSTAT1;
+        r = ble_discover(uuid_base, uuid_base2);
+        if (r < 0) {
+            return r;
+        }
 
-    uuid_base2[3] = UUID_PUMP_OFF;
-    r = ble_discover(uuid_base, uuid_base2);
-    if (r < 0) {
-        return r;
+        uuid_base2[3] = UUID_PRJSTAT2;
+        r = ble_discover(uuid_base, uuid_base2);
+        if (r < 0) {
+            return r;
+        }
+
+        uuid_base2[3] = UUID_PRJSTAT3;
+        r = ble_discover(uuid_base, uuid_base2);
+        if (r < 0) {
+            return r;
+        }
     }
 
     return 0;
