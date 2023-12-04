@@ -159,6 +159,7 @@ target_link_libraries(gadget
     pico_cyw43_arch_threadsafe_background
     hardware_flash
     pico_flash
+    picowota_reboot
 )
 
 target_compile_definitions(gadget PUBLIC
@@ -171,5 +172,9 @@ pico_set_linker_script(gadget ${CMAKE_CURRENT_SOURCE_DIR}/src/memmap_custom.ld)
 # fix for Errata RP2040-E5 (the fix requires use of GPIO 15)
 target_compile_definitions(gadget PUBLIC PICO_RP2040_USB_DEVICE_ENUMERATION_FIX=1)
 
-# create map/bin/hex/uf2 file etc.
-pico_add_extra_outputs(gadget)
+set(PICOWOTA_WIFI_SSID "WIFI_SSID_HERE")
+set(PICOWOTA_WIFI_PASS "WIFI_PASS_HERE")
+set(PICOWOTA_WIFI_AP 0)
+
+add_subdirectory(picowota)
+picowota_build_combined(gadget)

@@ -10,3 +10,6 @@
 [submodule "st7789"]
 	path = st7789
 	url = https://github.com/hepingood/st7789
+[submodule "picowota"]
+	path = picowota
+	url = https://github.com/usedbytes/picowota

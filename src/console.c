@@ -23,6 +23,7 @@
 
 #include "pico/stdlib.h"
 #include "hardware/watchdog.h"
+#include "picowota/reboot.h"
 
 #include "config.h"
 #include "log.h"
@@ -96,6 +97,7 @@ static void cnsl_interpret(const char *line) {
         println("");
         println("  reset - reset back into this firmware");
         println("   \\x18 - reset to bootloader");
+        println("    ota - reset to ota bootloader");
         println(" repeat - repeat last command every %d milliseconds", CNSL_REPEAT_MS);
         println("   help - print this message");
         println("  mount - make mass storage medium (un)available");
@@ -135,6 +137,8 @@ static void cnsl_interpret(const char *line) {
         println("Stop this by calling repeat again.");
     } else if (strcmp(line, "reset") == 0) {
         reset_to_main();
+    } else if (strcmp(line, "ota") == 0) {
+        picowota_reboot(true);
     } else if (strcmp(line, "mount") == 0) {
         bool state = msc_is_medium_available();
         println("Currently %s. %s now.",

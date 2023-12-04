@@ -19,6 +19,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "picowota/reboot.h"
+
 #include "config.h"
 #include "log.h"
 #include "menu.h"
@@ -51,14 +53,19 @@ static void enter_cb(int selection) {
         break;
 
     case 2:
-        // Workflows
+        // Edit Workflows
         state_wf_edit(true);
         state_switch(STATE_WORKFLOW);
         break;
 
     case 3:
-        // Reset
+        // Factory Reset
         mem_load_defaults();
+        break;
+
+    case 4:
+        // OTA Update
+        picowota_reboot(true);
         break;
     }
 }
@@ -84,6 +91,7 @@ static void draw(struct menu_state *menu) {
     ADD_STATIC_ELEMENT("Brightness (%d)", __builtin_ffs(mem_data()->backlight));
     ADD_STATIC_ELEMENT("Edit Workflows");
     ADD_STATIC_ELEMENT("Factory Reset");
+    ADD_STATIC_ELEMENT("OTA Update");
 
     if (menu->selection < 0) {
         menu->selection = 0;

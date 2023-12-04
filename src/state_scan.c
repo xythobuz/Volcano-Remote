@@ -20,6 +20,7 @@
 #include <string.h>
 
 #include "pico/stdlib.h"
+#include "picowota/reboot.h"
 
 #include "config.h"
 #include "ble.h"
@@ -100,8 +101,13 @@ static void edit_cb(int selection) {
     }
 }
 
+static void ota_cb(int selection) {
+    UNUSED(selection);
+    picowota_reboot(true);
+}
+
 void state_scan_enter(void) {
-    menu_init(enter_cb, edit_cb, NULL, NULL);
+    menu_init(enter_cb, edit_cb, ota_cb, NULL);
     ble_scan(BLE_SCAN_ON);
 }
 
