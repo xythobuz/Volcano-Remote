@@ -119,7 +119,7 @@ target_include_directories(gadget PUBLIC ${CMAKE_CURRENT_BINARY_DIR}/fatfs)
 target_include_directories(gadget PUBLIC ${CMAKE_CURRENT_LIST_DIR}/st7789/src)
 target_include_directories(gadget PUBLIC ${CMAKE_CURRENT_LIST_DIR}/st7789/interface)
 target_include_directories(gadget PUBLIC ${CMAKE_CURRENT_LIST_DIR}/mcufont/decoder)
-target_include_directories(gadget PUBLIC ${CMAKE_CURRENT_LIST_DIR}/mcufont/fonts)
+target_include_directories(gadget PUBLIC ${CMAKE_CURRENT_LIST_DIR}/data)
 target_include_directories(gadget PUBLIC ${CMAKE_CURRENT_LIST_DIR}/build)
 
 # compress source code and stuff we want to include
