@@ -95,6 +95,8 @@ target_sources(gadget PUBLIC
     src/state_value.c
     src/textbox.c
     src/state_volcano_conf.c
+    src/venty.c
+    src/state_venty.c
 
     ${CMAKE_CURRENT_BINARY_DIR}/fatfs/ff.c
     ${CMAKE_CURRENT_BINARY_DIR}/fatfs/ffunicode.c

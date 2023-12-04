@@ -30,6 +30,7 @@ enum system_state {
     STATE_ABOUT,
     STATE_VALUE,
     STATE_VOLCANO_CONF,
+    STATE_VENTY,
 
     STATE_INVALID,
 };

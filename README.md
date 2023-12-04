@@ -4,6 +4,7 @@ Supports:
 
  * workflows for the Volcano Hybrid
  * basic status and settings for Crafty+
+ * some settings for Venty (untested)
 
 For use with Raspberry Pi Pico W boards with the [Waveshare Pico LCD 1.3](https://www.waveshare.com/wiki/Pico-LCD-1.3) and the [Pimoroni Pico Lipo Shim](https://shop.pimoroni.com/products/pico-lipo-shim).
 

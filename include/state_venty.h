@@ -1,5 +1,5 @@
 /*
- * models.h
+ * state_venty.h
  *
  * Copyright (c) 2023 Thomas Buck (thomas@xythobuz.de)
  *
@@ -16,28 +16,15 @@
  * See <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __MODELS_H__
-#define __MODELS_H__
+#ifndef __STATE_VENTY_H__
+#define __STATE_VENTY_H__
 
-#include <stdint.h>
+#include <ble.h>
 
-enum known_devices {
-    DEV_UNKNOWN = 0,
-    DEV_VOLCANO,
-    DEV_CRAFTY,
-    DEV_VENTY,
-};
+void state_venty_target(bd_addr_t addr, bd_addr_type_t type);
 
-enum unit {
-    UNIT_C = 0,
-    UNIT_F,
-    UNIT_INVALID,
-};
+void state_venty_enter(void);
+void state_venty_exit(void);
+void state_venty_run(void);
 
-enum known_devices models_filter_name(const char *name);
-
-int8_t models_get_serial(enum known_devices dev, const char *name,
-                         const uint8_t *data, size_t data_len,
-                         char *buff, size_t buff_len);
-
-#endif // __MODELS_H__
+#endif // __STATE_VENTY_H__

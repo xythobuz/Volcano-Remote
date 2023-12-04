@@ -165,7 +165,8 @@ static void cnsl_interpret(const char *line) {
                 char info[32] = "";
                 enum known_devices dev = models_filter_name(results[i].name);
                 if (dev != DEV_UNKNOWN) {
-                    models_get_serial(results[i].data, results[i].data_len,
+                    models_get_serial(dev, results[i].name,
+                                      results[i].data, results[i].data_len,
                                       info, sizeof(info));
                 }
                 uint32_t age = to_ms_since_boot(get_absolute_time()) - results[i].time;

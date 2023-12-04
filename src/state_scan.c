@@ -31,6 +31,7 @@
 #include "state_volcano_run.h"
 #include "state_volcano_conf.h"
 #include "state_crafty.h"
+#include "state_venty.h"
 #include "state_scan.h"
 
 static struct ble_scan_result results[BLE_MAX_SCAN_RESULTS] = {0};
@@ -54,6 +55,9 @@ static void enter_cb(int selection) {
             } else if (dev == DEV_CRAFTY) {
                 state_crafty_target(results[i].addr, results[i].type);
                 state_switch(STATE_CRAFTY);
+            } else if (dev == DEV_VENTY) {
+                state_venty_target(results[i].addr, results[i].type);
+                state_switch(STATE_VENTY);
             }
             return;
         }
@@ -81,6 +85,9 @@ static void edit_cb(int selection) {
             } else if (dev == DEV_CRAFTY) {
                 state_crafty_target(results[i].addr, results[i].type);
                 state_switch(STATE_CRAFTY);
+            } else if (dev == DEV_VENTY) {
+                state_venty_target(results[i].addr, results[i].type);
+                state_switch(STATE_VENTY);
             }
             return;
         }
@@ -160,10 +167,13 @@ static void draw(struct menu_state *menu) {
             pos += snprintf(menu->buff + pos, MENU_MAX_LEN - pos, "Volcano ");
         } else if (dev == DEV_CRAFTY) {
             pos += snprintf(menu->buff + pos, MENU_MAX_LEN - pos, "Crafty+ ");
+        } else if (dev == DEV_VENTY) {
+            pos += snprintf(menu->buff + pos, MENU_MAX_LEN - pos, "Venty ");
         }
 
         char info[32] = "";
-        if (models_get_serial(results[i].data, results[i].data_len,
+        if (models_get_serial(dev, results[i].name,
+                              results[i].data, results[i].data_len,
                               info, sizeof(info)) < 0) {
             strcpy(info, "-error-");
         }

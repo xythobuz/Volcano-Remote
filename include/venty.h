@@ -1,5 +1,5 @@
 /*
- * models.h
+ * venty.h
  *
  * Copyright (c) 2023 Thomas Buck (thomas@xythobuz.de)
  *
@@ -16,28 +16,28 @@
  * See <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __MODELS_H__
-#define __MODELS_H__
+#ifndef __VENTY_H__
+#define __VENTY_H__
 
 #include <stdint.h>
+#include <stdbool.h>
 
-enum known_devices {
-    DEV_UNKNOWN = 0,
-    DEV_VOLCANO,
-    DEV_CRAFTY,
-    DEV_VENTY,
-};
+// in 1/10th degrees C, or < 0 on error
+int16_t venty_get_target_temp(void);
 
-enum unit {
-    UNIT_C = 0,
-    UNIT_F,
-    UNIT_INVALID,
-};
+// v in 1/10th degrees C, returns < 0 on error
+int8_t venty_set_target_temp(uint16_t value);
 
-enum known_devices models_filter_name(const char *name);
+// returns < 0 on error
+int8_t venty_set_heater_state(bool value);
+int8_t venty_set_eco_current(bool value);
+int8_t venty_set_eco_voltage(bool value);
 
-int8_t models_get_serial(enum known_devices dev, const char *name,
-                         const uint8_t *data, size_t data_len,
-                         char *buff, size_t buff_len);
+// in percent, or < 0 on error
+int8_t venty_get_battery_state(void);
 
-#endif // __MODELS_H__
+// bool, or < 0 on error
+int8_t venty_get_eco_current(void);
+int8_t venty_get_eco_voltage(void);
+
+#endif // __VENTY_H__
