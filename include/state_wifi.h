@@ -1,5 +1,5 @@
 /*
- * state.h
+ * state_wifi.h
  *
  * Copyright (c) 2023 Thomas Buck (thomas@xythobuz.de)
  *
@@ -16,27 +16,11 @@
  * See <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __STATE_H__
-#define __STATE_H__
+#ifndef __STATE_WIFI_H__
+#define __STATE_WIFI_H__
 
-enum system_state {
-    STATE_INIT = 0,
-    STATE_SCAN,
-    STATE_WORKFLOW,
-    STATE_VOLCANO_RUN,
-    STATE_CRAFTY,
-    STATE_EDIT_WORKFLOW,
-    STATE_SETTINGS,
-    STATE_ABOUT,
-    STATE_VALUE,
-    STATE_VOLCANO_CONF,
-    STATE_VENTY,
-    STATE_WIFI_NETS,
+void state_wifi_enter(void);
+void state_wifi_exit(void);
+void state_wifi_run(void);
 
-    STATE_INVALID,
-};
-
-void state_switch(enum system_state next);
-void state_run(void);
-
-#endif // __STATE_H__
+#endif // __STATE_WIFI_H__

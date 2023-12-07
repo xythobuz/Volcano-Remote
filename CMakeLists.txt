@@ -98,6 +98,7 @@ target_sources(gadget PUBLIC
     src/wifi.c
     src/venty.c
     src/state_venty.c
+    src/state_wifi.c
 
     ${CMAKE_CURRENT_BINARY_DIR}/fatfs/ff.c
     ${CMAKE_CURRENT_BINARY_DIR}/fatfs/ffunicode.c
