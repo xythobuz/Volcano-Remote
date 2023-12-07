@@ -48,7 +48,8 @@ struct mem_contents {
     .data = MEM_DATA_INIT,  \
 }
 
-static struct mem_contents data_ram = MEM_CONTENTS_INIT;
+static const struct mem_contents data_defaults = MEM_CONTENTS_INIT;
+static struct mem_contents data_ram = data_defaults;
 static const uint8_t *data_flash = (const uint8_t *)(XIP_BASE + FLASH_OFFSET);
 
 static_assert(sizeof(struct mem_contents) < FLASH_SECTOR_SIZE,
@@ -78,6 +79,8 @@ static uint32_t calc_checksum(const struct mem_contents *data) {
 }
 
 void mem_load_defaults(void) {
+    data_ram = data_defaults;
+
     data_ram.data.wf_count = wf_default_count;
     for (uint16_t i = 0; i < wf_default_count; i++) {
         data_ram.data.wf[i] = wf_default_data[i];

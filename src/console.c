@@ -103,6 +103,7 @@ static void cnsl_interpret(const char *line) {
         println("  mount - make mass storage medium (un)available");
         println("  power - show Lipo battery status");
         println("   memr - reset flash memory config");
+        println("     bl - print backlight pwm level");
         println("");
         println("   scan - start or stop BLE scan");
         println("scanres - print list of found BLE devices");
@@ -156,6 +157,8 @@ static void cnsl_interpret(const char *line) {
     } else if (strcmp(line, "memr") == 0) {
         mem_load_defaults();
         mem_write();
+    } else if (strcmp(line, "bl") == 0) {
+        println("bl: 0x%04X", mem_data()->backlight);
     } else if (strcmp(line, "scan") == 0) {
         ble_scan(BLE_SCAN_TOGGLE);
     } else if (strcmp(line, "scanres") == 0) {

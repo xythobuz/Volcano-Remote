@@ -43,7 +43,7 @@ Open it using eg. `picocom`, or with the included `debug.sh` script.
 
 For dependencies to compile, on Arch install these.
 
-    sudo pacman -S arm-none-eabi-gcc arm-none-eabi-newlib picocom cmake
+    sudo pacman -S arm-none-eabi-gcc arm-none-eabi-newlib picocom cmake cxxtest
 
 ## Proper Debugging
 
