@@ -59,11 +59,21 @@ static void enter_cb(int selection) {
         break;
 
     case 3:
+        // Enable WiFi
+        state_value_set(&mem_data()->enable_wifi,
+                        sizeof(mem_data()->enable_wifi),
+                        0, 1, VAL_STEP_INCREMENT, 1,
+                        "Enable WiFi");
+        state_value_return(STATE_SETTINGS);
+        state_switch(STATE_VALUE);
+        break;
+
+    case 4:
         // Factory Reset
         mem_load_defaults();
         break;
 
-    case 4:
+    case 5:
         // OTA Update
         picowota_reboot(true);
         break;
@@ -81,6 +91,17 @@ void state_settings_enter(void) {
 void state_settings_exit(void) {
     menu_deinit();
     mem_write();
+
+    // apply changed wifi state
+    if (mem_data()->enable_wifi) {
+        if (!wifi_initialized()) {
+            wifi_init();
+        }
+    } else {
+        if (wifi_initialized()) {
+            wifi_deinit();
+        }
+    }
 }
 
 static void draw(struct menu_state *menu) {
@@ -90,6 +111,7 @@ static void draw(struct menu_state *menu) {
     ADD_STATIC_ELEMENT("Auto Connect (%d)", mem_data()->wf_auto_connect);
     ADD_STATIC_ELEMENT("Brightness (%d)", __builtin_ffs(mem_data()->backlight));
     ADD_STATIC_ELEMENT("Edit Workflows");
+    ADD_STATIC_ELEMENT("Enable WiFi (%d)", mem_data()->enable_wifi);
     ADD_STATIC_ELEMENT("Factory Reset");
     ADD_STATIC_ELEMENT("OTA Update");
 

@@ -23,25 +23,37 @@
 #include <stdbool.h>
 
 #include "workflow.h"
+#include "wifi.h"
 
 // to migrate settings when struct changes between releases
 #define MEM_VERSION 0
 
 struct mem_data {
+    // wifi networks
+    // should stay at beginning, for bootloader
+    uint16_t net_count;
+    struct net_credentials net[WIFI_MAX_NET_COUNT];
+
+    // settings
     uint16_t backlight;
     bool wf_auto_connect;
+    bool enable_wifi;
 
+    // workflows
     uint16_t wf_count;
     struct workflow wf[WF_MAX_FLOWS];
 };
 
-// wf and wf_count are assigned in mem_init()
+// workflows are assigned in mem_init()
 #define MEM_DATA_INIT {           \
     .backlight = (0xFF00 >> 1),   \
     .wf_auto_connect = false,     \
+    .enable_wifi = false,         \
+    .wf_count = 0,                \
+    .net_count = 0,               \
 }
 
-void mem_init(void);
+void mem_load(void);
 void mem_write(void);
 struct mem_data *mem_data(void);
 void mem_load_defaults(void);

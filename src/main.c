@@ -38,6 +38,7 @@
 #include "state.h"
 #include "serial.h"
 #include "workflow.h"
+#include "wifi.h"
 
 void main_loop_hw(void) {
     watchdog_update();
@@ -48,6 +49,8 @@ void main_loop_hw(void) {
     if (lcd_get_backlight() != mem_data()->backlight) {
         lcd_set_backlight(mem_data()->backlight);
     }
+
+    wifi_run();
 }
 
 int main(void) {
@@ -60,8 +63,8 @@ int main(void) {
 #endif
     usb_init();
 
-    debug("mem_init");
-    mem_init();
+    debug("mem_load");
+    mem_load();
 
     debug("lcd_init");
     lcd_init();
@@ -118,6 +121,13 @@ int main(void) {
     debug("wait for bt stack");
     while (!ble_is_ready()) {
         sleep_ms(1);
+    }
+
+    if (mem_data()->enable_wifi) {
+        debug("wifi_init");
+        wifi_init();
+    } else {
+        debug("wifi not enabled");
     }
 
     debug("starting app");

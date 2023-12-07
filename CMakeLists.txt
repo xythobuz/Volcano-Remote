@@ -95,6 +95,7 @@ target_sources(gadget PUBLIC
     src/state_value.c
     src/textbox.c
     src/state_volcano_conf.c
+    src/wifi.c
     src/venty.c
     src/state_venty.c
 
@@ -156,15 +157,10 @@ target_link_libraries(gadget
     hardware_pwm
     pico_btstack_ble
     pico_btstack_cyw43
-    pico_cyw43_arch_threadsafe_background
+    pico_cyw43_arch_lwip_threadsafe_background
     hardware_flash
     pico_flash
     picowota_reboot
-)
-
-target_compile_definitions(gadget PUBLIC
-    RUNNING_AS_CLIENT=1
-    CYW43_LWIP=0
 )
 
 pico_set_linker_script(gadget ${CMAKE_CURRENT_SOURCE_DIR}/src/memmap_custom.ld)
@@ -175,6 +171,12 @@ target_compile_definitions(gadget PUBLIC PICO_RP2040_USB_DEVICE_ENUMERATION_FIX=
 set(PICOWOTA_WIFI_SSID "WIFI_SSID_HERE")
 set(PICOWOTA_WIFI_PASS "WIFI_PASS_HERE")
 set(PICOWOTA_WIFI_AP 0)
+
+target_compile_definitions(gadget PUBLIC
+    RUNNING_AS_CLIENT=1
+    DEFAULT_WIFI_SSID="${PICOWOTA_WIFI_SSID}"
+    DEFAULT_WIFI_PASS="${PICOWOTA_WIFI_PASS}"
+)
 
 add_subdirectory(picowota)
 picowota_build_combined(gadget)

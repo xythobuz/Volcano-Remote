@@ -18,7 +18,12 @@
 
 set -euo pipefail
 
-# TODO wait for device to be ready
+#echo -n Waiting for target to appear
+#while ! nc -z $1 4242; do
+#    echo -n .
+#    sleep 1
+#done
+#echo
 
 echo Copying binary
 ~/go/bin/serial-flash tcp:$1:4242 $2

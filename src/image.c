@@ -24,6 +24,7 @@
 #include "text.h"
 #include "lipo.h"
 #include "util.h"
+#include "wifi.h"
 #include "image.h"
 
 #pragma GCC diagnostic push
@@ -136,7 +137,42 @@ void draw_battery_indicator(void) {
         .height = 240,
         .margin = 2,
         .fg = c,
-        .bg = RGB_565(0x00, 0x00, 0x00),
+        .bg = LCD_BLACK,
+        .font = &font,
+    };
+    text_draw(&text);
+}
+
+void draw_wifi_indicator(void) {
+    static char prev_s[30] = {0};
+    char s[30] = {0};
+
+    snprintf(s, sizeof(s), "WiFi: %17s", wifi_state());
+
+    if (strcmp(s, prev_s) == 0) {
+        return;
+    }
+    strcpy(prev_s, s);
+
+    static struct text_font font = {
+        .fontname = "fixed_10x20",
+        .font = NULL,
+    };
+    if (font.font == NULL) {
+        text_prepare_font(&font);
+    }
+
+    struct text_conf text = {
+        .text = s,
+        .x = 0,
+        .y = 219 - 50,
+        .justify = false,
+        .alignment = MF_ALIGN_CENTER,
+        .width = 240,
+        .height = 240,
+        .margin = 2,
+        .fg = LCD_WHITE,
+        .bg = LCD_BLACK,
         .font = &font,
     };
     text_draw(&text);
@@ -148,5 +184,6 @@ void battery_run(void) {
     if ((now >= (last_run + BATT_INTERVAL_MS)) || (last_run == 0)) {
         last_run = now;
         draw_battery_indicator();
+        draw_wifi_indicator();
     }
 }

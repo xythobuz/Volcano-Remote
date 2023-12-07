@@ -82,9 +82,14 @@ void mem_load_defaults(void) {
     for (uint16_t i = 0; i < wf_default_count; i++) {
         data_ram.data.wf[i] = wf_default_data[i];
     }
+
+    // TODO
+    data_ram.data.net_count = 1;
+    strcpy(data_ram.data.net[0].name, DEFAULT_WIFI_SSID);
+    strcpy(data_ram.data.net[0].pass, DEFAULT_WIFI_PASS);
 }
 
-void mem_init(void) {
+void mem_load(void) {
     mem_load_defaults();
 
     if (!flash_safe_execute_core_init()) {
