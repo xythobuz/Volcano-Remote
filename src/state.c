@@ -29,6 +29,8 @@
 #include "state_volcano_conf.h"
 #include "state_venty.h"
 #include "state_wifi.h"
+#include "state_wifi_edit.h"
+#include "state_string.h"
 #include "state.h"
 
 #define stringify(name) # name
@@ -101,6 +103,16 @@ static const struct state states[STATE_INVALID + 1] = {
         .enter = state_wifi_enter,
         .exit = state_wifi_exit,
         .run = state_wifi_run,
+    }, {
+        .name = stringify(STATE_WIFI_EDIT),
+        .enter = state_wifi_edit_enter,
+        .exit = state_wifi_edit_exit,
+        .run = state_wifi_edit_run,
+    }, {
+        .name = stringify(STATE_STRING),
+        .enter = state_string_enter,
+        .exit = state_string_exit,
+        .run = state_string_run,
     }, {
         .name = stringify(STATE_INVALID),
         .enter = NULL,

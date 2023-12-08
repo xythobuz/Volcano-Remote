@@ -35,6 +35,14 @@
 static bool edit_mode = false;
 static uint32_t auto_connect_time = 0;
 
+static void exit_cb(void) {
+    if (edit_mode) {
+        state_switch(STATE_SETTINGS);
+    } else {
+        state_switch(STATE_SCAN);
+    }
+}
+
 static void enter_cb(int selection) {
     if ((selection >= 0) && (selection < wf_count())) {
         if (edit_mode) {
@@ -44,6 +52,8 @@ static void enter_cb(int selection) {
             state_volcano_run_index(selection);
             state_switch(STATE_VOLCANO_RUN);
         }
+    } else {
+        exit_cb();
     }
 }
 
@@ -64,14 +74,6 @@ static void upper_cb(int selection) {
 
     if ((selection >= 0) && (selection < (wf_count() - 1))) {
         wf_move_up(selection);
-    }
-}
-
-static void exit_cb(void) {
-    if (edit_mode) {
-        state_switch(STATE_SETTINGS);
-    } else {
-        state_switch(STATE_SCAN);
     }
 }
 
@@ -123,12 +125,10 @@ static void draw(struct menu_state *menu) {
                         "'%s' by %s\n", wf_name(i), wf_author(i));
     }
 
-    if ((menu->selection < 0) && (menu->length > 0)) {
-        menu->selection = 0;
-    }
+    ADD_STATIC_ELEMENT("... go back");
 
-    if (menu->length == 0) {
-        strncpy(menu->buff, "NONE", MENU_MAX_LEN);
+    if (menu->selection < 0) {
+        menu->selection = 0;
     }
 }
 

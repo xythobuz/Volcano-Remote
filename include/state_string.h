@@ -1,5 +1,5 @@
 /*
- * state.h
+ * state_string.h
  *
  * Copyright (c) 2023 Thomas Buck (thomas@xythobuz.de)
  *
@@ -16,29 +16,18 @@
  * See <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __STATE_H__
-#define __STATE_H__
+#ifndef __STATE_STRING_H__
+#define __STATE_STRING_H__
 
-enum system_state {
-    STATE_INIT = 0,
-    STATE_SCAN,
-    STATE_WORKFLOW,
-    STATE_VOLCANO_RUN,
-    STATE_CRAFTY,
-    STATE_EDIT_WORKFLOW,
-    STATE_SETTINGS,
-    STATE_ABOUT,
-    STATE_VALUE,
-    STATE_VOLCANO_CONF,
-    STATE_VENTY,
-    STATE_WIFI_NETS,
-    STATE_WIFI_EDIT,
-    STATE_STRING,
+#include <sys/types.h>
+#include "state.h"
 
-    STATE_INVALID,
-};
+void state_string_set(char *value, size_t length,
+                      const char *name);
+void state_string_return(enum system_state state);
 
-void state_switch(enum system_state next);
-void state_run(void);
+void state_string_enter(void);
+void state_string_exit(void);
+void state_string_run(void);
 
-#endif // __STATE_H__
+#endif // __STATE_STRING_H__

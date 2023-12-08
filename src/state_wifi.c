@@ -16,6 +16,8 @@
  * See <http://www.gnu.org/licenses/>.
  */
 
+// TODO adding and removing whole networks
+
 #include <stdio.h>
 #include <string.h>
 
@@ -23,12 +25,19 @@
 #include "mem.h"
 #include "menu.h"
 #include "state.h"
+#include "state_wifi_edit.h"
 #include "state_wifi.h"
+
+static void exit_cb(void) {
+    state_switch(STATE_SETTINGS);
+}
 
 static void enter_cb(int selection) {
     if ((selection >= 0) && (selection < mem_data()->net_count)) {
-        //state_volcano_run_index(selection);
-        //state_switch(STATE_VOLCANO_RUN);
+        state_wifi_edit_index(selection);
+        state_switch(STATE_WIFI_EDIT);
+    } else {
+        exit_cb();
     }
 }
 
@@ -66,10 +75,6 @@ static void upper_cb(int selection) {
     }
 }
 
-static void exit_cb(void) {
-    state_switch(STATE_SETTINGS);
-}
-
 void state_wifi_enter(void) {
     menu_init(enter_cb, lower_cb, upper_cb, exit_cb);
 }
@@ -95,15 +100,13 @@ static void draw(struct menu_state *menu) {
         }
 
         pos += snprintf(menu->buff + pos, MENU_MAX_LEN - pos,
-                        "%s\n", mem_data()->net[i].name);
+                        "'%s'\n", mem_data()->net[i].name);
     }
 
-    if ((menu->selection < 0) && (menu->length > 0)) {
+    ADD_STATIC_ELEMENT("... go back");
+
+    if (menu->selection < 0) {
         menu->selection = 0;
-    }
-
-    if (menu->length == 0) {
-        strncpy(menu->buff, "NONE", MENU_MAX_LEN);
     }
 }
 

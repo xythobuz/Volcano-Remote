@@ -31,6 +31,10 @@
 
 static uint16_t wf_index = 0;
 
+static void exit_cb(void) {
+    state_switch(STATE_WORKFLOW);
+}
+
 static void enter_cb(int selection) {
     static char buff[20];
 
@@ -62,6 +66,8 @@ static void enter_cb(int selection) {
 
         state_value_return(STATE_EDIT_WORKFLOW);
         state_switch(STATE_VALUE);
+    } else {
+        exit_cb();
     }
 }
 
@@ -75,10 +81,6 @@ static void upper_cb(int selection) {
     if ((selection >= 0) && (selection < (wf_steps(wf_index) - 1))) {
         wf_move_step_up(wf_index, selection);
     }
-}
-
-static void exit_cb(void) {
-    state_switch(STATE_WORKFLOW);
 }
 
 void state_edit_wf_index(uint16_t index) {
@@ -113,6 +115,8 @@ static void draw(struct menu_state *menu) {
         pos += snprintf(menu->buff + pos, MENU_MAX_LEN - pos,
                         "% 2d: %s\n", i, wf_step_str(step));
     }
+
+    ADD_STATIC_ELEMENT("... go back");
 
     if (menu->selection < 0) {
         menu->selection = 0;

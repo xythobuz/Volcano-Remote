@@ -114,6 +114,25 @@ void mem_load(void) {
     } else {
         debug("invalid config (0x%02X != 0x%02X)", flash_ptr->version, MEM_VERSION);
     }
+
+    // add default WiFi from #define to flash config, if it is not there yet
+    bool found = false;
+    for (uint16_t i = 0; i < data_ram.data.net_count; i++) {
+        if (strcmp(data_ram.data.net[i].name, DEFAULT_WIFI_SSID) == 0) {
+            if (strcmp(data_ram.data.net[i].pass, DEFAULT_WIFI_PASS) != 0) {
+                debug("warning: restoring wifi password for '%s'", DEFAULT_WIFI_SSID);
+                strcpy(data_ram.data.net[i].pass, DEFAULT_WIFI_PASS);
+            }
+            found = true;
+            break;
+        }
+    }
+    if ((!found) && (data_ram.data.net_count < WIFI_MAX_NET_COUNT)) {
+        debug("info: adding wifi password for '%s'", DEFAULT_WIFI_SSID);
+        strcpy(data_ram.data.net[data_ram.data.net_count].name, DEFAULT_WIFI_SSID);
+        strcpy(data_ram.data.net[data_ram.data.net_count].pass, DEFAULT_WIFI_PASS);
+        data_ram.data.net_count++;
+    }
 }
 
 static void mem_write_flash(void *param) {

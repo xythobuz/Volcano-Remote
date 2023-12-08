@@ -58,23 +58,25 @@ void state_value_return(enum system_state state) {
 
 static void draw(void) {
     static char buff[100];
-    static size_t pos = 0;
 
     if ((val_p == NULL) || (val_len <= 0) || (val_name == NULL)) {
-        pos += snprintf(buff, sizeof(buff),
-                        "error");
+        snprintf(buff, sizeof(buff),
+                 "error");
     } else {
         if (val_mode == VAL_STEP_INCREMENT) {
-            pos += snprintf(buff, sizeof(buff),
-                            "%s:\n\n%d -> %d -> %d",
-                            val_name, val_min / val_step, val / val_step, val_max / val_step);
+            snprintf(buff, sizeof(buff),
+                     "%s:\n\n%d -> %d -> %d",
+                     val_name,
+                     val_min / val_step,
+                     val / val_step,
+                     val_max / val_step);
         } else {
-            pos += snprintf(buff, sizeof(buff),
-                            "%s:\n\n%d -> %d -> %d",
-                            val_name,
-                            __builtin_ffs(val_min),
-                            __builtin_ffs(val),
-                            __builtin_ffs(val_max));
+            snprintf(buff, sizeof(buff),
+                     "%s:\n\n%d -> %d -> %d",
+                     val_name,
+                     __builtin_ffs(val_min),
+                     __builtin_ffs(val),
+                     __builtin_ffs(val_max));
         }
     }
 

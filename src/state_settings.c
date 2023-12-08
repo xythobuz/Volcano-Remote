@@ -30,6 +30,10 @@
 #include "state_workflow.h"
 #include "state_settings.h"
 
+static void exit_cb(void) {
+    state_switch(STATE_SCAN);
+}
+
 static void enter_cb(int selection) {
     switch (selection) {
     case 0:
@@ -82,11 +86,11 @@ static void enter_cb(int selection) {
         // OTA Update
         picowota_reboot(true);
         break;
-    }
-}
 
-static void exit_cb(void) {
-    state_switch(STATE_SCAN);
+    default:
+        exit_cb();
+        break;
+    }
 }
 
 void state_settings_enter(void) {
@@ -120,6 +124,8 @@ static void draw(struct menu_state *menu) {
     ADD_STATIC_ELEMENT("WiFi Networks");
     ADD_STATIC_ELEMENT("Factory Reset");
     ADD_STATIC_ELEMENT("OTA Update");
+
+    ADD_STATIC_ELEMENT("... go back");
 
     if (menu->selection < 0) {
         menu->selection = 0;
