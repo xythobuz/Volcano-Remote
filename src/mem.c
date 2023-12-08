@@ -86,7 +86,7 @@ void mem_load_defaults(void) {
         data_ram.data.wf[i] = wf_default_data[i];
     }
 
-    // TODO
+    // TODO better way to pre-define WiFi credentials
     data_ram.data.net_count = 1;
     strcpy(data_ram.data.net[0].name, DEFAULT_WIFI_SSID);
     strcpy(data_ram.data.net[0].pass, DEFAULT_WIFI_PASS);
