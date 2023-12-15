@@ -111,7 +111,7 @@ int main(void) {
 
     // required for BLE and LiPo voltage reading
     debug("cyw43_arch_init");
-    if (cyw43_arch_init()) {
+    if (cyw43_arch_init_with_country(COUNTRY_CODE)) {
         debug("cyw43_arch_init failed");
         lcd_set_backlight(0x00FF);
         while (1) {}
