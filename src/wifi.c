@@ -1,8 +1,6 @@
 /*
  * wifi.c
  *
- * https://github.com/raspberrypi/pico-examples/blob/master/adc/read_vsys/power_status.c
- *
  * Copyright (c) 2023 Thomas Buck (thomas@xythobuz.de)
  *
  * This program is free software: you can redistribute it and/or modify
@@ -120,7 +118,7 @@ const char *wifi_state(void) {
         return "Connecting";
 
     case WS_READY:
-        return "Connected";
+        return ip4addr_ntoa(netif_ip4_addr(netif_default));
     }
 
     return NULL;

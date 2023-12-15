@@ -23,6 +23,7 @@
 
 #include "config.h"
 #include "log.h"
+#include "main.h"
 #include "menu.h"
 #include "mem.h"
 #include "state.h"
@@ -104,11 +105,11 @@ void state_settings_exit(void) {
     // apply changed wifi state
     if (mem_data()->enable_wifi) {
         if (!wifi_initialized()) {
-            wifi_init();
+            networking_init();
         }
     } else {
         if (wifi_initialized()) {
-            wifi_deinit();
+            networking_deinit();
         }
     }
 }

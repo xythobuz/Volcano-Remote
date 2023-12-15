@@ -16,12 +16,14 @@
  * See <http://www.gnu.org/licenses/>.
  */
 
+#include <string.h>
+
 #include "config.h"
 #include "ring.h"
 
-void rb_add(struct ring_buffer *rb, const uint8_t *data, size_t length) {
+void rb_add(struct ring_buffer *rb, const void *data, size_t length) {
     for (size_t i = 0; i < length; i++) {
-        rb->buffer[rb->head] = data[i];
+        memcpy(rb->buffer + rb->head * rb->el_len, data + i * rb->el_len, rb->el_len);
 
         if (rb->full && (++(rb->tail) == rb->size)) {
             rb->tail = 0;
@@ -49,44 +51,52 @@ size_t rb_len(struct ring_buffer *rb) {
     }
 }
 
-void rb_dump(struct ring_buffer *rb, void (*write)(const uint8_t *, size_t)) {
+void rb_dump(struct ring_buffer *rb, void (*write)(const void *, size_t)) {
     if (rb_len(rb) == 0) {
         return;
     }
 
     if (rb->head > rb->tail) {
-        write(rb->buffer + rb->tail, rb->head - rb->tail);
+        write(rb->buffer + rb->tail * rb->el_len, rb->head - rb->tail);
     } else {
-        write(rb->buffer + rb->tail, rb->size - rb->tail);
+        write(rb->buffer + rb->tail * rb->el_len, rb->size - rb->tail);
         write(rb->buffer, rb->head);
     }
 }
 
-void rb_move(struct ring_buffer *rb, void (*write)(const uint8_t *, size_t)) {
+void rb_move(struct ring_buffer *rb, void (*write)(const void *, size_t)) {
     rb_dump(rb, write);
     rb->head = 0;
     rb->tail = 0;
     rb->full = false;
 }
 
-uint8_t rb_peek(struct ring_buffer *rb) {
+void rb_peek(struct ring_buffer *rb, void *buf) {
     if (rb_len(rb) == 0) {
-        return 0;
+        return;
     }
 
-    uint8_t v = rb->buffer[rb->tail];
-    return v;
+    memcpy(buf, rb->buffer + rb->tail * rb->el_len, rb->el_len);
 }
 
-uint8_t rb_pop(struct ring_buffer *rb) {
+void rb_pop(struct ring_buffer *rb, void *buf) {
     if (rb_len(rb) == 0) {
-        return 0;
+        return;
     }
 
-    uint8_t v = rb->buffer[rb->tail++];
+    memcpy(buf, rb->buffer + rb->tail * rb->el_len, rb->el_len);
+    rb->tail++;
     if (rb->tail >= rb->size) {
         rb->tail = 0;
     }
+}
 
-    return v;
+size_t rb_get(struct ring_buffer *rb, void *data, size_t length) {
+    size_t count = 0;
+    while ((length > 0) && (rb_len(rb) > 0)) {
+        rb_pop(rb, data + count * rb->el_len);
+        count++;
+        length--;
+    }
+    return count;
 }

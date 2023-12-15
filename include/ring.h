@@ -24,20 +24,22 @@
 #include <stdbool.h>
 
 struct ring_buffer {
-    uint8_t *buffer;
+    void *buffer;
     size_t size;
+    size_t el_len;
     size_t head, tail;
     bool full;
 };
-#define RB_INIT(b, s) { .buffer = b, .size = s, .head = 0, .tail = 0, .full = false }
+#define RB_INIT(b, s, e) { .buffer = b, .size = s, .el_len = e, .head = 0, .tail = 0, .full = false }
 
-void rb_add(struct ring_buffer *rb, const uint8_t *data, size_t length);
-#define rb_push(rb, v) rb_add(rb, &v, 1)
+void rb_add(struct ring_buffer *rb, const void *data, size_t length);
+#define rb_push(rb, v) rb_add(rb, v, 1)
 size_t rb_len(struct ring_buffer *rb);
 #define rb_space(rb) ((rb)->size - rb_len(rb))
-void rb_dump(struct ring_buffer *rb, void (*write)(const uint8_t *, size_t));
-void rb_move(struct ring_buffer *rb, void (*write)(const uint8_t *, size_t));
-uint8_t rb_peek(struct ring_buffer *rb);
-uint8_t rb_pop(struct ring_buffer *rb);
+void rb_dump(struct ring_buffer *rb, void (*write)(const void *, size_t));
+void rb_move(struct ring_buffer *rb, void (*write)(const void *, size_t));
+void rb_peek(struct ring_buffer *rb, void *buf);
+void rb_pop(struct ring_buffer *rb, void *buf);
+size_t rb_get(struct ring_buffer *rb, void *data, size_t length);
 
 #endif // __RING_BUFFER_H__

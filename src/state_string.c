@@ -102,7 +102,7 @@ static void string_buttons(enum buttons btn, bool state) {
     while (edit < offset) {
         offset -= 1;
     }
-    while (edit >= (offset + (LCD_WIDTH / 10 - 2))) {
+    while (edit >= (offset + (LCD_WIDTH / 10 - 3))) {
         offset += 1;
     }
 

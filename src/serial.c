@@ -45,10 +45,10 @@
 #include "serial.h"
 
 static uint8_t rx_buff[UART_RX_BUFF_LEN] = {0};
-static struct ring_buffer rx = RB_INIT(rx_buff, sizeof(rx_buff));
+static struct ring_buffer rx = RB_INIT(rx_buff, sizeof(rx_buff), 1);
 
 static uint8_t tx_buff[UART_TX_BUFF_LEN] = {0};
-static struct ring_buffer tx = RB_INIT(tx_buff, sizeof(tx_buff));
+static struct ring_buffer tx = RB_INIT(tx_buff, sizeof(tx_buff), 1);
 
 static bool reroute_serial_debug = false;
 static bool tx_irq_state = false;
@@ -70,13 +70,15 @@ static void serial_irq(void) {
     // Rx - read from UART FIFO to local buffer
     while (uart_is_readable(UART_ID) && (rb_space(&rx) > 0)) {
         uint8_t ch = uart_getc(UART_ID);
-        rb_push(&rx, ch);
+        rb_push(&rx, &ch);
     }
 
     // Tx - write to UART FIFO if needed
     while (uart_is_writable(UART_ID)) {
         if (rb_len(&tx) > 0) {
-            uart_putc_raw(UART_ID, rb_pop(&tx));
+            uint8_t c;
+            rb_pop(&tx, &c);
+            uart_putc_raw(UART_ID, c);
         } else {
             SET_TX_IRQ(false);
             break;
@@ -102,11 +104,12 @@ void serial_init(void) {
     SET_TX_IRQ(false);
 }
 
-void serial_write(const uint8_t *buf, size_t count) {
+void serial_write(const void *buf, size_t count) {
     SET_TX_IRQ(false);
 
     while ((rb_len(&tx) == 0) && uart_is_writable(UART_ID) && (count > 0)) {
-        uart_putc_raw(UART_ID, *buf++);
+        uart_putc_raw(UART_ID, *(uint8_t *)buf);
+        buf++;
         count--;
     }
 
@@ -144,7 +147,9 @@ void serial_run(void) {
     SET_RX_IRQ(false);
 
     if (rb_len(&rx) >= 1) {
-        if (rb_peek(&rx) == ENTER_BOOTLOADER_MAGIC) {
+        uint8_t c;
+        rb_peek(&rx, &c);
+        if (c == ENTER_BOOTLOADER_MAGIC) {
             reset_to_bootloader();
         } else if (reroute_serial_debug) {
             rb_move(&rx, debug_handle_input);

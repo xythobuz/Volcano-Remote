@@ -24,6 +24,11 @@ execute_process(COMMAND make
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/mcufont/fonts
 )
 
+# remove Options.h from BittyHTTP so we can use our own (TODO ugly)
+execute_process(COMMAND rm Options.h
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/BittyHTTP/src
+)
+
 # initialize pico-sdk from submodule
 include(pico-sdk/pico_sdk_init.cmake)
 
@@ -101,6 +106,9 @@ target_sources(gadget PUBLIC
     src/state_wifi.c
     src/state_wifi_edit.c
     src/state_string.c
+    src/http.c
+    src/http_socket.c
+    src/http_files.c
 
     ${CMAKE_CURRENT_BINARY_DIR}/fatfs/ff.c
     ${CMAKE_CURRENT_BINARY_DIR}/fatfs/ffunicode.c
@@ -115,9 +123,12 @@ target_sources(gadget PUBLIC
     mcufont/decoder/mf_bwfont.c
     mcufont/decoder/mf_scaledfont.c
     mcufont/decoder/mf_wordwrap.c
+
+    BittyHTTP/src/WebServer.c
 )
 
 # external dependency include directories
+target_include_directories(gadget PUBLIC ${CMAKE_CURRENT_LIST_DIR}/conf)
 target_include_directories(gadget PUBLIC ${CMAKE_CURRENT_LIST_DIR}/include)
 target_include_directories(gadget PUBLIC ${CMAKE_CURRENT_BINARY_DIR}/fatfs)
 target_include_directories(gadget PUBLIC ${CMAKE_CURRENT_LIST_DIR}/st7789/src)
@@ -125,6 +136,7 @@ target_include_directories(gadget PUBLIC ${CMAKE_CURRENT_LIST_DIR}/st7789/interf
 target_include_directories(gadget PUBLIC ${CMAKE_CURRENT_LIST_DIR}/mcufont/decoder)
 target_include_directories(gadget PUBLIC ${CMAKE_CURRENT_LIST_DIR}/data)
 target_include_directories(gadget PUBLIC ${CMAKE_CURRENT_LIST_DIR}/build)
+target_include_directories(gadget PUBLIC ${CMAKE_CURRENT_LIST_DIR}/BittyHTTP/src)
 
 # compress source code and stuff we want to include
 add_custom_target(pack bash -c "./pack_data.sh"
@@ -148,6 +160,9 @@ set_source_files_properties(pico-sdk/lib/btstack/src/classic/avdtp_util.c PROPER
 set_source_files_properties(pico-sdk/lib/btstack/src/classic/goep_client.c PROPERTIES COMPILE_FLAGS -Wno-unused-parameter)
 set_source_files_properties(pico-sdk/lib/btstack/src/classic/goep_server.c PROPERTIES COMPILE_FLAGS -Wno-unused-parameter)
 
+# suppress warnings for BittyHTTP
+set_source_files_properties(BittyHTTP/src/WebServer.c PROPERTIES COMPILE_FLAGS "-Wno-sign-compare -Wno-unused-parameter -Wno-maybe-uninitialized")
+
 # pull in common dependencies
 target_link_libraries(gadget
     pico_stdlib
@@ -166,7 +181,7 @@ target_link_libraries(gadget
     picowota_reboot
 )
 
-pico_set_linker_script(gadget ${CMAKE_CURRENT_SOURCE_DIR}/src/memmap_custom.ld)
+pico_set_linker_script(gadget ${CMAKE_CURRENT_SOURCE_DIR}/conf/memmap_custom.ld)
 
 # fix for Errata RP2040-E5 (the fix requires use of GPIO 15)
 target_compile_definitions(gadget PUBLIC PICO_RP2040_USB_DEVICE_ENUMERATION_FIX=1)
@@ -175,10 +190,13 @@ set(PICOWOTA_WIFI_SSID "WIFI_SSID_HERE")
 set(PICOWOTA_WIFI_PASS "WIFI_PASS_HERE")
 set(PICOWOTA_WIFI_AP 0)
 
+# TODO set DOCVER to hash of static http files?
+
 target_compile_definitions(gadget PUBLIC
     RUNNING_AS_CLIENT=1
     DEFAULT_WIFI_SSID="${PICOWOTA_WIFI_SSID}"
     DEFAULT_WIFI_PASS="${PICOWOTA_WIFI_PASS}"
+    DOCVER="1.0.0.0"
 )
 
 add_subdirectory(picowota)

@@ -600,7 +600,7 @@ void cnsl_run(void) {
     }
 }
 
-void cnsl_handle_input(const uint8_t *buf, size_t len) {
+void cnsl_handle_input(const void *buf, size_t len) {
     if ((cnsl_buff_pos + len) > CNSL_BUFF_SIZE) {
         debug("error: console input buffer overflow! %lu > %u", cnsl_buff_pos + len, CNSL_BUFF_SIZE);
         cnsl_init();

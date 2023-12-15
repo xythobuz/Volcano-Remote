@@ -23,7 +23,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-void usb_cdc_write(const uint8_t *buf, size_t count);
+void usb_cdc_write(const void *buf, size_t count);
 void usb_cdc_set_reroute(bool reroute);
 
 #endif // __USB_CDC_H__

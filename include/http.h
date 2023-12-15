@@ -1,5 +1,5 @@
 /*
- * main.h
+ * http.h
  *
  * Copyright (c) 2023 Thomas Buck (thomas@xythobuz.de)
  *
@@ -16,13 +16,11 @@
  * See <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __MAIN_H__
-#define __MAIN_H__
+#ifndef __HTTP_H__
+#define __HTTP_H__
 
-void main_loop_hw(void);
+void http_init(void);
+void http_deinit(void);
+void http_run(void);
 
-void networking_init(void);
-void networking_deinit(void);
-void networking_run(void);
-
-#endif // __MAIN_H__
+#endif // __HTTP_H__

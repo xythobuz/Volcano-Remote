@@ -32,12 +32,21 @@ int8_t venty_set_target_temp(uint16_t value);
 int8_t venty_set_heater_state(bool value);
 int8_t venty_set_eco_current(bool value);
 int8_t venty_set_eco_voltage(bool value);
+int8_t venty_set_vibration(bool value);
+
+// v from 1 to 9, returns < 0 on error
+int8_t venty_set_brightness(uint8_t value);
 
 // in percent, or < 0 on error
 int8_t venty_get_battery_state(void);
 
 // bool, or < 0 on error
+int8_t venty_get_heater_state(void);
 int8_t venty_get_eco_current(void);
 int8_t venty_get_eco_voltage(void);
+int8_t venty_get_vibration(void);
+
+// returns 1 to 9, or < 0 on error
+int8_t venty_get_brightness(void);
 
 #endif // __VENTY_H__

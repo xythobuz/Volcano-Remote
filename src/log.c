@@ -29,17 +29,17 @@
 #include "log.h"
 
 static uint8_t log_buff[4096] = {0};
-static struct ring_buffer log = RB_INIT(log_buff, sizeof(log_buff));
+static struct ring_buffer log = RB_INIT(log_buff, sizeof(log_buff), 1);
 
 static uint8_t line_buff[256] = {0};
 static volatile bool got_input = false;
 static FIL log_file_fat;
 
-static void add_to_log(const uint8_t *buff, size_t len) {
+static void add_to_log(const void *buff, size_t len) {
     rb_add(&log, buff, len);
 }
 
-static void log_dump_to_x(void (*write)(const uint8_t *, size_t)) {
+static void log_dump_to_x(void (*write)(const void *, size_t)) {
     if (rb_len(&log) == 0) {
         return;
     }
@@ -67,7 +67,7 @@ void log_dump_to_uart(void) {
 #endif
 }
 
-static void log_file_write_callback(const uint8_t *data, size_t len) {
+static void log_file_write_callback(const void *data, size_t len) {
     UINT bw;
     FRESULT res = f_write(&log_file_fat, data, len, &bw);
     if ((res != FR_OK) || (bw != len)) {
@@ -120,7 +120,7 @@ void debug_log(bool log, const char* format, ...) {
     va_end(args);
 }
 
-void debug_handle_input(const uint8_t *buff, size_t len) {
+void debug_handle_input(const void *buff, size_t len) {
     (void)buff;
 
     if (len > 0) {

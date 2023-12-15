@@ -39,6 +39,8 @@
 #include "serial.h"
 #include "workflow.h"
 #include "wifi.h"
+#include "http.h"
+#include "main.h"
 
 void main_loop_hw(void) {
     watchdog_update();
@@ -50,6 +52,27 @@ void main_loop_hw(void) {
         lcd_set_backlight(mem_data()->backlight);
     }
 
+    networking_run();
+}
+
+void networking_init(void) {
+    debug("wifi_init");
+    wifi_init();
+
+    debug("http_init");
+    http_init();
+}
+
+void networking_deinit(void) {
+    debug("http_deinit");
+    http_deinit();
+
+    debug("wifi_deinit");
+    wifi_deinit();
+}
+
+void networking_run(void) {
+    http_run();
     wifi_run();
 }
 
@@ -124,8 +147,8 @@ int main(void) {
     }
 
     if (mem_data()->enable_wifi) {
-        debug("wifi_init");
-        wifi_init();
+        debug("networking_init");
+        networking_init();
     } else {
         debug("wifi not enabled");
     }

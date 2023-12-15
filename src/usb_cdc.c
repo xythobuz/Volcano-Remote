@@ -39,7 +39,7 @@
 
 static bool reroute_cdc_debug = false;
 
-void usb_cdc_write(const uint8_t *buf, size_t count) {
+void usb_cdc_write(const void *buf, size_t count) {
 #ifndef DISABLE_CDC_DTR_CHECK
     if (!tud_cdc_connected()) {
         return;

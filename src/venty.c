@@ -24,6 +24,11 @@
 
 #define VENTY_READ_TIMEOUT_MS 500
 
+enum venty_commands {
+    CMD_SETTINGS  = 1,
+    CMD_INTERFACE = 6,
+};
+
 enum venty_values {
     MASK_SET_TEMPERATURE = 1 << 1,
     MASK_SET_BOOST       = 1 << 2,
@@ -40,6 +45,11 @@ enum venty_settings {
     SETTING_BUTTON_CHANGED      = 1 << 4,
     SETTING_ECOMODE_VOLTAGE     = 1 << 5,
     SETTING_BOOST_VISUALIZATION = 1 << 6,
+};
+
+enum venty_interface {
+    UI_BRIGHTNESS = 1 << 0,
+    UI_VIBRATION  = 1 << 3,
 };
 
 // "00000000-5354-4f52-5a26-4249434b454c"
@@ -100,7 +110,7 @@ int16_t venty_get_target_temp(void) {
     uint8_t cmd[20] = {0};
     uint8_t buff[20] = {0};
 
-    cmd[0] = 1;
+    cmd[0] = CMD_SETTINGS;
 
     int8_t r = venty_cmd(buff, sizeof(buff), cmd, sizeof(cmd));
     if (r < 0) {
@@ -115,7 +125,7 @@ int8_t venty_set_target_temp(uint16_t value) {
     uint8_t cmd[20] = {0};
     uint8_t buff[20] = {0};
 
-    cmd[0] = 1;
+    cmd[0] = CMD_SETTINGS;
     cmd[1] = MASK_SET_TEMPERATURE;
     uint16_t *val = (uint16_t *)(cmd + 4);
     *val = value;
@@ -124,11 +134,26 @@ int8_t venty_set_target_temp(uint16_t value) {
     return r;
 }
 
+int8_t venty_get_heater_state(void) {
+    uint8_t cmd[20] = {0};
+    uint8_t buff[20] = {0};
+
+    cmd[0] = CMD_SETTINGS;
+
+    int8_t r = venty_cmd(buff, sizeof(buff), cmd, sizeof(cmd));
+    if (r < 0) {
+        return r;
+    }
+
+    int8_t *val = (int8_t *)(buff + 11);
+    return *val;
+}
+
 int8_t venty_set_heater_state(bool value) {
     uint8_t cmd[20] = {0};
     uint8_t buff[20] = {0};
 
-    cmd[0] = 1;
+    cmd[0] = CMD_SETTINGS;
     cmd[1] = MASK_HEATER;
     cmd[11] = value ? 1 : 0;
 
@@ -140,7 +165,7 @@ int8_t venty_get_battery_state(void) {
     uint8_t cmd[20] = {0};
     uint8_t buff[20] = {0};
 
-    cmd[0] = 1;
+    cmd[0] = CMD_SETTINGS;
 
     int8_t r = venty_cmd(buff, sizeof(buff), cmd, sizeof(cmd));
     if (r < 0) {
@@ -155,7 +180,7 @@ int8_t venty_get_eco_current(void) {
     uint8_t cmd[20] = {0};
     uint8_t buff[20] = {0};
 
-    cmd[0] = 1;
+    cmd[0] = CMD_SETTINGS;
 
     int8_t r = venty_cmd(buff, sizeof(buff), cmd, sizeof(cmd));
     if (r < 0) {
@@ -171,7 +196,7 @@ int8_t venty_get_eco_voltage(void) {
     uint8_t cmd[20] = {0};
     uint8_t buff[20] = {0};
 
-    cmd[0] = 1;
+    cmd[0] = CMD_SETTINGS;
 
     int8_t r = venty_cmd(buff, sizeof(buff), cmd, sizeof(cmd));
     if (r < 0) {
@@ -186,7 +211,7 @@ int8_t venty_set_eco_current(bool value) {
     uint8_t cmd[20] = {0};
     uint8_t buff[20] = {0};
 
-    cmd[0] = 1;
+    cmd[0] = CMD_SETTINGS;
     cmd[1] = MASK_SETTINGS;
     cmd[14] = value ? SETTING_ECOMODE_CHARGE : 0;
     cmd[15] = SETTING_ECOMODE_CHARGE;
@@ -199,10 +224,64 @@ int8_t venty_set_eco_voltage(bool value) {
     uint8_t cmd[20] = {0};
     uint8_t buff[20] = {0};
 
-    cmd[0] = 1;
+    cmd[0] = CMD_SETTINGS;
     cmd[1] = MASK_SETTINGS;
     cmd[14] = value ? SETTING_ECOMODE_VOLTAGE : 0;
     cmd[15] = SETTING_ECOMODE_VOLTAGE;
+
+    int8_t r = venty_cmd(buff, sizeof(buff), cmd, sizeof(cmd));
+    return r;
+}
+
+int8_t venty_get_vibration(void) {
+    uint8_t cmd[6] = {0};
+    uint8_t buff[6] = {0};
+
+    cmd[0] = CMD_INTERFACE;
+
+    int8_t r = venty_cmd(buff, sizeof(buff), cmd, sizeof(cmd));
+    if (r < 0) {
+        return r;
+    }
+
+    int8_t *val = (int8_t *)(buff + 5);
+    return *val;
+}
+
+int8_t venty_get_brightness(void) {
+    uint8_t cmd[6] = {0};
+    uint8_t buff[6] = {0};
+
+    cmd[0] = CMD_INTERFACE;
+
+    int8_t r = venty_cmd(buff, sizeof(buff), cmd, sizeof(cmd));
+    if (r < 0) {
+        return r;
+    }
+
+    int8_t *val = (int8_t *)(buff + 2);
+    return *val;
+}
+
+int8_t venty_set_vibration(bool value) {
+    uint8_t cmd[6] = {0};
+    uint8_t buff[6] = {0};
+
+    cmd[0] = CMD_INTERFACE;
+    cmd[1] = UI_VIBRATION;
+    cmd[5] = value ? 1 : 0;
+
+    int8_t r = venty_cmd(buff, sizeof(buff), cmd, sizeof(cmd));
+    return r;
+}
+
+int8_t venty_set_brightness(uint8_t value) {
+    uint8_t cmd[6] = {0};
+    uint8_t buff[6] = {0};
+
+    cmd[0] = CMD_INTERFACE;
+    cmd[1] = UI_BRIGHTNESS;
+    cmd[2] = MIN(MAX(value, 1), 9);
 
     int8_t r = venty_cmd(buff, sizeof(buff), cmd, sizeof(cmd));
     return r;

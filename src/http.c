@@ -1,5 +1,5 @@
 /*
- * main.h
+ * http.c
  *
  * Copyright (c) 2023 Thomas Buck (thomas@xythobuz.de)
  *
@@ -16,13 +16,28 @@
  * See <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __MAIN_H__
-#define __MAIN_H__
+#include "WebServer.h"
 
-void main_loop_hw(void);
+#include "config.h"
+#include "log.h"
+#include "http.h"
 
-void networking_init(void);
-void networking_deinit(void);
-void networking_run(void);
+void http_init(void) {
+    SocketsCon_InitSocketConSystem();
+    WS_Init();
 
-#endif // __MAIN_H__
+    if (!WS_Start(80)) {
+        debug("failed to start web server");
+    } else {
+        debug("listening on :80");
+    }
+}
+
+void http_deinit(void) {
+    WS_Shutdown();
+    SocketsCon_ShutdownSocketConSystem();
+}
+
+void http_run(void) {
+    WS_Tick();
+}

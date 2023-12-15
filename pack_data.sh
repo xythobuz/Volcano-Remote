@@ -28,6 +28,7 @@ cp README.md build/src
 cp CMakeLists.txt build/src
 cp .gitmodules build/src/gitmodules
 cp -r include build/src
+cp -r conf build/src
 cp -r src build/src
 
 cd build
