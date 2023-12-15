@@ -196,6 +196,7 @@ target_compile_definitions(gadget PUBLIC
     RUNNING_AS_CLIENT=1
     DEFAULT_WIFI_SSID="${PICOWOTA_WIFI_SSID}"
     DEFAULT_WIFI_PASS="${PICOWOTA_WIFI_PASS}"
+    CYW43_HOST_NAME="pico-volcano"
     DOCVER="1.0.0.0"
 )
 

@@ -253,17 +253,20 @@ void SocketsCon_Close(struct SocketCon *Con) {
 }
 
 static err_t tcp_server_accept(void *arg, struct tcp_pcb *newpcb, err_t err) {
-    (void)err; // TODO?
+    if (err != ERR_OK) {
+        debug("ignoring failed accept");
+        return ERR_OK;
+    }
 
     struct SocketCon *Con = arg;
     size_t idx = Con->SocketFD;
     if (rb_space(&sock[idx].child_rb) <= 0) {
         debug("no space for new connection");
         tcp_abort(newpcb);
-        return ERR_ABRT;
+        return ERR_OK; // ERR_ABRT ?
     }
 
-    debug("new connection");
+    debug("new connection (%d)", err);
 
     rb_push(&sock[idx].child_rb, &newpcb);
     return ERR_OK;
