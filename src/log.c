@@ -24,8 +24,6 @@
 
 #include "config.h"
 #include "main.h"
-#include "lcd.h"
-#include "textbox.h"
 #include "usb_cdc.h"
 #include "serial.h"
 #include "ring.h"
@@ -36,7 +34,6 @@ static struct ring_buffer log = RB_INIT(log_buff, sizeof(log_buff), 1);
 
 static uint8_t line_buff[256] = {0};
 static volatile bool got_input = false;
-static int16_t lcd_off = 0;
 
 #ifndef PICOWOTA
 static FIL log_file_fat;
@@ -46,34 +43,8 @@ static void add_to_log(const void *buff, size_t len) {
     rb_add(&log, buff, len);
 }
 
-static void lcd_write(const void *buf, size_t len) {
-    char tmp[len + 1];
-    memcpy(tmp, buf, len);
-    tmp[len] = '\0';
-    lcd_off = text_box(tmp, false,
-                       "fixed_10x20",
-                       0, LCD_WIDTH,
-                       lcd_off, LCD_HEIGHT - lcd_off,
-                       0);
-}
-
-void log_dump_to_lcd(void) {
-    static size_t prev_len = 0;
-    size_t len = rb_len(&log);
-    if (len == prev_len) {
-        return;
-    }
-    prev_len = len;
-
-    lcd_off = 0;
-
-    const size_t todo = 120;
-    size_t text_off = 0;
-    if (len > todo) {
-        text_off = len - todo;
-    }
-
-    rb_dump(&log, lcd_write, text_off);
+struct ring_buffer *log_get(void) {
+    return &log;
 }
 
 #ifndef PICOWOTA

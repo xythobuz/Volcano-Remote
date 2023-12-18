@@ -48,8 +48,10 @@ void debug_log_va(bool log, const char *format, va_list args);
 void log_dump_to_usb(void);
 void log_dump_to_uart(void);
 void log_dump_to_disk(void);
-void log_dump_to_lcd(void);
 
 void debug_handle_input(const void *buff, size_t len);
+
+#include "ring.h"
+struct ring_buffer *log_get(void);
 
 #endif // __LOG_H__

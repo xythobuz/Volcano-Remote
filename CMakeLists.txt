@@ -25,6 +25,8 @@ execute_process(COMMAND make
 )
 
 # build lwip httpd fs
+# TODO should use C version instead of Perl script, for
+# TODO added file compression. but how to compile it?
 set(MAKE_FS_DATA_SCRIPT ${CMAKE_CURRENT_SOURCE_DIR}/pico-sdk/lib/lwip/src/apps/http/makefsdata/makefsdata)
 execute_process(
     COMMAND perl ${MAKE_FS_DATA_SCRIPT}
@@ -209,6 +211,8 @@ set(PICOWOTA_ADDITIONAL_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/text.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/ota_shim.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/workflow_default.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/buttons.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/util.c
 
     ${CMAKE_CURRENT_SOURCE_DIR}/st7789/src/driver_st7789.c
 
