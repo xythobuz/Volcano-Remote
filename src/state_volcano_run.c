@@ -150,7 +150,7 @@ static void draw(struct menu_state *menu) {
         pos += snprintf(menu->buff + pos, MENU_MAX_LEN - pos,
                         "%s\n", wf_step_str(state.step));
         pos += snprintf(menu->buff + pos, MENU_MAX_LEN - pos,
-                        "%.0f -> %.0f -> %.0f",
+                        "%.0f -> %.1f -> %.0f",
                         state.start_val / 1000.0f,
                         state.curr_val / 1000.0f,
                         state.step->val / 1000.0f);
