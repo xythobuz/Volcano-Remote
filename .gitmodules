@@ -12,4 +12,4 @@
 	url = https://github.com/hepingood/st7789
 [submodule "picowota"]
 	path = picowota
-	url = https://github.com/usedbytes/picowota
+	url = https://github.com/xythobuz/picowota

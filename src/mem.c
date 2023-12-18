@@ -87,9 +87,13 @@ void mem_load_defaults(void) {
     }
 
     // TODO better way to pre-define WiFi credentials
+#if defined(DEFAULT_WIFI_SSID) && defined(DEFAULT_WIFI_PASS)
     data_ram.data.net_count = 1;
     strcpy(data_ram.data.net[0].name, DEFAULT_WIFI_SSID);
     strcpy(data_ram.data.net[0].pass, DEFAULT_WIFI_PASS);
+#else
+    data_ram.data.net_count = 0;
+#endif
 }
 
 void mem_load(void) {
@@ -110,11 +114,13 @@ void mem_load(void) {
         } else {
             debug("loading from flash (0x%08lX)", checksum);
             data_ram = *flash_ptr;
+            debug("%s", data_ram.data.net[0].pass);
         }
     } else {
         debug("invalid config (0x%02X != 0x%02X)", flash_ptr->version, MEM_VERSION);
     }
 
+#if defined(DEFAULT_WIFI_SSID) && defined(DEFAULT_WIFI_PASS)
     // add default WiFi from #define to flash config, if it is not there yet
     bool found = false;
     for (uint16_t i = 0; i < data_ram.data.net_count; i++) {
@@ -133,6 +139,7 @@ void mem_load(void) {
         strcpy(data_ram.data.net[data_ram.data.net_count].pass, DEFAULT_WIFI_PASS);
         data_ram.data.net_count++;
     }
+#endif
 }
 
 static void mem_write_flash(void *param) {

@@ -19,6 +19,8 @@
 #ifndef __WIFI_H__
 #define __WIFI_H__
 
+#include <stdbool.h>
+
 #define WIFI_MAX_NET_COUNT 5
 #define WIFI_MAX_NAME_LEN 32
 #define WIFI_MAX_PASS_LEN 32
@@ -32,6 +34,7 @@ void wifi_init(void);
 void wifi_deinit(void);
 
 bool wifi_initialized(void);
+bool wifi_ready(void);
 const char *wifi_state(void);
 
 void wifi_run(void);

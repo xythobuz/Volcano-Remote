@@ -199,5 +199,45 @@ target_compile_definitions(gadget PUBLIC
     CYW43_HOST_NAME="pico-volcano"
 )
 
+set(PICOWOTA_ADDITIONAL_SOURCES
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/wifi.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/lcd.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/log.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/mem.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/ring.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/textbox.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/text.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/ota_shim.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/workflow_default.c
+
+    ${CMAKE_CURRENT_SOURCE_DIR}/st7789/src/driver_st7789.c
+
+    ${CMAKE_CURRENT_SOURCE_DIR}/mcufont/decoder/mf_encoding.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/mcufont/decoder/mf_font.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/mcufont/decoder/mf_justify.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/mcufont/decoder/mf_kerning.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/mcufont/decoder/mf_rlefont.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/mcufont/decoder/mf_bwfont.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/mcufont/decoder/mf_scaledfont.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/mcufont/decoder/mf_wordwrap.c
+)
+set(PICOWOTA_ADDITIONAL_INCLUDES
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/conf
+    ${CMAKE_CURRENT_SOURCE_DIR}/data
+    ${CMAKE_CURRENT_SOURCE_DIR}/st7789/src
+    ${CMAKE_CURRENT_SOURCE_DIR}/st7789/interface
+    ${CMAKE_CURRENT_SOURCE_DIR}/mcufont/decoder
+    ${CMAKE_CURRENT_BINARY_DIR}/fatfs
+    ${CMAKE_CURRENT_SOURCE_DIR}/pico-sdk/src/rp2_common/pico_btstack/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/pico-sdk/lib/btstack/platform/embedded
+)
+set(PICOWOTA_ADDITIONAL_LIBS
+    hardware_spi
+    hardware_pwm
+    hardware_flash
+    pico_flash
+)
+
 add_subdirectory(picowota)
 picowota_build_combined(gadget)

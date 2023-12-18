@@ -17,12 +17,15 @@
  */
 
 #include <stdio.h>
+#include <string.h>
 
 #include "hardware/watchdog.h"
 #include "ff.h"
 
 #include "config.h"
 #include "main.h"
+#include "lcd.h"
+#include "textbox.h"
 #include "usb_cdc.h"
 #include "serial.h"
 #include "ring.h"
@@ -33,12 +36,47 @@ static struct ring_buffer log = RB_INIT(log_buff, sizeof(log_buff), 1);
 
 static uint8_t line_buff[256] = {0};
 static volatile bool got_input = false;
+static int16_t lcd_off = 0;
+
+#ifndef PICOWOTA
 static FIL log_file_fat;
+#endif // PICOWOTA
 
 static void add_to_log(const void *buff, size_t len) {
     rb_add(&log, buff, len);
 }
 
+static void lcd_write(const void *buf, size_t len) {
+    char tmp[len + 1];
+    memcpy(tmp, buf, len);
+    tmp[len] = '\0';
+    lcd_off = text_box(tmp, false,
+                       "fixed_10x20",
+                       0, LCD_WIDTH,
+                       lcd_off, LCD_HEIGHT - lcd_off,
+                       0);
+}
+
+void log_dump_to_lcd(void) {
+    static size_t prev_len = 0;
+    size_t len = rb_len(&log);
+    if (len == prev_len) {
+        return;
+    }
+    prev_len = len;
+
+    lcd_off = 0;
+
+    const size_t todo = 120;
+    size_t text_off = 0;
+    if (len > todo) {
+        text_off = len - todo;
+    }
+
+    rb_dump(&log, lcd_write, text_off);
+}
+
+#ifndef PICOWOTA
 static void log_dump_to_x(void (*write)(const void *, size_t)) {
     if (rb_len(&log) == 0) {
         return;
@@ -49,7 +87,7 @@ static void log_dump_to_x(void (*write)(const void *, size_t)) {
         write(line_buff, l);
     }
 
-    rb_dump(&log, write);
+    rb_dump(&log, write, 0);
 
     l = snprintf((char *)line_buff, sizeof(line_buff), "\r\n\r\nlive log:\r\n");
     if ((l > 0) && (l <= (int)sizeof(line_buff))) {
@@ -64,7 +102,7 @@ void log_dump_to_usb(void) {
 void log_dump_to_uart(void) {
 #ifndef NDEBUG
     log_dump_to_x(serial_write);
-#endif
+#endif // NDEBUG
 }
 
 static void log_file_write_callback(const void *data, size_t len) {
@@ -82,13 +120,15 @@ void log_dump_to_disk(void) {
         return;
     }
 
-    rb_dump(&log, log_file_write_callback);
+    rb_dump(&log, log_file_write_callback, 0);
 
     res = f_close(&log_file_fat);
     if (res != FR_OK) {
         debug("error: f_close returned %d", res);
     }
 }
+
+#endif // PICOWOTA
 
 void debug_log_va(bool log, const char *format, va_list args) {
     int l = vsnprintf((char *)line_buff, sizeof(line_buff), format, args);
@@ -101,11 +141,13 @@ void debug_log_va(bool log, const char *format, va_list args) {
         l = snprintf((char *)line_buff, sizeof(line_buff), "%s: message too long (%d)\r\n", __func__, l);
     }
     if ((l > 0) && (l <= (int)sizeof(line_buff))) {
+#ifndef PICOWOTA
         usb_cdc_write(line_buff, l);
 
 #ifndef NDEBUG
         serial_write(line_buff, l);
-#endif
+#endif // NDEBUG
+#endif // PICOWOTA
 
         if (log) {
             add_to_log(line_buff, l);
@@ -120,6 +162,7 @@ void debug_log(bool log, const char* format, ...) {
     va_end(args);
 }
 
+#ifndef PICOWOTA
 void debug_handle_input(const void *buff, size_t len) {
     (void)buff;
 
@@ -145,3 +188,4 @@ void debug_wait_input(const char *format, ...) {
     usb_cdc_set_reroute(false);
     serial_set_reroute(false);
 }
+#endif // PICOWOTA

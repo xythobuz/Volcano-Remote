@@ -16,6 +16,8 @@
  * See <http://www.gnu.org/licenses/>.
  */
 
+#define MIN(x, y) ((x < y) ? x : y)
+
 #include <string.h>
 
 #include "config.h"
@@ -51,21 +53,29 @@ size_t rb_len(struct ring_buffer *rb) {
     }
 }
 
-void rb_dump(struct ring_buffer *rb, void (*write)(const void *, size_t)) {
-    if (rb_len(rb) == 0) {
+void rb_dump(struct ring_buffer *rb, void (*write)(const void *, size_t), size_t skip) {
+    if (rb_len(rb) <= skip) {
         return;
     }
 
     if (rb->head > rb->tail) {
-        write(rb->buffer + rb->tail * rb->el_len, rb->head - rb->tail);
+        if ((rb->head - rb->tail) > skip) {
+            write(rb->buffer + ((rb->tail + skip) * rb->el_len), rb->head - rb->tail - skip);
+        }
     } else {
-        write(rb->buffer + rb->tail * rb->el_len, rb->size - rb->tail);
-        write(rb->buffer, rb->head);
+        if ((rb->size - rb->tail) > skip) {
+            write(rb->buffer + ((rb->tail + skip) * rb->el_len), rb->size - rb->tail - skip);
+        }
+
+        skip -= MIN(skip, rb->size - rb->tail);
+        if (rb->head > skip) {
+            write(rb->buffer + (skip + rb->el_len), rb->head - skip);
+        }
     }
 }
 
 void rb_move(struct ring_buffer *rb, void (*write)(const void *, size_t)) {
-    rb_dump(rb, write);
+    rb_dump(rb, write, 0);
     rb->head = 0;
     rb->tail = 0;
     rb->full = false;

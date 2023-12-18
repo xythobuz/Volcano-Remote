@@ -112,6 +112,10 @@ bool wifi_initialized(void) {
     return (state != WS_IDLE);
 }
 
+bool wifi_ready(void) {
+    return (state == WS_READY);
+}
+
 const char *wifi_state(void) {
     switch (state) {
     case WS_IDLE:

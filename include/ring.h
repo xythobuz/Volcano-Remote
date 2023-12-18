@@ -36,7 +36,7 @@ void rb_add(struct ring_buffer *rb, const void *data, size_t length);
 #define rb_push(rb, v) rb_add(rb, v, 1)
 size_t rb_len(struct ring_buffer *rb);
 #define rb_space(rb) ((rb)->size - rb_len(rb))
-void rb_dump(struct ring_buffer *rb, void (*write)(const void *, size_t));
+void rb_dump(struct ring_buffer *rb, void (*write)(const void *, size_t), size_t skip);
 void rb_move(struct ring_buffer *rb, void (*write)(const void *, size_t));
 void rb_peek(struct ring_buffer *rb, void *buf);
 void rb_pop(struct ring_buffer *rb, void *buf);
