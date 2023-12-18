@@ -24,10 +24,15 @@ execute_process(COMMAND make
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/mcufont/fonts
 )
 
-# remove Options.h from BittyHTTP so we can use our own (TODO ugly)
-execute_process(COMMAND rm Options.h
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/BittyHTTP/src
+# build lwip httpd fs
+set(MAKE_FS_DATA_SCRIPT ${CMAKE_CURRENT_SOURCE_DIR}/pico-sdk/lib/lwip/src/apps/http/makefsdata/makefsdata)
+execute_process(
+    COMMAND perl ${MAKE_FS_DATA_SCRIPT}
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    ECHO_OUTPUT_VARIABLE
+    ECHO_ERROR_VARIABLE
 )
+file(RENAME ${CMAKE_CURRENT_SOURCE_DIR}/fsdata.c ${CMAKE_CURRENT_BINARY_DIR}/httpd_fsdata.c)
 
 # initialize pico-sdk from submodule
 include(pico-sdk/pico_sdk_init.cmake)
@@ -107,8 +112,6 @@ target_sources(gadget PUBLIC
     src/state_wifi_edit.c
     src/state_string.c
     src/http.c
-    src/http_socket.c
-    src/http_files.c
 
     ${CMAKE_CURRENT_BINARY_DIR}/fatfs/ff.c
     ${CMAKE_CURRENT_BINARY_DIR}/fatfs/ffunicode.c
@@ -123,8 +126,6 @@ target_sources(gadget PUBLIC
     mcufont/decoder/mf_bwfont.c
     mcufont/decoder/mf_scaledfont.c
     mcufont/decoder/mf_wordwrap.c
-
-    BittyHTTP/src/WebServer.c
 )
 
 # external dependency include directories
@@ -136,7 +137,7 @@ target_include_directories(gadget PUBLIC ${CMAKE_CURRENT_LIST_DIR}/st7789/interf
 target_include_directories(gadget PUBLIC ${CMAKE_CURRENT_LIST_DIR}/mcufont/decoder)
 target_include_directories(gadget PUBLIC ${CMAKE_CURRENT_LIST_DIR}/data)
 target_include_directories(gadget PUBLIC ${CMAKE_CURRENT_LIST_DIR}/build)
-target_include_directories(gadget PUBLIC ${CMAKE_CURRENT_LIST_DIR}/BittyHTTP/src)
+target_include_directories(gadget PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 
 # compress source code and stuff we want to include
 add_custom_target(pack bash -c "./pack_data.sh"
@@ -179,6 +180,7 @@ target_link_libraries(gadget
     hardware_flash
     pico_flash
     picowota_reboot
+    pico_lwip_http
 )
 
 pico_set_linker_script(gadget ${CMAKE_CURRENT_SOURCE_DIR}/conf/memmap_custom.ld)
@@ -190,14 +192,11 @@ set(PICOWOTA_WIFI_SSID "WIFI_SSID_HERE")
 set(PICOWOTA_WIFI_PASS "WIFI_PASS_HERE")
 set(PICOWOTA_WIFI_AP 0)
 
-# TODO set DOCVER to hash of static http files?
-
 target_compile_definitions(gadget PUBLIC
     RUNNING_AS_CLIENT=1
     DEFAULT_WIFI_SSID="${PICOWOTA_WIFI_SSID}"
     DEFAULT_WIFI_PASS="${PICOWOTA_WIFI_PASS}"
     CYW43_HOST_NAME="pico-volcano"
-    DOCVER="1.0.0.0"
 )
 
 add_subdirectory(picowota)

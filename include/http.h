@@ -20,7 +20,5 @@
 #define __HTTP_H__
 
 void http_init(void);
-void http_deinit(void);
-void http_run(void);
 
 #endif // __HTTP_H__

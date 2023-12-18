@@ -13,6 +13,3 @@
 [submodule "picowota"]
 	path = picowota
 	url = https://github.com/usedbytes/picowota
-[submodule "BittyHTTP"]
-	path = BittyHTTP
-	url = https://github.com/TheBeef/BittyHTTP

@@ -64,15 +64,11 @@ void networking_init(void) {
 }
 
 void networking_deinit(void) {
-    debug("http_deinit");
-    http_deinit();
-
     debug("wifi_deinit");
     wifi_deinit();
 }
 
 void networking_run(void) {
-    http_run();
     wifi_run();
 }
 

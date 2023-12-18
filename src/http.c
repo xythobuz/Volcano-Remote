@@ -16,28 +16,12 @@
  * See <http://www.gnu.org/licenses/>.
  */
 
-#include "WebServer.h"
+#include "lwip/apps/httpd.h"
 
 #include "config.h"
 #include "log.h"
 #include "http.h"
 
 void http_init(void) {
-    SocketsCon_InitSocketConSystem();
-    WS_Init();
-
-    if (!WS_Start(80)) {
-        debug("failed to start web server");
-    } else {
-        debug("listening on :80");
-    }
-}
-
-void http_deinit(void) {
-    WS_Shutdown();
-    SocketsCon_ShutdownSocketConSystem();
-}
-
-void http_run(void) {
-    WS_Tick();
+    httpd_init();
 }
