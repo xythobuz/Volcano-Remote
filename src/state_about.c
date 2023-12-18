@@ -53,6 +53,8 @@ static const char *about_text =
     "bluekitchen/btstack\n"
     "mcufont/mcufont\n"
     "hepingood/st7789\n"
+    "usedbytes/picowota\n"
+    "lwip-tcpip/lwip\n"
     "\n"
 
     "This program is free software: you can redistribute it and/or modify "

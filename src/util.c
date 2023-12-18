@@ -19,7 +19,7 @@
 #include <string.h>
 #include "pico/stdlib.h"
 #include "pico/bootrom.h"
-#include "hardware/watchdog.h"
+#include "picowota/reboot.h"
 
 #ifdef CYW43_WL_GPIO_LED_PIN
 #include "pico/cyw43_arch.h"
@@ -81,12 +81,12 @@ void reset_to_bootloader(void) {
 #endif // PICO_DEFAULT_LED_PIN
 }
 
+void reset_to_ota(void) {
+    picowota_reboot(true);
+}
+
 void reset_to_main(void) {
-    watchdog_enable(1, 1);
-    while (1) {
-        // wait 1ms until watchdog kills us
-        asm volatile("nop");
-    }
+    picowota_reboot(false);
 }
 
 void hexdump(const uint8_t *buff, size_t len) {

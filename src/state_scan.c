@@ -20,13 +20,13 @@
 #include <string.h>
 
 #include "pico/stdlib.h"
-#include "picowota/reboot.h"
 
 #include "config.h"
 #include "ble.h"
 #include "models.h"
 #include "mem.h"
 #include "menu.h"
+#include "util.h"
 #include "state.h"
 #include "state_workflow.h"
 #include "state_volcano_run.h"
@@ -103,7 +103,7 @@ static void edit_cb(int selection) {
 
 static void ota_cb(int selection) {
     UNUSED(selection);
-    picowota_reboot(true);
+    reset_to_ota();
 }
 
 void state_scan_enter(void) {

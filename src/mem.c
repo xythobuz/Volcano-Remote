@@ -114,7 +114,6 @@ void mem_load(void) {
         } else {
             debug("loading from flash (0x%08lX)", checksum);
             data_ram = *flash_ptr;
-            debug("%s", data_ram.data.net[0].pass);
         }
     } else {
         debug("invalid config (0x%02X != 0x%02X)", flash_ptr->version, MEM_VERSION);

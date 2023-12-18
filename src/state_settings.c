@@ -19,13 +19,12 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "picowota/reboot.h"
-
 #include "config.h"
 #include "log.h"
 #include "main.h"
 #include "menu.h"
 #include "mem.h"
+#include "util.h"
 #include "state.h"
 #include "state_value.h"
 #include "state_workflow.h"
@@ -85,7 +84,7 @@ static void enter_cb(int selection) {
 
     case 6:
         // OTA Update
-        picowota_reboot(true);
+        reset_to_ota();
         break;
 
     default:

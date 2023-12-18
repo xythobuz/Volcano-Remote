@@ -23,7 +23,6 @@
 
 #include "pico/stdlib.h"
 #include "hardware/watchdog.h"
-#include "picowota/reboot.h"
 
 #include "config.h"
 #include "log.h"
@@ -139,7 +138,7 @@ static void cnsl_interpret(const char *line) {
     } else if (strcmp(line, "reset") == 0) {
         reset_to_main();
     } else if (strcmp(line, "ota") == 0) {
-        picowota_reboot(true);
+        reset_to_ota();
     } else if (strcmp(line, "mount") == 0) {
         bool state = msc_is_medium_available();
         println("Currently %s. %s now.",
