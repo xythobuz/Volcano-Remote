@@ -1,6 +1,10 @@
 /*
  * http.c
  *
+ * https://github.com/krzmaz/pico-w-webserver-example
+ * https://github.com/lwip-tcpip/lwip/blob/master/contrib/examples/httpd/genfiles_example/genfiles_example.c
+ * https://www.nongnu.org/lwip/2_1_x/group__httpd.html
+ *
  * Copyright (c) 2023 Thomas Buck (thomas@xythobuz.de)
  *
  * This program is free software: you can redistribute it and/or modify
