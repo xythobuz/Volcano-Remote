@@ -16,6 +16,9 @@
  * See <http://www.gnu.org/licenses/>.
  */
 
+#include <stdarg.h>
+#include <stdio.h>
+
 #include "pico/cyw43_arch.h"
 
 #include "config.h"
@@ -29,7 +32,7 @@
 #include "wifi.h"
 
 static int16_t lcd_off = 0;
-static size_t text_window = 120;
+static size_t text_window = 420; // TODO
 static size_t text_off = 0;
 static size_t prev_len = 0;
 static bool redraw = false;
@@ -39,7 +42,7 @@ static void lcd_write(const void *buf, size_t len) {
     memcpy(tmp, buf, len);
     tmp[len] = '\0';
     lcd_off = text_box(tmp, false,
-                       "fixed_10x20",
+                       "fixed_5x8",
                        0, LCD_WIDTH,
                        lcd_off, LCD_HEIGHT - lcd_off,
                        0);
@@ -49,7 +52,7 @@ static void log_dump_to_lcd(void) {
     // TODO length is not good as indicator.
     // TODO will stop working when log buffer is filled.
     size_t len = rb_len(log_get());
-    if (redraw || (len == prev_len)) {
+    if ((!redraw) && (len == prev_len)) {
         return;
     }
     prev_len = len;
@@ -91,6 +94,17 @@ static void ota_buttons(enum buttons btn, bool state) {
     }
 }
 
+void picowota_printf_init(void) { }
+
+void picowota_printf(const char* format, ...) {
+    va_list args;
+    va_start(args, format);
+    debug_log_va(true, format, args);
+    va_end(args);
+
+    log_dump_to_lcd();
+}
+
 void picowota_poll(void) {
     buttons_run();
     cyw43_arch_poll();
@@ -98,7 +112,7 @@ void picowota_poll(void) {
     log_dump_to_lcd();
 }
 
-int picowota_network_init(void) {
+int picowota_init(void) {
     buttons_init();
     buttons_callback(ota_buttons);
     mem_load();
@@ -140,7 +154,7 @@ int picowota_network_init(void) {
     return 0;
 }
 
-void picowota_network_deinit(void) {
+void picowota_deinit(void) {
     debug("wifi_deinit");
     log_dump_to_lcd();
 
