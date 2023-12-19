@@ -19,9 +19,9 @@
 #ifndef __DEBUG_DISK_H__
 #define __DEBUG_DISK_H__
 
-void debug_disk_init(void);
-
 int debug_disk_mount(void);
 int debug_disk_unmount(void);
+
+void debug_disk_init_log(void);
 
 #endif // __DEBUG_DISK_H__

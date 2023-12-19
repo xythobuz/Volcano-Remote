@@ -26,25 +26,26 @@
 #include "log.h"
 #include "http.h"
 
-
 void http_init(void) {
     httpd_init();
 }
 
-#ifdef DEBUG_DISK_WRITE_SOURCES
-
 #include "lwip/apps/fs.h"
 #include <string.h>
-#include "pack_data.h"
 
 int fs_open_custom(struct fs_file *file, const char *name) {
+    // TODO hook up to fat fs
     if (strcmp(name, "/src.tar.xz") == 0) {
+        /*
         memset(file, 0, sizeof(struct fs_file));
         file->data = (const char *)data_tar_xz;
         file->len = data_tar_xz_len;
         file->index = file->len;
         file->flags = FS_FILE_FLAGS_HEADER_PERSISTENT;
         return 1;
+        */
+        (void)file;
+        return 0;
     }
     return 0;
 }
@@ -52,5 +53,3 @@ int fs_open_custom(struct fs_file *file, const char *name) {
 void fs_close_custom(struct fs_file *file) {
     (void)file;
 }
-
-#endif // DEBUG_DISK_WRITE_SOURCES

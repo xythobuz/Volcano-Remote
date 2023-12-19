@@ -3,12 +3,21 @@
  * https://community.element14.com/products/raspberry-pi/b/blog/posts/raspberry-pico-c-sdk-reserve-a-flash-memory-block-for-persistent-storage
  */
 
-/* TODO hard-coded. Should take into account PICO_FLASH_BANK_STORAGE_OFFSET */
+INPUT (./fat_fs.o)
+
+/*
+ * TODO hard-coded.
+ * Should take into account PICO_FLASH_BANK_STORAGE_OFFSET
+ * and DISK_BLOCK_SIZE and DISK_BLOCK_COUNT from config.h
+ */
 __PERSISTENT_STORAGE_LEN = (3 * 4k);
+__FLASH_CACHE_LEN = (48 * 4k);
+__ADDITIONAL_LEN = (__PERSISTENT_STORAGE_LEN + __FLASH_CACHE_LEN);
 
 MEMORY
 {
-    FLASH(rx) : ORIGIN = 0x10000000, LENGTH = 2048k - __PERSISTENT_STORAGE_LEN
+    FLASH(rx) : ORIGIN = 0x10000000, LENGTH = 2048k - __ADDITIONAL_LEN
+    FLASH_CACHE(r) : ORIGIN = 0x10000000 + (2048k - __ADDITIONAL_LEN) , LENGTH = __FLASH_CACHE_LEN
     FLASH_PERSISTENT(r) : ORIGIN = 0x10000000 + (2048k - __PERSISTENT_STORAGE_LEN) , LENGTH = __PERSISTENT_STORAGE_LEN
     RAM(rwx) : ORIGIN =  0x20000000, LENGTH = 256k
     SCRATCH_X(rwx) : ORIGIN = 0x20040000, LENGTH = 4k
@@ -215,6 +224,10 @@ SECTIONS
     {
         KEEP(*(.stack*))
     } > SCRATCH_Y
+
+    .fat_fs_bin : {
+        KEEP(./fat_fs.o (.fat_fs_bin))
+    } > FLASH_CACHE
 
     .flash_end : {
         PROVIDE(__flash_binary_end = .);

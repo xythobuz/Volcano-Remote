@@ -30,7 +30,7 @@
 #include "tusb.h"
 
 #include "config.h"
-#include "fat_disk.h"
+#include "cache.h"
 #include "debug_disk.h"
 #include "log.h"
 
@@ -125,12 +125,7 @@ int32_t tud_msc_read10_cb(uint8_t lun, uint32_t lba,
         return -1;
     }
 
-    // TODO better range checking and length calculation?
-
-    uint8_t const* addr = fat_disk_get_sector(lba) + offset;
-    memcpy(buffer, addr, bufsize);
-
-    return (int32_t) bufsize;
+    return cache_read(buffer, (lba * DISK_BLOCK_SIZE) + offset, bufsize);
 }
 
 bool tud_msc_is_writable_cb (uint8_t lun) {
@@ -150,12 +145,7 @@ int32_t tud_msc_write10_cb(uint8_t lun, uint32_t lba,
         return -1;
     }
 
-    // TODO better range checking and length calculation?
-
-    uint8_t* addr = fat_disk_get_sector(lba) + offset;
-    memcpy(addr, buffer, bufsize);
-
-    return (int32_t) bufsize;
+    return cache_write(buffer, (lba * DISK_BLOCK_SIZE) + offset, bufsize);
 }
 
 // Callback invoked when received an SCSI command not in built-in list below
@@ -182,9 +172,7 @@ int32_t tud_msc_scsi_cb (uint8_t lun, uint8_t const scsi_cmd[16],
                 medium_locked = true;
 
 #ifdef AUTO_LOG_ON_MASS_STORAGE
-                debug_disk_mount();
-                log_dump_to_disk();
-                debug_disk_unmount();
+                debug_disk_init_log();
 #endif // AUTO_LOG_ON_MASS_STORAGE
             }
         } else {

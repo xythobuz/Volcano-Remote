@@ -42,6 +42,7 @@
 #include "workflow.h"
 #include "crafty.h"
 #include "mem.h"
+#include "cache.h"
 #include "console.h"
 
 #define CNSL_BUFF_SIZE 64
@@ -103,6 +104,8 @@ static void cnsl_interpret(const char *line) {
         println("  power - show Lipo battery status");
         println("   memr - reset flash memory config");
         println("     bl - print backlight pwm level");
+        println("  cache - print flash cache status");
+        println("  flush - flush flash cache");
         println("");
         println("   scan - start or stop BLE scan");
         println("scanres - print list of found BLE devices");
@@ -158,6 +161,10 @@ static void cnsl_interpret(const char *line) {
         mem_write();
     } else if (strcmp(line, "bl") == 0) {
         println("bl: 0x%04X", mem_data()->backlight);
+    } else if (strcmp(line, "cache") == 0) {
+        cache_status();
+    } else if (strcmp(line, "flush") == 0) {
+        cache_sync();
     } else if (strcmp(line, "scan") == 0) {
         ble_scan(BLE_SCAN_TOGGLE);
     } else if (strcmp(line, "scanres") == 0) {

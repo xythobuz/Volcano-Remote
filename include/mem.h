@@ -19,11 +19,21 @@
 #ifndef __MEM_H__
 #define __MEM_H__
 
+#include "hardware/flash.h"
+#include "pico/btstack_flash_bank.h"
+
 #include <stdint.h>
 #include <stdbool.h>
 
 #include "workflow.h"
 #include "wifi.h"
+
+/*
+ * Last two flash pages are used by BTstack.
+ * So we use the third-last page for our persistent storage.
+ * This is kept clear by our custom linker script.
+ */
+#define EEPROM_FLASH_OFFSET (PICO_FLASH_BANK_STORAGE_OFFSET - FLASH_SECTOR_SIZE)
 
 // to migrate settings when struct changes between releases
 #define MEM_VERSION 0

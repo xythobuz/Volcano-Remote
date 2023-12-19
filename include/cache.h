@@ -1,7 +1,7 @@
-/* 
- * fat_disk.h
+/*
+ * cache.h
  *
- * Copyright (c) 2022 - 2023 Thomas Buck (thomas@xythobuz.de)
+ * Copyright (c) 2023 Thomas Buck (thomas@xythobuz.de)
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,6 +16,17 @@
  * See <http://www.gnu.org/licenses/>.
  */
 
-void fat_disk_init(void);
+#ifndef __CACHE_H__
+#define __CACHE_H__
 
-uint8_t *fat_disk_get_sector(uint32_t sector);
+#include <sys/types.h>
+
+void cache_init(void);
+void cache_status(void);
+void cache_sync(void);
+void cache_run(void);
+
+ssize_t cache_read(uint8_t *buf, size_t addr, size_t len);
+ssize_t cache_write(const uint8_t *buf, size_t addr, size_t len);
+
+#endif // __CACHE_H__

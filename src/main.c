@@ -27,7 +27,6 @@
 #include "log.h"
 #include "usb.h"
 #include "usb_msc.h"
-#include "fat_disk.h"
 #include "debug_disk.h"
 #include "buttons.h"
 #include "ble.h"
@@ -40,6 +39,7 @@
 #include "workflow.h"
 #include "wifi.h"
 #include "http.h"
+#include "cache.h"
 #include "main.h"
 
 void main_loop_hw(void) {
@@ -53,6 +53,7 @@ void main_loop_hw(void) {
     }
 
     networking_run();
+    cache_run();
 }
 
 void networking_init(void) {
@@ -121,11 +122,8 @@ int main(void) {
     debug("ble_init");
     ble_init();
 
-    debug("fat_disk_init");
-    fat_disk_init();
-
-    debug("debug_disk_init");
-    debug_disk_init();
+    debug("cache_init");
+    cache_init();
 
 #ifdef AUTO_MOUNT_MASS_STORAGE
     msc_set_medium_available(true);

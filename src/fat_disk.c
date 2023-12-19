@@ -24,23 +24,9 @@
 #include "diskio.h"
 
 #include "config.h"
+#include "cache.h"
 #include "log.h"
 #include "debug_disk.h"
-#include "fat_disk.h"
-
-static uint8_t disk[DISK_BLOCK_COUNT * DISK_BLOCK_SIZE];
-
-void fat_disk_init(void) {
-    BYTE work[FF_MAX_SS];
-    FRESULT res = f_mkfs("", 0, work, sizeof(work));
-    if (res != FR_OK) {
-        debug("error: f_mkfs returned %d", res);
-    }
-}
-
-uint8_t *fat_disk_get_sector(uint32_t sector) {
-    return disk + (sector * DISK_BLOCK_SIZE);
-}
 
 /*
  * FatFS ffsystem.c
@@ -87,8 +73,8 @@ DRESULT disk_read(BYTE pdrv, BYTE *buff, LBA_t sector, UINT count) {
         return RES_ERROR;
     }
 
-    memcpy(buff, disk + (sector * DISK_BLOCK_SIZE), count * DISK_BLOCK_SIZE);
-    return RES_OK;
+    ssize_t r = cache_read(buff, sector * DISK_BLOCK_SIZE, count * DISK_BLOCK_SIZE);
+    return (r == (ssize_t)(count * DISK_BLOCK_SIZE)) ? RES_OK : RES_ERROR;
 }
 
 DRESULT disk_write(BYTE pdrv, const BYTE *buff, LBA_t sector, UINT count) {
@@ -102,8 +88,8 @@ DRESULT disk_write(BYTE pdrv, const BYTE *buff, LBA_t sector, UINT count) {
         return RES_ERROR;
     }
 
-    memcpy(disk + (sector * DISK_BLOCK_SIZE), buff, count * DISK_BLOCK_SIZE);
-    return RES_OK;
+    ssize_t r = cache_write(buff, sector * DISK_BLOCK_SIZE, count * DISK_BLOCK_SIZE);
+    return (r == (ssize_t)(count * DISK_BLOCK_SIZE)) ? RES_OK : RES_ERROR;
 }
 
 DRESULT disk_ioctl(BYTE pdrv, BYTE cmd, void *buff) {

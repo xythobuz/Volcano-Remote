@@ -34,10 +34,10 @@
 // Release build
 #define AUTO_MOUNT_MASS_STORAGE
 #define AUTO_LOG_ON_MASS_STORAGE
-#define DEBUG_DISK_WRITE_SOURCES
 #endif // NDEBUG
 
 #define WATCHDOG_PERIOD_MS 1000
+#define FLASH_LOCK_TIMEOUT_MS 500
 
 // ASCII 0x18 = CAN (cancel)
 #define ENTER_BOOTLOADER_MAGIC 0x18
@@ -47,15 +47,9 @@
 
 #define SERIAL_WRITES_BLOCK_WHEN_BUFFER_FULL
 
+// TODO needs to be the same as in pack_data.sh
 #define DISK_BLOCK_SIZE 512
-
-#ifdef DEBUG_DISK_WRITE_SOURCES
-#define DISK_ADD_BLOCKS_SOURCES 90 //128
-#else // DEBUG_DISK_WRITE_SOURCES
-#define DISK_ADD_BLOCKS_SOURCES 0
-#endif // DEBUG_DISK_WRITE_SOURCES
-
-#define DISK_BLOCK_COUNT (256 + DISK_ADD_BLOCKS_SOURCES)
+#define DISK_BLOCK_COUNT (256 + 128) // 384 * 512 = 196608
 
 //#define TEST_VOLCANO_AUTO_CONNECT "xx:xx:xx:xx:xx:xx 1"
 //#define TEST_CRAFTY_AUTO_CONNECT "xx:xx:xx:xx:xx:xx 0"

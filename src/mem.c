@@ -18,22 +18,11 @@
 
 #include <string.h>
 
-#include "hardware/flash.h"
 #include "pico/flash.h"
-#include "pico/btstack_flash_bank.h"
 
 #include "config.h"
 #include "log.h"
 #include "mem.h"
-
-#define FLASH_LOCK_TIMEOUT_MS 500
-
-/*
- * Last two flash pages are used by BTstack.
- * So we use the third-last page for our persistent storage.
- * This is kept clear by our custom linker script.
- */
-#define FLASH_OFFSET (PICO_FLASH_BANK_STORAGE_OFFSET - FLASH_SECTOR_SIZE)
 
 struct mem_contents {
     uint8_t version;
@@ -50,7 +39,7 @@ struct mem_contents {
 
 static const struct mem_contents data_defaults = MEM_CONTENTS_INIT;
 static struct mem_contents data_ram = data_defaults;
-static const uint8_t *data_flash = (const uint8_t *)(XIP_BASE + FLASH_OFFSET);
+static const uint8_t *data_flash = (const uint8_t *)(XIP_BASE + EEPROM_FLASH_OFFSET);
 
 static_assert(sizeof(struct mem_contents) < FLASH_SECTOR_SIZE,
               "Config needs to fit inside a flash sector");
@@ -142,10 +131,10 @@ void mem_load(void) {
 }
 
 static void mem_write_flash(void *param) {
-    flash_range_erase(FLASH_OFFSET, FLASH_SECTOR_SIZE);
+    flash_range_erase(EEPROM_FLASH_OFFSET, FLASH_SECTOR_SIZE);
 
     // TODO only need to write with length multiple of FLASH_PAGE_SIZE
-    flash_range_program(FLASH_OFFSET, param, FLASH_SECTOR_SIZE);
+    flash_range_program(EEPROM_FLASH_OFFSET, param, FLASH_SECTOR_SIZE);
 }
 
 void mem_write(void) {

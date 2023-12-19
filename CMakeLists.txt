@@ -114,6 +114,7 @@ target_sources(gadget PUBLIC
     src/state_wifi_edit.c
     src/state_string.c
     src/http.c
+    src/cache.c
 
     ${CMAKE_CURRENT_BINARY_DIR}/fatfs/ff.c
     ${CMAKE_CURRENT_BINARY_DIR}/fatfs/ffunicode.c
@@ -142,9 +143,9 @@ target_include_directories(gadget PUBLIC ${CMAKE_CURRENT_LIST_DIR}/build)
 target_include_directories(gadget PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 
 # compress source code and stuff we want to include
-add_custom_target(pack bash -c "./pack_data.sh"
+add_custom_target(pack bash -c "./pack_data.sh ${CMAKE_CURRENT_BINARY_DIR}"
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-    BYPRODUCTS "build/pack_data.h"
+    BYPRODUCTS "${CMAKE_CURRENT_BINARY_DIR}/fat_fs.o"
 )
 add_dependencies(gadget pack)
 
@@ -162,9 +163,6 @@ set_source_files_properties(pico-sdk/src/rp2_common/pico_cyw43_driver/cyw43_driv
 set_source_files_properties(pico-sdk/lib/btstack/src/classic/avdtp_util.c PROPERTIES COMPILE_FLAGS -Wno-unused-parameter)
 set_source_files_properties(pico-sdk/lib/btstack/src/classic/goep_client.c PROPERTIES COMPILE_FLAGS -Wno-unused-parameter)
 set_source_files_properties(pico-sdk/lib/btstack/src/classic/goep_server.c PROPERTIES COMPILE_FLAGS -Wno-unused-parameter)
-
-# suppress warnings for BittyHTTP
-set_source_files_properties(BittyHTTP/src/WebServer.c PROPERTIES COMPILE_FLAGS "-Wno-sign-compare -Wno-unused-parameter -Wno-maybe-uninitialized")
 
 # pull in common dependencies
 target_link_libraries(gadget
