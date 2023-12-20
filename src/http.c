@@ -21,35 +21,64 @@
  */
 
 #include "lwip/apps/httpd.h"
+#include "lwip/apps/fs.h"
+#include "ff.h"
+
+#include <string.h>
 
 #include "config.h"
 #include "log.h"
+#include "debug_disk.h"
 #include "http.h"
 
 void http_init(void) {
     httpd_init();
 }
 
-#include "lwip/apps/fs.h"
-#include <string.h>
-
 int fs_open_custom(struct fs_file *file, const char *name) {
-    // TODO hook up to fat fs
-    if (strcmp(name, "/src.tar.xz") == 0) {
-        /*
+    debug("'%s'", name);
+
+    // TODO only do this when not mounted via USB
+    debug_disk_mount();
+
+    FIL f;
+    FRESULT r = f_open (&f, name, FA_READ);
+    if (r == FR_OK) {
+        FSIZE_t len = f_size(&f);
+        char *data = malloc(len);
+        if (!data) {
+            debug("error: not enough memory");
+            f_close(&f);
+            debug_disk_unmount();
+            return 0;
+        }
+
+        UINT read_count = 0;
+        r = f_read(&f, data, len, &read_count);
+        if ((r != FR_OK) || (read_count != len)) {
+            debug("invalid read: %d %d %ld", r, read_count, len);
+        }
+
         memset(file, 0, sizeof(struct fs_file));
-        file->data = (const char *)data_tar_xz;
-        file->len = data_tar_xz_len;
+        file->data = data;
+        file->len = len;
         file->index = file->len;
         file->flags = FS_FILE_FLAGS_HEADER_PERSISTENT;
+
+        f_close(&f);
+        debug_disk_unmount();
         return 1;
-        */
-        (void)file;
-        return 0;
     }
+
+    debug_disk_unmount();
     return 0;
 }
 
 void fs_close_custom(struct fs_file *file) {
-    (void)file;
+    debug("len=%d", file->len);
+
+    if (file && file->data) {
+        free((void *)file->data);
+        file->data = NULL;
+    }
 }

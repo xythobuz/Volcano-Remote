@@ -74,11 +74,11 @@
 #define DHCP_DEBUG                  LWIP_DBG_OFF
 
 #define LWIP_HTTPD 1
-#define LWIP_HTTPD_SSI 1
+#define LWIP_HTTPD_SSI 0
 #define LWIP_HTTPD_CGI 1
-// don't include the tag comment - less work for the CPU, but may be harder to debug
-#define LWIP_HTTPD_SSI_INCLUDE_TAG 0
-// use generated fsdata
+#define LWIP_HTTPD_CUSTOM_FILES 1
+#define LWIP_HTTPD_FILE_EXTENSION 1
+#define LWIP_HTTPD_DYNAMIC_HEADERS 1
 #define HTTPD_FSDATA_FILE "httpd_fsdata.c"
 
 #endif /* __LWIPOPTS_H__ */
