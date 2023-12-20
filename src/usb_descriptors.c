@@ -27,11 +27,12 @@
  *
  */
 
-#include "pico/unique_id.h"
 #include "tusb.h"
 
 #include "config.h"
 #include "usb_descriptors.h"
+
+#ifndef PICOWOTA
 
 /*
  * A combination of interfaces must have a unique product id,
@@ -172,6 +173,8 @@ uint8_t const * tud_descriptor_configuration_cb(uint8_t index) {
     return desc_configuration;
 }
 
+#endif // PICOWOTA
+
 //--------------------------------------------------------------------+
 // String Descriptors
 //--------------------------------------------------------------------+
@@ -181,6 +184,8 @@ char string_pico_serial[2 * PICO_UNIQUE_BOARD_ID_SIZE_BYTES + 1];
 void usb_descriptor_init_id(void) {
     pico_get_unique_board_id_string(string_pico_serial, sizeof(string_pico_serial));
 }
+
+#ifndef PICOWOTA
 
 // array of pointer to string descriptors
 char const* string_desc_arr [] = {
@@ -227,3 +232,5 @@ uint16_t const* tud_descriptor_string_cb(uint8_t index, uint16_t langid) {
 
     return _desc_str;
 }
+
+#endif // PICOWOTA

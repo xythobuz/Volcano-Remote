@@ -129,6 +129,8 @@ target_sources(gadget PUBLIC
     mcufont/decoder/mf_bwfont.c
     mcufont/decoder/mf_scaledfont.c
     mcufont/decoder/mf_wordwrap.c
+
+    picowota/dhcpserver/dhcpserver.c
 )
 
 # external dependency include directories
@@ -141,6 +143,7 @@ target_include_directories(gadget PUBLIC ${CMAKE_CURRENT_LIST_DIR}/mcufont/decod
 target_include_directories(gadget PUBLIC ${CMAKE_CURRENT_LIST_DIR}/data)
 target_include_directories(gadget PUBLIC ${CMAKE_CURRENT_LIST_DIR}/build)
 target_include_directories(gadget PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
+target_include_directories(gadget PUBLIC ${CMAKE_CURRENT_LIST_DIR}/picowota/dhcpserver)
 
 # compress source code and stuff we want to include
 add_custom_target(pack bash -c "./pack_data.sh ${CMAKE_CURRENT_BINARY_DIR}"
@@ -211,6 +214,7 @@ set(PICOWOTA_ADDITIONAL_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/workflow_default.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/buttons.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/util.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/usb_descriptors.c
 
     ${CMAKE_CURRENT_SOURCE_DIR}/st7789/src/driver_st7789.c
 

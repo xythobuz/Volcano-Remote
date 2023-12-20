@@ -55,6 +55,7 @@ static const char *about_text =
     "hepingood/st7789\n"
     "usedbytes/picowota\n"
     "lwip-tcpip/lwip\n"
+    "micropython/dhcpserver\n"
     "\n"
 
     "This program is free software: you can redistribute it and/or modify "

@@ -19,6 +19,10 @@
 #ifndef USB_DESCRIPTORS_H_
 #define USB_DESCRIPTORS_H_
 
+#include "pico/unique_id.h"
+
+extern char string_pico_serial[2 * PICO_UNIQUE_BOARD_ID_SIZE_BYTES + 1];
+
 void usb_descriptor_init_id(void);
 
 #endif /* USB_DESCRIPTORS_H_ */

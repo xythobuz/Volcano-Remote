@@ -29,6 +29,7 @@
 #include "textbox.h"
 #include "mem.h"
 #include "util.h"
+#include "usb_descriptors.h"
 #include "wifi.h"
 
 static int16_t lcd_off = 0;
@@ -113,6 +114,7 @@ void picowota_poll(void) {
 }
 
 int picowota_init(void) {
+    usb_descriptor_init_id();
     buttons_init();
     buttons_callback(ota_buttons);
     mem_load();
@@ -144,8 +146,6 @@ int picowota_init(void) {
         }
 
         picowota_poll();
-
-        // TODO open AP when timed out?
     }
 
     debug("wifi ready");

@@ -19,13 +19,22 @@
 #include "pico/cyw43_arch.h"
 #include "lwip/netif.h"
 #include "lwip/ip4_addr.h"
+#include "dhcpserver.h"
 
 #include "config.h"
 #include "log.h"
 #include "mem.h"
+#include "usb_descriptors.h"
 #include "wifi.h"
 
-#define CONNECT_TIMEOUT (5 * 1000)
+#define CONNECT_TIMEOUT_MS (8UL * 1000UL)
+#define SCAN_AP_TIMEOUT_MS (20UL * 1000UL)
+
+#define WIFI_AP_SSID_PREFIX "Volcano-"
+#define WIFI_AP_SSID_LEN 4
+#define WIFI_AP_PASS_LEN 8
+static_assert((WIFI_AP_SSID_LEN + WIFI_AP_PASS_LEN) <= (2 * PICO_UNIQUE_BOARD_ID_SIZE_BYTES),
+              "SSID and Password parts for AP need to fit Pico serial number");
 
 enum wifi_state {
     WS_IDLE = 0,
@@ -36,12 +45,58 @@ enum wifi_state {
 };
 
 static enum wifi_state state = WS_IDLE;
-static uint32_t start_time = 0;
+static uint32_t start_scan_time = 0;
+static uint32_t start_connect_time = 0;
+static uint32_t start_ip_time = 0;
+static dhcp_server_t dhcp_server;
+static bool enabled_ap = false;
+static char curr_ssid[WIFI_MAX_NAME_LEN + 1] = {0};
+static char curr_pass[WIFI_MAX_PASS_LEN + 1] = {0};
+
+static void wifi_ap(void) {
+    cyw43_thread_enter();
+
+    // last N chars of serial for ssid and password
+    const size_t prefix_len = strlen(WIFI_AP_SSID_PREFIX);
+    char wifi_ssid[prefix_len + WIFI_AP_SSID_LEN + 1];
+    memcpy(wifi_ssid, WIFI_AP_SSID_PREFIX, prefix_len);
+    memcpy(wifi_ssid + prefix_len,
+           string_pico_serial + (2 * PICO_UNIQUE_BOARD_ID_SIZE_BYTES) - WIFI_AP_SSID_LEN,
+           WIFI_AP_SSID_LEN);
+    wifi_ssid[prefix_len + WIFI_AP_SSID_LEN] = '\0';
+    strncpy(curr_ssid, wifi_ssid, WIFI_MAX_NAME_LEN);
+
+    char wifi_pass[WIFI_AP_PASS_LEN + 1] = {0};
+    memcpy(wifi_pass,
+           string_pico_serial + (2 * PICO_UNIQUE_BOARD_ID_SIZE_BYTES) - WIFI_AP_SSID_LEN - WIFI_AP_PASS_LEN,
+           WIFI_AP_PASS_LEN);
+    strncpy(curr_pass, wifi_pass, WIFI_MAX_PASS_LEN);
+
+    debug("disable sta");
+    cyw43_arch_disable_sta_mode();
+
+    debug("enable ap '%s' '%s'", wifi_ssid, wifi_pass);
+    cyw43_arch_enable_ap_mode(wifi_ssid, wifi_pass, CYW43_AUTH_WPA2_AES_PSK);
+
+    ip4_addr_t gw, mask;
+    IP4_ADDR(&gw, 192, 168, 4, 1);
+    IP4_ADDR(&mask, 255, 255, 255, 0);
+
+    debug("enable dhcp");
+    dhcp_server_init(&dhcp_server, &gw, &mask);
+
+    state = WS_READY;
+    enabled_ap = true;
+
+    cyw43_thread_exit();
+}
 
 static void wifi_connect(const char *ssid, const char *pw, uint32_t auth) {
+    cyw43_thread_enter();
+
     debug("connecting to '%s'", ssid);
-    start_time = to_ms_since_boot(get_absolute_time());
-    state = WS_CONNECT;
+    strncpy(curr_ssid, ssid, WIFI_MAX_NAME_LEN);
+    strncpy(curr_pass, pw, WIFI_MAX_PASS_LEN);
 
     // https://github.com/raspberrypi/pico-sdk/issues/1413
     uint32_t a = 0;
@@ -55,7 +110,12 @@ static void wifi_connect(const char *ssid, const char *pw, uint32_t auth) {
     if (r != 0) {
         debug("failed to connect %d", r);
         state = WS_SCAN;
+    } else {
+        start_connect_time = to_ms_since_boot(get_absolute_time());
+        state = WS_CONNECT;
     }
+
+    cyw43_thread_exit();
 }
 
 static int scan_result(void *env, const cyw43_ev_scan_result_t *result) {
@@ -96,15 +156,27 @@ void wifi_init(void) {
     }
 
     cyw43_thread_enter();
+
     cyw43_arch_enable_sta_mode();
+
     wifi_scan();
+    start_scan_time = to_ms_since_boot(get_absolute_time());
+
     cyw43_thread_exit();
 }
 
 void wifi_deinit(void) {
     cyw43_thread_enter();
+
     cyw43_arch_disable_sta_mode();
+    cyw43_arch_disable_ap_mode();
     state = WS_IDLE;
+
+    if (enabled_ap) {
+        enabled_ap = false;
+        dhcp_server_deinit(&dhcp_server);
+    }
+
     cyw43_thread_exit();
 }
 
@@ -131,11 +203,21 @@ const char *wifi_state(void) {
         return "Waiting for IP";
 
     case WS_READY: {
-        cyw43_arch_lwip_begin();
-        const ip4_addr_t *ip = netif_ip4_addr(netif_default);
-        cyw43_arch_lwip_end();
+        uint32_t now = to_ms_since_boot(get_absolute_time()) % (enabled_ap ? 9000 : 6000);
+        if (now < 3000) {
+            // show SSID
+            return curr_ssid;
+        } else if (now < 6000) {
+            // show IP
+            cyw43_arch_lwip_begin();
+            const ip4_addr_t *ip = netif_ip4_addr(netif_default);
+            cyw43_arch_lwip_end();
 
-        return ip4addr_ntoa(ip);
+            return ip4addr_ntoa(ip);
+        } else {
+            // show Pass (only AP)
+            return curr_pass;
+        }
     }
     }
 
@@ -150,6 +232,12 @@ void wifi_run(void) {
             debug("restarting scan");
             wifi_scan();
         }
+
+        uint32_t now = to_ms_since_boot(get_absolute_time());
+        if ((now - start_scan_time) >= SCAN_AP_TIMEOUT_MS) {
+            debug("wifi sta timeout. opening ap.");
+            wifi_ap();
+        }
     } else if (state == WS_CONNECT) {
         int link = cyw43_wifi_link_status(&cyw43_state, CYW43_ITF_STA);
 
@@ -161,7 +249,7 @@ void wifi_run(void) {
 
         if (link == CYW43_LINK_JOIN) {
             debug("joined network");
-            start_time = to_ms_since_boot(get_absolute_time());
+            start_ip_time = to_ms_since_boot(get_absolute_time());
             state = WS_WAIT_FOR_IP;
         } else if (link < CYW43_LINK_DOWN) {
             debug("net connection failed. retry.");
@@ -169,7 +257,7 @@ void wifi_run(void) {
         }
 
         uint32_t now = to_ms_since_boot(get_absolute_time());
-        if ((now - start_time) >= CONNECT_TIMEOUT) {
+        if ((now - start_connect_time) >= CONNECT_TIMEOUT_MS) {
             debug("net connection timeout. retry.");
             wifi_scan();
         }
@@ -184,9 +272,8 @@ void wifi_run(void) {
         }
 
         uint32_t now = to_ms_since_boot(get_absolute_time());
-        if ((now - start_time) >= CONNECT_TIMEOUT) {
+        if ((now - start_ip_time) >= CONNECT_TIMEOUT_MS) {
             debug("net dhcp timeout. retry.");
-            start_time = now;
 
             //cyw43_arch_lwip_begin();
             //dhcp_renew(netif_default);

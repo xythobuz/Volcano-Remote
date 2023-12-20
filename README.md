@@ -124,6 +124,7 @@ And the project uses the [FatFS library](https://github.com/abbrev/fatfs), licen
 Also included are the [MCUFont library](https://github.com/mcufont/mcufont) and the [st7789 library](https://github.com/hepingood/st7789), both licensed under the MIT license.
 It also uses the [BTstack](https://github.com/bluekitchen/btstack/blob/master/LICENSE) included with the Pico SDK, following their [license terms](https://github.com/raspberrypi/pico-sdk/blob/master/src/rp2_common/pico_btstack/LICENSE.RP).
 The included bootloader is [picowota](https://github.com/usedbytes/picowota), licensed as BSD 3-clause.
+I'm also using the MicroPython DHCP server, licensed as MIT and included with picowota.
 
 The case design is also licensed as GPLv3.
 It uses a [Pi Pico case model](https://www.printables.com/model/210898-raspberry-pi-pico-case) licensed as CC-BY-NC-SA.
