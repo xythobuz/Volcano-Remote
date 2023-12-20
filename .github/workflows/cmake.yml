@@ -1,0 +1,61 @@
+# https://github.com/raspberrypi/pico-examples/blob/master/.github/workflows/cmake.yml
+
+name: CMake
+on: [push, pull_request]
+
+env:
+  BUILD_TYPE: Release
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Install dependencies
+      run: sudo apt-get install -y cxxtest build-essential gcc-arm-none-eabi mtools
+
+    - name: Checkout repo
+      uses: actions/checkout@v3
+      with:
+        path: repo
+
+    - name: Checkout repo submodules
+      working-directory: ${{github.workspace}}/repo
+      run: git submodule update --init
+
+    - name: Checkout pico-sdk submodules
+      working-directory: ${{github.workspace}}/repo/pico-sdk
+      run: git submodule update --init
+
+    - name: Create Build Environment
+      working-directory: ${{github.workspace}}/repo
+      run:  cmake -E make_directory ${{github.workspace}}/repo/build
+
+    - name: Configure CMake
+      shell: bash
+      working-directory: ${{github.workspace}}/repo/build
+      run: cmake .. -DPICO_BOARD=pico_w -DCMAKE_BUILD_TYPE=$BUILD_TYPE
+
+    - name: Get core count
+      id: core_count
+      run : cat /proc/cpuinfo  | grep processor | wc -l
+
+    - name: Build
+      working-directory: ${{github.workspace}}/repo/build
+      shell: bash
+      # Execute the build.  You can specify a specific target with "--target <NAME>"
+      run: cmake --build . --config $BUILD_TYPE --parallel $(nproc)
+
+    - name: Upload a Build Artifact
+      uses: actions/upload-artifact@v4.0.0
+      with:
+        name: firmware.uf2
+        path: ${{github.workspace}}/repo/build/picowota_gadget.uf2
+        if-no-files-found: error
+
+    - name: Upload a Build Artifact
+      uses: actions/upload-artifact@v4.0.0
+      with:
+        name: update.elf
+        path: ${{github.workspace}}/repo/build/gadget.elf
+        if-no-files-found: error
