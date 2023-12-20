@@ -11,6 +11,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    - name: Install cxxtest
+      run: sudo apt-get install -y cxxtest
+
     - name: Clean workspace
       run: |
         echo "Cleaning up previous run"
