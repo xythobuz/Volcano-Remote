@@ -1,5 +1,7 @@
 # Pi Pico Volcano Remote Control Gadget
 
+![Firmware](https://github.com/xythobuz/Volcano-Remote/actions/workflows/cmake.yml/badge.svg)
+
 Supports:
 
  * workflows for the Volcano Hybrid

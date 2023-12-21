@@ -1,6 +1,6 @@
 # https://github.com/raspberrypi/pico-examples/blob/master/.github/workflows/cmake.yml
 
-name: CMake
+name: Firmware
 on: [push, pull_request]
 
 env:
