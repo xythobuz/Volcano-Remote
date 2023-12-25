@@ -27,9 +27,9 @@
 // will be re-played from buffer when terminal connects
 #ifndef PICOWOTA
 #define debug(fmt, ...) debug_log(true, \
-        "%08lu %s: " fmt "\r\n", \
+        "%08lu %s:%d: " fmt "\r\n", \
         to_ms_since_boot(get_absolute_time()), \
-        __func__, \
+        __func__, __LINE__, \
         ##__VA_ARGS__)
 #else // PICOWOTA
 #define debug(fmt, ...) debug_log(true, \
