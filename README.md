@@ -131,6 +131,7 @@ I'm also using the MicroPython DHCP server, licensed as MIT and included with pi
 The case design is also licensed as GPLv3.
 It uses a [Pi Pico case model](https://www.printables.com/model/210898-raspberry-pi-pico-case) licensed as CC-BY-NC-SA.
 But this is only used for visualization purposes and doesn't influence the 3D model at all.
+The case design itself has initially been made by [Kauzerei](https://github.com/kauzerei/OpensCadaver/blob/main/models/pico_stuff.scad).
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by

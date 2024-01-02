@@ -7,3 +7,4 @@ build_debug
 *.sl1
 *.wow
 .directory
+case/stl
