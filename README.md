@@ -1,6 +1,7 @@
 # Pi Pico Volcano Remote Control Gadget
 
 ![Firmware](https://github.com/xythobuz/Volcano-Remote/actions/workflows/cmake.yml/badge.svg)
+![STLs](https://github.com/xythobuz/Volcano-Remote/actions/workflows/scad.yml/badge.svg)
 
 Supports:
 
@@ -15,6 +16,9 @@ Adapted from the [tinyusb-cdc-example](https://github.com/hathach/tinyusb/blob/m
 `python-test` contains a similar app to the C version in the top level of the repo, but instead written for MicroPython on the Pico W.
 Unfortunately I had many performance and space problems with this, so I decided to rewrite it.
 `web-app` contains a script to conveniently fetch the original web app JS sources, for "reverse engineering".
+`case` contains the OpenSCAD files of a 3D printed case for the device.
+
+You can find the rendered STL files attached to the [GitHub releases](https://github.com/xythobuz/Volcano-Remote/releases), as well as pre-compiled binaries to flash on the device.
 
 ## Quick Start
 
