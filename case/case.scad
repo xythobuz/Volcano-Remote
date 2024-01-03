@@ -43,7 +43,10 @@ extra=4; //lip on the lid that presses top pcb down
 thread=3;
 air=0.5;
 bissl=1/100;
-button=4;
+button = 4;
+button_hole = button + 1.0;
+button_stem = button - 0.4;
+button_cut_side = 0.6;
 joystick=6;
 height=16.8+air+extra;
 width=52.4+1.5+2*air;
@@ -101,13 +104,19 @@ module top() {
     translate([wall+1.5+6.7+air,2*wall+thread+13.8+air,-bissl]) cylinder(h=wall+2*bissl,d=joystick);
     translate([wall+13.5+1.5,2*wall+thread,-bissl])cube([31,27,wall+2*bissl]);
   }
-  translate([wall+13.5+1.5-2,2*wall+thread,-extra])cube([2,27,extra]);
-  translate([wall+13.5+1.5+31,2*wall+thread,-extra])cube([2,27,extra]);
+  translate([wall+13.5+1.5-1.5,2*wall+thread,-extra])cube([1.5,27,extra]);
+  translate([wall+13.5+1.5+31,2*wall+thread,-extra])cube([1.5,27,extra]);
 }
 
 module button() {
-  cylinder(h=1,d=5);
-  cylinder(h=5,d=3);
+    difference() {
+        cylinder(h = 1, d = button_hole);
+
+        translate([button_hole / 2 * -3 + button_cut_side, -button_hole / 2 - 0.1, -0.1])
+        cube([button_hole, button_hole + 0.2, 1.2]);
+    }
+
+    cylinder(h = 4, d = button_stem);
 }
 
 module bottom_assm() {
@@ -144,9 +153,20 @@ if (part == "bottom") {
 
             translate([-total_width / 2, -total_len / 2, height + wall])
             top();
+
+            for (tr = [
+                [47.7+air,5.5+0],
+                [47.7+air,5.5+5.7],
+                [47.7+air,5.5+2*5.7],
+                [47.7+air,5.5+3*5.7]
+            ])
+            translate(tr)
+            translate([wall + 1.5, 2 * wall + thread, -1])
+            translate([-total_width / 2, -total_len / 2, height + wall])
+            button();
         }
 
         translate([-total_width / 2 - 1, 0, -2])
-        cube([total_width + 2, total_len / 2 + 2, height + wall + 4]);
+        cube([total_width + 2, total_len / 2 + 2, height + wall + 10]);
     }
 }
