@@ -19,11 +19,14 @@
  * See <http://www.gnu.org/licenses/>.
  */
 
+// prev [bottom,top,button,print,OPT_assembly]
+part = "OPT_assembly"; //[bottom,OPT_assembly]
+wall = 1.5;
+
 // https://www.waveshare.com/wiki/Pico-LCD-1.3
 lcd_w = 52.0;
 lcd_h = 26.5;
-
-lcd_d = 1.0; // todo
+lcd_d = 1.55;
 
 // https://www.printables.com/model/210898-raspberry-pi-pico-case
 use <pico_case.scad>
@@ -32,30 +35,43 @@ p_h = 51;
 p_t = 1.0;
 p_usb_h = 2.8;
 
-pico_header_h = 2.5; // todo
-lcd_header_h = 10.0; // todo
+usb_cut_w = 8.5;
+usb_cut_h = p_usb_h + 0.4;
 
-header_h = pico_header_h + lcd_header_h;
+pico_header_h = 2.6;
+lcd_header_h = 9.0;
 
-part="OPT_assembly"; //[bottom,top,button,print,OPT_assembly]
-wall=1.5;
+pico_slot_w = p_w + 1.2;
+pico_slot_h = p_h + 1.6;
+
 extra=4; //lip on the lid that presses top pcb down
 thread=3;
 air=0.5;
 bissl=1/100;
+joystick=6;
+$fa=1/1;
+$fs=1/2;
+
+add_len = 0.7 + 1; // + 2 * wall + thread;
 button = 4;
 button_hole = button + 1.0;
 button_stem = button - 0.4;
 button_cut_side = 0.6;
-joystick=6;
-height=16.8+air+extra;
-width=52.4+1.5+2*air;
-length=26.7+2*air;
-$fa=1/1;
-$fs=1/2;
 
-total_width = width+2*wall;
-total_len = length+4*wall+2*thread;
+header_h = pico_header_h + lcd_header_h;
+
+length = pico_slot_w; //26.7+2*air;
+width = pico_slot_h; //52.4+1.5+2*air;
+height = p_t + p_usb_h + header_h; //16.8+air+extra;
+
+total_width = width + 2 * wall;
+total_len = length + 2 * wall;
+
+pwr_w = 5.0;
+pwr_h = 10.0;
+pwr_gap = 0.3;
+pwr_wg = pwr_w + 2 * pwr_gap;
+pwr_hg = pwr_h + 3 * pwr_gap;
 
 module lcd() {
     color("blue")
@@ -73,39 +89,78 @@ module hw() {
 }
 
 module bottom() {
-  difference() {
-    cube([total_width, total_len, height + wall]);
-    translate([wall,2*wall+thread,wall])cube([width,length,height+bissl]);
-    for (tr=[[wall+thread/2,wall+thread/2,height/2+wall],
+    difference() {
+        translate([0, -add_len, 0])
+        cube([total_width, total_len + 2 * add_len, height + wall]);
+
+        translate([wall, wall, wall])
+        cube([width, length, height + 0.1]);
+
+        // screws
+        if (0)
+        #for (tr=[[wall+thread/2,wall+thread/2,height/2+wall],
              [wall+thread/2,length+3*wall+1.5*thread,height/2+wall],
              [width+wall-thread/2,wall+thread/2,height/2+wall],
              [width+wall-thread/2,length+3*wall+1.5*thread,height/2+wall]])
-      translate(tr) cylinder(h=height/2+bissl,d=thread);
-    translate([wall/2,2*wall+thread+length/2,3-bissl])cube([wall+bissl,8,6],center=true);
-    translate([0,2*wall+thread+length/2,wall+7])rotate([0,90,0])cylinder(d=button,h=2*wall+bissl,center=true);
-  }
+        translate(tr) cylinder(h=height/2+bissl,d=thread);
+
+        // usb cutout
+        translate([wall / 2, wall + length / 2, usb_cut_h / 2 + wall])
+        cube([wall + bissl, usb_cut_w, usb_cut_h], center = true);
+
+        // power button cutout
+        translate([-0.1, wall + length / 2 - pwr_wg / 2, wall + usb_cut_h - 0.1])
+        cube([wall + 0.2, pwr_wg, pwr_h + 0.1]);
+
+        // bootsel button
+        translate([14.475, 16.05, -0.1])
+        cylinder(d = 4.5, h = wall + 0.2);
+    }
+
+    // power button
+    translate([0, wall + length / 2 - pwr_w / 2, wall + usb_cut_h + (pwr_hg - pwr_h)])
+    cube([wall, pwr_w, pwr_h + 0.1]);
+
+    // pico screw posts
+    translate([total_width / 2, total_len / 2, wall])
+    for (x = [-p_h / 2 + 2, p_h / 2 - 2])
+    for (y = [-p_w / 2 + 4.8, p_w / 2 - 4.8])
+    translate([x, y, 0])
+    difference() {
+        cylinder(d = 4, h = p_usb_h);
+
+        translate([0, 0, -0.1])
+        cylinder(d = 2.2, h = p_usb_h + 0.2);
+    }
 }
 
 module top() {
-  difference() {
-    cube([total_width, total_len, wall]);
-    for (tr=[[wall+thread/2,wall+thread/2,-bissl],
+    difference() {
+        cube([total_width, total_len, wall]);
+        for (tr=[[wall+thread/2,wall+thread/2,-bissl],
              [wall+thread/2,length+3*wall+1.5*thread,-bissl],
              [width+wall-thread/2,wall+thread/2,-bissl],
              [width+wall-thread/2,length+3*wall+1.5*thread,-bissl]])
-      translate(tr) cylinder(h=wall+2*bissl,d=thread);
-    translate([wall+1.5,2*wall+thread,-bissl])
-      for (tr=[[47.7+air,5.5+0],
-               [47.7+air,5.5+5.7],
-               [47.7+air,5.5+2*5.7],
-               [47.7+air,5.5+3*5.7],
-               [6.7+0.5,13.8+air]])
-        translate(tr) cylinder(h=wall+2*bissl,d=button);
-    translate([wall+1.5+6.7+air,2*wall+thread+13.8+air,-bissl]) cylinder(h=wall+2*bissl,d=joystick);
-    translate([wall+13.5+1.5,2*wall+thread,-bissl])cube([31,27,wall+2*bissl]);
-  }
-  translate([wall+13.5+1.5-1.5,2*wall+thread,-extra])cube([1.5,27,extra]);
-  translate([wall+13.5+1.5+31,2*wall+thread,-extra])cube([1.5,27,extra]);
+        translate(tr)
+        cylinder(h=wall+2*bissl,d=thread);
+
+        translate([wall+1.5,2*wall+thread,-bissl])
+        for (i = [0 : 3])
+        translate([47.7 + air, 5.5 + i * 5.7])
+        cylinder(h=wall+2*bissl,d=button);
+
+        translate([wall+1.5+6.7+air,2*wall+thread+13.8+air,-bissl])
+        cylinder(h=wall+2*bissl,d=joystick);
+
+        translate([wall+13.5+1.5,2*wall+thread,-bissl])
+        cube([31,27,wall+2*bissl]);
+    }
+
+    translate([wall+13.5+1.5-1.5,2*wall+thread,-extra])
+    cube([1.5,27,extra]);
+
+    translate([wall+13.5+1.5+31,2*wall+thread,-extra])
+    cube([1.5,27,extra]);
 }
 
 module button() {
@@ -151,22 +206,20 @@ if (part == "bottom") {
         union() {
             bottom_assm();
 
+            if (0)
             translate([-total_width / 2, -total_len / 2, height + wall])
             top();
 
-            for (tr = [
-                [47.7+air,5.5+0],
-                [47.7+air,5.5+5.7],
-                [47.7+air,5.5+2*5.7],
-                [47.7+air,5.5+3*5.7]
-            ])
-            translate(tr)
+            if (0)
+            for (i = [0 : 3])
+            translate([47.7 + air, 5.5 + i * 5.7])
             translate([wall + 1.5, 2 * wall + thread, -1])
             translate([-total_width / 2, -total_len / 2, height + wall])
             button();
         }
 
+        if (1)
         translate([-total_width / 2 - 1, 0, -2])
-        cube([total_width + 2, total_len / 2 + 2, height + wall + 10]);
+        cube([total_width + 2, (total_len + 2 * add_len) / 2 + 2, height + wall + 10]);
     }
 }
