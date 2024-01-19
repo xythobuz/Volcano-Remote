@@ -30,7 +30,7 @@
 #include "log.h"
 
 static uint8_t log_buff[4096] = {0};
-static struct ring_buffer log = RB_INIT(log_buff, sizeof(log_buff), 1);
+static struct ring_buffer log_rb = RB_INIT(log_buff, sizeof(log_buff), 1);
 
 static uint8_t line_buff[256] = {0};
 static volatile bool got_input = false;
@@ -40,16 +40,16 @@ static FIL log_file_fat;
 #endif // PICOWOTA
 
 static void add_to_log(const void *buff, size_t len) {
-    rb_add(&log, buff, len);
+    rb_add(&log_rb, buff, len);
 }
 
 struct ring_buffer *log_get(void) {
-    return &log;
+    return &log_rb;
 }
 
 #ifndef PICOWOTA
 static void log_dump_to_x(void (*write)(const void *, size_t)) {
-    if (rb_len(&log) == 0) {
+    if (rb_len(&log_rb) == 0) {
         return;
     }
 
@@ -58,7 +58,7 @@ static void log_dump_to_x(void (*write)(const void *, size_t)) {
         write(line_buff, l);
     }
 
-    rb_dump(&log, write, 0);
+    rb_dump(&log_rb, write, 0);
 
     l = snprintf((char *)line_buff, sizeof(line_buff), "\r\n\r\nlive log:\r\n");
     if ((l > 0) && (l <= (int)sizeof(line_buff))) {
@@ -91,7 +91,7 @@ void log_dump_to_disk(void) {
         return;
     }
 
-    rb_dump(&log, log_file_write_callback, 0);
+    rb_dump(&log_rb, log_file_write_callback, 0);
 
     res = f_close(&log_file_fat);
     if (res != FR_OK) {
@@ -101,7 +101,7 @@ void log_dump_to_disk(void) {
 
 #endif // PICOWOTA
 
-void debug_log_va(bool log, const char *format, va_list args) {
+void debug_log_va(bool do_log, const char *format, va_list args) {
     int l = vsnprintf((char *)line_buff, sizeof(line_buff), format, args);
 
     if (l < 0) {
@@ -120,16 +120,16 @@ void debug_log_va(bool log, const char *format, va_list args) {
 #endif // NDEBUG
 #endif // PICOWOTA
 
-        if (log) {
+        if (do_log) {
             add_to_log(line_buff, l);
         }
     }
 }
 
-void debug_log(bool log, const char* format, ...) {
+void debug_log(bool do_log, const char* format, ...) {
     va_list args;
     va_start(args, format);
-    debug_log_va(log, format, args);
+    debug_log_va(do_log, format, args);
     va_end(args);
 }
 

@@ -157,6 +157,7 @@ target_compile_options(gadget PUBLIC
     -Wall
     -Wextra
     -Werror
+    -Wshadow
 )
 
 # suppress some warnings for borked 3rd party files in Pico SDK
@@ -166,6 +167,7 @@ set_source_files_properties(pico-sdk/src/rp2_common/pico_cyw43_driver/cyw43_driv
 set_source_files_properties(pico-sdk/lib/btstack/src/classic/avdtp_util.c PROPERTIES COMPILE_FLAGS -Wno-unused-parameter)
 set_source_files_properties(pico-sdk/lib/btstack/src/classic/goep_client.c PROPERTIES COMPILE_FLAGS -Wno-unused-parameter)
 set_source_files_properties(pico-sdk/lib/btstack/src/classic/goep_server.c PROPERTIES COMPILE_FLAGS -Wno-unused-parameter)
+set_source_files_properties(pico-sdk/src/rp2_common/hardware_flash/flash.c PROPERTIES COMPILE_FLAGS -Wno-shadow)
 
 # pull in common dependencies
 target_link_libraries(gadget

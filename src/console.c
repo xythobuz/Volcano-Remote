@@ -319,14 +319,14 @@ static void cnsl_interpret(const char *line) {
             DEV_AUTO_CONNECT(TEST_VOLCANO_AUTO_CONNECT);
 #endif // TEST_VOLCANO_AUTO_CONNECT
 
-            int8_t r = volcano_set_target_temp(v);
+            int8_t t = volcano_set_target_temp(v);
 
 #ifdef TEST_VOLCANO_AUTO_CONNECT
             ble_disconnect();
 #endif // TEST_VOLCANO_AUTO_CONNECT
 
-            if (r < 0) {
-                println("error writing target temp %d", r);
+            if (t < 0) {
+                println("error writing target temp %d", t);
             } else {
                 println("success");
             }
@@ -341,14 +341,14 @@ static void cnsl_interpret(const char *line) {
             DEV_AUTO_CONNECT(TEST_VOLCANO_AUTO_CONNECT);
 #endif // TEST_VOLCANO_AUTO_CONNECT
 
-            int8_t r = volcano_set_heater_state(val == 1);
+            int8_t t = volcano_set_heater_state(val == 1);
 
 #ifdef TEST_VOLCANO_AUTO_CONNECT
             ble_disconnect();
 #endif // TEST_VOLCANO_AUTO_CONNECT
 
-            if (r < 0) {
-                println("error writing heater state %d", r);
+            if (t < 0) {
+                println("error writing heater state %d", t);
             } else {
                 println("success");
             }
@@ -363,14 +363,14 @@ static void cnsl_interpret(const char *line) {
             DEV_AUTO_CONNECT(TEST_VOLCANO_AUTO_CONNECT);
 #endif // TEST_VOLCANO_AUTO_CONNECT
 
-            int8_t r = volcano_set_pump_state(val == 1);
+            int8_t s = volcano_set_pump_state(val == 1);
 
 #ifdef TEST_VOLCANO_AUTO_CONNECT
             ble_disconnect();
 #endif // TEST_VOLCANO_AUTO_CONNECT
 
-            if (r < 0) {
-                println("error writing pump state %d", r);
+            if (s < 0) {
+                println("error writing pump state %d", s);
             } else {
                 println("success");
             }
@@ -385,14 +385,14 @@ static void cnsl_interpret(const char *line) {
             DEV_AUTO_CONNECT(TEST_VOLCANO_AUTO_CONNECT);
 #endif // TEST_VOLCANO_AUTO_CONNECT
 
-            int8_t r = volcano_set_unit((val == 'C') ? UNIT_C : UNIT_F);
+            int8_t u = volcano_set_unit((val == 'C') ? UNIT_C : UNIT_F);
 
 #ifdef TEST_VOLCANO_AUTO_CONNECT
             ble_disconnect();
 #endif // TEST_VOLCANO_AUTO_CONNECT
 
-            if (r < 0) {
-                println("error writing value %d", r);
+            if (u < 0) {
+                println("error writing value %d", u);
             } else {
                 println("success");
             }
@@ -407,14 +407,14 @@ static void cnsl_interpret(const char *line) {
             DEV_AUTO_CONNECT(TEST_VOLCANO_AUTO_CONNECT);
 #endif // TEST_VOLCANO_AUTO_CONNECT
 
-            int8_t r = volcano_set_vibration(val == 1);
+            int8_t v = volcano_set_vibration(val == 1);
 
 #ifdef TEST_VOLCANO_AUTO_CONNECT
             ble_disconnect();
 #endif // TEST_VOLCANO_AUTO_CONNECT
 
-            if (r < 0) {
-                println("error writing value %d", r);
+            if (v < 0) {
+                println("error writing value %d", v);
             } else {
                 println("success");
             }
@@ -429,14 +429,14 @@ static void cnsl_interpret(const char *line) {
             DEV_AUTO_CONNECT(TEST_VOLCANO_AUTO_CONNECT);
 #endif // TEST_VOLCANO_AUTO_CONNECT
 
-            int8_t r = volcano_set_display_cooling(val == 1);
+            int8_t c = volcano_set_display_cooling(val == 1);
 
 #ifdef TEST_VOLCANO_AUTO_CONNECT
             ble_disconnect();
 #endif // TEST_VOLCANO_AUTO_CONNECT
 
-            if (r < 0) {
-                println("error writing value %d", r);
+            if (c < 0) {
+                println("error writing value %d", c);
             } else {
                 println("success");
             }
@@ -517,14 +517,14 @@ static void cnsl_interpret(const char *line) {
             DEV_AUTO_CONNECT(TEST_CRAFTY_AUTO_CONNECT);
 #endif // TEST_CRAFTY_AUTO_CONNECT
 
-            int8_t r = crafty_set_target_temp(v);
+            int8_t t = crafty_set_target_temp(v);
 
 #ifdef TEST_CRAFTY_AUTO_CONNECT
             ble_disconnect();
 #endif // TEST_CRAFTY_AUTO_CONNECT
 
-            if (r < 0) {
-                println("error writing target temp %d", r);
+            if (t < 0) {
+                println("error writing target temp %d", t);
             } else {
                 println("success");
             }
@@ -539,14 +539,14 @@ static void cnsl_interpret(const char *line) {
             DEV_AUTO_CONNECT(TEST_CRAFTY_AUTO_CONNECT);
 #endif // TEST_CRAFTY_AUTO_CONNECT
 
-            int8_t r = crafty_set_heater_state(val == 1);
+            int8_t s = crafty_set_heater_state(val == 1);
 
 #ifdef TEST_CRAFTY_AUTO_CONNECT
             ble_disconnect();
 #endif // TEST_CRAFTY_AUTO_CONNECT
 
-            if (r < 0) {
-                println("error writing heater state %d", r);
+            if (s < 0) {
+                println("error writing heater state %d", s);
             } else {
                 println("success");
             }

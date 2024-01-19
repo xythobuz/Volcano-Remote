@@ -104,64 +104,64 @@ uint16_t wf_steps(uint16_t index) {
     return mem_data()->wf[index].count;
 }
 
-void wf_move_step_down(uint16_t index, uint16_t step) {
+void wf_move_step_down(uint16_t index, uint16_t step_i) {
     if (index >= mem_data()->wf_count) {
         debug("invalid index %d", index);
         return;
     }
-    if ((step < 1) || (step >= mem_data()->wf[index].count)) {
-        debug("invalid step %d", step);
+    if ((step_i < 1) || (step_i >= mem_data()->wf[index].count)) {
+        debug("invalid step %d", step_i);
         return;
     }
 
-    struct wf_step tmp = mem_data()->wf[index].steps[step - 1];
-    mem_data()->wf[index].steps[step - 1] = mem_data()->wf[index].steps[step];
-    mem_data()->wf[index].steps[step] = tmp;
+    struct wf_step tmp = mem_data()->wf[index].steps[step_i - 1];
+    mem_data()->wf[index].steps[step_i - 1] = mem_data()->wf[index].steps[step_i];
+    mem_data()->wf[index].steps[step_i] = tmp;
 }
 
-void wf_move_step_up(uint16_t index, uint16_t step) {
+void wf_move_step_up(uint16_t index, uint16_t step_i) {
     if (index >= mem_data()->wf_count) {
         debug("invalid index %d", index);
         return;
     }
-    if (step >= (mem_data()->wf[index].count - 1)) {
-        debug("invalid step %d", step);
+    if (step_i >= (mem_data()->wf[index].count - 1)) {
+        debug("invalid step %d", step_i);
         return;
     }
 
-    struct wf_step tmp = mem_data()->wf[index].steps[step + 1];
-    mem_data()->wf[index].steps[step + 1] = mem_data()->wf[index].steps[step];
-    mem_data()->wf[index].steps[step] = tmp;
+    struct wf_step tmp = mem_data()->wf[index].steps[step_i + 1];
+    mem_data()->wf[index].steps[step_i + 1] = mem_data()->wf[index].steps[step_i];
+    mem_data()->wf[index].steps[step_i] = tmp;
 }
 
-struct wf_step *wf_get_step(uint16_t index, uint16_t step) {
+struct wf_step *wf_get_step(uint16_t index, uint16_t step_i) {
     if (index >= mem_data()->wf_count) {
         debug("invalid index %d", index);
         return NULL;
     }
-    return &mem_data()->wf[index].steps[step];
+    return &mem_data()->wf[index].steps[step_i];
 }
 
-const char *wf_step_str(struct wf_step *step) {
+const char *wf_step_str(struct wf_step *step_p) {
     static char buff[20];
 
-    switch (step->op) {
+    switch (step_p->op) {
     case OP_SET_TEMPERATURE:
         snprintf(buff, sizeof(buff),
-                 "set temp %.1f C", step->val / 10.0f);
+                 "set temp %.1f C", step_p->val / 10.0f);
         break;
 
     case OP_WAIT_TEMPERATURE:
         snprintf(buff, sizeof(buff),
-                 "wait temp %.1f C", step->val / 10.0f);
+                 "wait temp %.1f C", step_p->val / 10.0f);
         break;
 
     case OP_WAIT_TIME:
     case OP_PUMP_TIME:
         snprintf(buff, sizeof(buff),
                  "%s time %.1f s",
-                 (step->op == OP_WAIT_TIME) ? "wait" : "pump",
-                 step->val / 1000.0f);
+                 (step_p->op == OP_WAIT_TIME) ? "wait" : "pump",
+                 step_p->val / 1000.0f);
         break;
     }
 
