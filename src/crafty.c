@@ -52,7 +52,7 @@ int16_t crafty_get_current_temp(void) {
     uint8_t buff[2];
     int32_t r = ble_read(uuid_base, buff, sizeof(buff));
     if (r != sizeof(buff)) {
-        debug("ble_read unexpected value %ld", r);
+        debug("ble_read unexpected value %" PRId32, r);
         return -1;
     }
 
@@ -66,7 +66,7 @@ int16_t crafty_get_target_temp(void) {
     uint8_t buff[2];
     int32_t r = ble_read(uuid_base, buff, sizeof(buff));
     if (r != sizeof(buff)) {
-        debug("ble_read unexpected value %ld", r);
+        debug("ble_read unexpected value %" PRId32, r);
         return -1;
     }
 
@@ -84,7 +84,7 @@ int8_t crafty_set_target_temp(uint16_t value) {
 
     int8_t r = ble_write(uuid_base, uuid_base2, buff, sizeof(buff));
     if (r != 0) {
-        debug("ble_write unexpected value %d", r);
+        debug("ble_write unexpected value %" PRId8, r);
     }
     return r;
 }
@@ -101,7 +101,7 @@ int8_t crafty_set_heater_state(bool value) {
     uint16_t d = 0;
     int8_t r = ble_write(uuid_base, uuid_base2, (uint8_t *)&d, sizeof(d));
     if (r != 0) {
-        debug("ble_write unexpected value %d", r);
+        debug("ble_write unexpected value %" PRId8, r);
     }
     return r;
 }
@@ -112,7 +112,7 @@ int8_t crafty_get_battery_state(void) {
     uint8_t buff[2];
     int32_t r = ble_read(uuid_base, buff, sizeof(buff));
     if (r != sizeof(buff)) {
-        debug("ble_read unexpected value %ld", r);
+        debug("ble_read unexpected value %" PRId32, r);
         return -1;
     }
 

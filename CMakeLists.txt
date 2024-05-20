@@ -14,7 +14,7 @@
 # See <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 
-cmake_minimum_required(VERSION 3.13)
+cmake_minimum_required(VERSION 3.5)
 
 # build MCUFont encoder host tool and convert included example fonts
 execute_process(COMMAND make
@@ -42,6 +42,7 @@ include(pico-sdk/pico_sdk_init.cmake)
 project(gadget C CXX)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # initialize the Raspberry Pi Pico SDK
 pico_sdk_init()

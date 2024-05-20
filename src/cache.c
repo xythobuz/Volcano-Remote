@@ -105,7 +105,7 @@ static void cache_flush(size_t i) {
 
     // now actually write contents back to flash
     uint32_t addr = CACHE_FLASH_OFFSET + (cache[i].page * PAGE_SIZE);
-    debug("flushing entry %d page %d at 0x%08lX", i, cache[i].page, addr);
+    debug("flushing entry %d page %d at 0x%08" PRIX32, i, cache[i].page, addr);
 
     struct cache_write_data tmp = { .addr = addr, .buff = cache[i].buff };
     int r = flash_safe_execute(cache_write_flash, &tmp, FLASH_LOCK_TIMEOUT_MS);
