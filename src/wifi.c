@@ -19,6 +19,7 @@
 #include "pico/cyw43_arch.h"
 #include "lwip/netif.h"
 #include "lwip/ip4_addr.h"
+#include "lwip/tcp.h"
 #include "dhcpserver.h"
 
 #include "config.h"
@@ -52,6 +53,18 @@ static dhcp_server_t dhcp_server;
 static bool enabled_ap = false;
 static char curr_ssid[WIFI_MAX_NAME_LEN + 1] = {0};
 static char curr_pass[WIFI_MAX_PASS_LEN + 1] = {0};
+
+struct wifi_tcp_cache {
+    bool in_use;
+    bool clear; // TODO
+    ip4_addr_t ip;
+    uint16_t port;
+    struct tcp_pcb *tpcb;
+    char data[512];
+    unsigned int len;
+};
+
+static struct wifi_tcp_cache cache[4] = {0};
 
 static void wifi_ap(void) {
     cyw43_thread_enter();
@@ -224,6 +237,101 @@ const char *wifi_state(void) {
     return NULL;
 }
 
+static err_t wifi_tcp_connect(void *arg, struct tcp_pcb *tpcb, err_t err) {
+    (void)err;
+    int c = (int)arg;
+
+    err_t e = tcp_write(tpcb, cache[c].data, cache[c].len, TCP_WRITE_FLAG_COPY);
+    if (e) {
+        debug("tcp_write error %d", e);
+        cache[c].clear = true;
+        return ERR_OK;
+    }
+
+    e = tcp_output(tpcb);
+    if (e) {
+        debug("tcp_output error %d", e);
+        cache[c].clear = true;
+        return ERR_OK;
+    }
+
+    return ERR_OK;
+}
+
+static void wifi_tcp_error(void *arg, err_t err) {
+    int c = (int)arg;
+    debug("tcp err %d", err);
+    cache[c].in_use = false; // lwip already freed the tpcb
+}
+
+static err_t wifi_tcp_recv(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t err) {
+    (void)tpcb;
+    (void)err;
+    int c = (int)arg;
+    if (p == NULL) {
+        debug("remote closed conn");
+        cache[c].clear = true;
+    } else {
+        debug("tcp rx %d: %s", pbuf_clen(p), (char *)p->payload);
+        cache[c].clear = true;
+    }
+    return ERR_OK;
+}
+
+static err_t wifi_tcp_sent(void *arg, struct tcp_pcb *tpcb, u16_t len) {
+    (void)tpcb;
+    int c = (int)arg;
+    if (len == cache[c].len) {
+        debug("tcp tx success");
+        cache[c].clear = true;
+    }
+    return ERR_OK;
+}
+
+void wifi_tcp_send(const char *ip, uint16_t port, const char *packet, unsigned int len) {
+    cyw43_arch_lwip_begin();
+
+    ip4_addr_t val;
+    if (!ip4addr_aton(ip, &val)) {
+        debug("invalid IP: %s", ip);
+        cyw43_arch_lwip_end();
+        return;
+    }
+
+    int c = -1;
+    for (unsigned int i = 0; i < (sizeof(cache) / sizeof(cache[0])); i++) {
+        if (!cache[i].in_use) {
+            c = i;
+        }
+    }
+    if (c < 0) {
+        debug("no space in cache");
+        cyw43_arch_lwip_end();
+        return;
+    }
+
+    cache[c].in_use = true;
+    cache[c].clear = false;
+    cache[c].ip = val;
+    cache[c].port = port;
+    cache[c].tpcb = tcp_new();
+
+    if (len > sizeof(cache[c].data)) {
+        len = sizeof(cache[c].data);
+    }
+
+    cache[c].len = len;
+    memcpy(cache[c].data, packet, len);
+
+    tcp_arg(cache[c].tpcb, (void *)c);
+    tcp_err(cache[c].tpcb, wifi_tcp_error);
+    tcp_recv(cache[c].tpcb, wifi_tcp_recv);
+    tcp_sent(cache[c].tpcb, wifi_tcp_sent);
+    tcp_connect(cache[c].tpcb, &val, port, wifi_tcp_connect);
+
+    cyw43_arch_lwip_end();
+}
+
 void wifi_run(void) {
     cyw43_thread_enter();
 
@@ -281,6 +389,13 @@ void wifi_run(void) {
 
             // DHCP renew does not seem to help, only a full reconnect
             wifi_scan();
+        }
+    }
+
+    for (unsigned int c = 0; c < (sizeof(cache) / sizeof(cache[0])); c++) {
+        if (cache[c].in_use && cache[c].clear) {
+            tcp_close(cache[c].tpcb);
+            cache[c].in_use = false;
         }
     }
 

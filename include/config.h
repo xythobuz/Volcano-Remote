@@ -36,6 +36,10 @@
 #define AUTO_LOG_ON_MASS_STORAGE
 #endif // NDEBUG
 
+//#define INFLUXDB_HOST "IP_V4_HERE"
+//#define INFLUXDB_PORT 8086
+//#define INFLUXDB_DATABASE "db_name"
+
 #define WATCHDOG_PERIOD_MS 1000
 #define FLASH_LOCK_TIMEOUT_MS 500
 

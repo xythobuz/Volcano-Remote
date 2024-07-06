@@ -39,4 +39,6 @@ const char *wifi_state(void);
 
 void wifi_run(void);
 
+void wifi_tcp_send(const char *ip, uint16_t port, const char *packet, unsigned int len);
+
 #endif // __WIFI_H__

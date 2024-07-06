@@ -32,7 +32,7 @@
 static uint8_t log_buff[4096] = {0};
 static struct ring_buffer log_rb = RB_INIT(log_buff, sizeof(log_buff), 1);
 
-static uint8_t line_buff[256] = {0};
+static uint8_t line_buff[512] = {0};
 static volatile bool got_input = false;
 
 #ifndef PICOWOTA
