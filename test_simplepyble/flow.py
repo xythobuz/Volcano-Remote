@@ -63,9 +63,9 @@ def flow(client):
     print("Turning on heater")
     set_state(client, (True, False))
 
-    flow_step(client, 185.0, 10.0, 5.0)
-    flow_step(client, 195.0, 5.0, 20.0)
-    flow_step(client, 205.0, 5.0, 20.0)
+    flow_step(client, 185.0, 10.0, 7.0)
+    flow_step(client, 195.0, 5.0, 23.0)
+    flow_step(client, 205.0, 5.0, 23.0)
 
     print("Notification by pumping three times...")
     for i in range(0, 3):
