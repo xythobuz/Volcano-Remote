@@ -4,6 +4,23 @@ import sys
 import asyncio
 from bleak import BleakClient, BleakScanner
 from bleak.exc import BleakDBusError
+import aiohttp
+import asyncio
+
+influx_host = 'http://INFLUX_DB_IP_HERE:8086'
+influx_path = '/write?db=INFLUX_DB_NAME_HERE'
+
+cache = {}
+
+async def influx(name, value):
+    if not name in cache:
+        cache[name] = value
+    elif cache[name] == value:
+        return
+
+    data = "volcano,device=bleak " + name + "=" + str(float(value))
+    async with aiohttp.ClientSession(influx_host) as session:
+        await session.post(influx_path, data=data)
 
 async def ble_conn(address):
     attempts = 10
@@ -31,6 +48,7 @@ async def ble_conn(address):
 async def get_current_temp(client):
     val = await client.read_gatt_char("10110001-5354-4f52-5a26-4249434b454c")
     num = int.from_bytes(val, byteorder="little")
+    await influx("current", num)
     return num / 10.0
 
 async def get_target_temp(client):
@@ -40,6 +58,7 @@ async def get_target_temp(client):
 
 async def set_target_temp(client, temp):
     val = int(temp * 10.0)
+    await influx("target", val)
     d = val.to_bytes(4, byteorder="little")
     await client.write_gatt_char("10110003-5354-4f52-5a26-4249434b454c", d)
 
@@ -57,6 +76,8 @@ async def get_state(client):
 
 async def set_state(client, state):
     heater, pump = state
+    await influx("heater", heater)
+    await influx("pump", pump)
     if heater:
         await client.write_gatt_char("1011000f-5354-4f52-5a26-4249434b454c", 0)
     else:
