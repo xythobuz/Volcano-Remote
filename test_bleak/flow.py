@@ -31,9 +31,28 @@ async def sleep(t):
         print_bar(i + 1, 0, w, "s")
     print()
 
+async def ensure_target_temp(client, temp):
+    for i in range(0, 10):
+        await set_target_temp(client, temp)
+        target = await get_target_temp(client)
+        if target == temp:
+            return
+        #print("retry target temp")
+    raise Exception("could not set target temp")
+
+async def ensure_state(client, state):
+    for i in range(0, 10):
+        await set_state(client, state)
+        heater, pump = state
+        t_heater, t_pump = await get_state(client)
+        if (heater == t_heater) and (pump == t_pump):
+            return
+        #print("retry state")
+    raise Exception("could not set state")
+
 async def wait_for_temp(client, temp):
     print("Setting temperature {}".format(temp))
-    await set_target_temp(client, temp)
+    await ensure_target_temp(client, temp)
 
     print("Waiting for temperature to rise...")
     start = await get_current_temp(client)
@@ -54,13 +73,13 @@ async def flow_step(client, temp, t_wait, t_pump):
     await sleep(t_wait)
 
     print("Pumping for {}s".format(t_pump))
-    await set_state(client, (True, True)) # turn on pump
+    await ensure_state(client, (True, True)) # turn on pump
     await sleep(t_pump)
-    await set_state(client, (True, False)) # turn off pump
+    await ensure_state(client, (True, False)) # turn off pump
 
 async def flow(client):
     print("Turning on heater")
-    await set_state(client, (True, False))
+    await ensure_state(client, (True, False))
 
     await flow_step(client, 185.0, 10.0, 7.0)
     await flow_step(client, 195.0, 5.0, 23.0)
@@ -69,15 +88,15 @@ async def flow(client):
     print("Notification by pumping three times...")
     for i in range(0, 3):
         await asyncio.sleep(1.0)
-        await set_state(client, (True, True)) # turn on pump
+        await ensure_state(client, (True, True)) # turn on pump
         await asyncio.sleep(1.0)
-        await set_state(client, (True, False)) # turn off pump
+        await ensure_state(client, (True, False)) # turn off pump
 
     print("Turning heater off")
-    await set_state(client, (False, False)) # turn off heater and pump
+    await ensure_state(client, (False, False)) # turn off heater and pump
 
     print("Resetting temperature")
-    await set_target_temp(client, 190.0)
+    await ensure_target_temp(client, 190.0)
 
 async def main(address):
     device = await ble_conn(address)
@@ -93,7 +112,7 @@ async def main(address):
             await flow(client)
         except:
             print("\nTurning heater and pump off")
-            await set_state(client, (False, False)) # turn off heater and pump
+            await ensure_state(client, (False, False)) # turn off heater and pump
             raise
 
         print("Disconnecting...")
